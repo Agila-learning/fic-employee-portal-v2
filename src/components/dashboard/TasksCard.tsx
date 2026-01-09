@@ -25,9 +25,9 @@ const TasksCard = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending': return <Clock className="h-4 w-4 text-amber-500" />;
-      case 'in_progress': return <PlayCircle className="h-4 w-4 text-blue-500" />;
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'pending': return <Clock className="h-3 w-3 text-amber-500 shrink-0" />;
+      case 'in_progress': return <PlayCircle className="h-3 w-3 text-blue-500 shrink-0" />;
+      case 'completed': return <CheckCircle className="h-3 w-3 text-green-500 shrink-0" />;
       default: return null;
     }
   };
@@ -42,63 +42,65 @@ const TasksCard = () => {
 
   return (
     <Card className="border-border/50 overflow-hidden">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <ClipboardList className="h-5 w-5 text-primary" />
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-primary" />
           My Tasks
           {pendingTasks.length > 0 && (
-            <span className="ml-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+            <span className="ml-auto px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
               {pendingTasks.length}
             </span>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2">
         {myTasks.length === 0 ? (
-          <p className="text-center text-muted-foreground py-4">No tasks assigned</p>
+          <p className="text-center text-muted-foreground py-4 text-sm">No tasks assigned</p>
         ) : (
-          <ScrollArea className="h-[200px] pr-4">
-            <div className="space-y-3">
+          <ScrollArea className="h-[180px] pr-2">
+            <div className="space-y-2">
               {myTasks.map((task) => (
                 <div 
                   key={task.id} 
                   className={cn(
-                    "p-4 rounded-xl border transition-all duration-300",
+                    "p-3 rounded-lg border transition-all duration-300",
                     task.status === 'completed' 
                       ? "bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-800" 
                       : "bg-muted/30 border-border/50 hover:bg-muted/50"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(task.status)}
-                        <h4 className={cn(
-                          "font-semibold truncate",
-                          task.status === 'completed' && "line-through text-muted-foreground"
-                        )}>
-                          {task.title}
-                        </h4>
-                      </div>
+                  <div className="flex items-start gap-2">
+                    <div className="pt-0.5">{getStatusIcon(task.status)}</div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <h4 className={cn(
+                        "font-medium text-sm leading-tight",
+                        task.status === 'completed' && "line-through text-muted-foreground"
+                      )}>
+                        {task.title}
+                      </h4>
                       {task.description && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
-                      )}
-                      {task.due_date && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Due: {new Date(task.due_date).toLocaleDateString()}
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                          {task.description}
                         </p>
                       )}
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        {task.due_date && (
+                          <p className="text-xs text-muted-foreground">
+                            Due: {new Date(task.due_date).toLocaleDateString()}
+                          </p>
+                        )}
+                        {task.status !== 'completed' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateTaskStatus(task.id, getNextStatus(task.status))}
+                            className="h-6 px-2 text-xs ml-auto"
+                          >
+                            {task.status === 'pending' ? 'Start' : 'Complete'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    {task.status !== 'completed' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => updateTaskStatus(task.id, getNextStatus(task.status))}
-                        className="shrink-0"
-                      >
-                        {task.status === 'pending' ? 'Start' : 'Complete'}
-                      </Button>
-                    )}
                   </div>
                 </div>
               ))}

@@ -9,6 +9,7 @@ export interface Attendance {
   date: string;
   status: 'present' | 'absent';
   marked_at: string;
+  leave_reason?: string | null;
   user_name?: string;
 }
 
@@ -45,6 +46,7 @@ export const useAttendance = () => {
         const attendanceWithNames = data?.map(a => ({
           ...a,
           status: a.status as 'present' | 'absent',
+          leave_reason: a.leave_reason,
           user_name: profiles?.find(p => p.user_id === a.user_id)?.name || 'Unknown'
         })) || [];
 
@@ -74,7 +76,7 @@ export const useAttendance = () => {
     }
   };
 
-  const markAttendance = async (status: 'present' | 'absent') => {
+  const markAttendance = async (status: 'present' | 'absent', leaveReason?: string) => {
     if (!user) return { error: new Error('Not authenticated') };
 
     // Check if it's past 11 AM
@@ -100,10 +102,21 @@ export const useAttendance = () => {
       return { error: new Error('Already marked') };
     }
 
+    // Require leave reason for absent status
+    if (status === 'absent' && !leaveReason?.trim()) {
+      toast({ 
+        title: 'Reason Required', 
+        description: 'Please provide a reason for leave', 
+        variant: 'destructive' 
+      });
+      return { error: new Error('Leave reason required') };
+    }
+
     const { error } = await supabase.from('attendance').insert({
       user_id: user.id,
       status,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      leave_reason: status === 'absent' ? leaveReason : null
     });
 
     if (error) {

@@ -3,25 +3,25 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAttendance } from '@/hooks/useAttendance';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarCheck, CheckCircle, XCircle, Search } from 'lucide-react';
+import { CalendarCheck, CheckCircle, XCircle, Search, Download, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminAttendance = () => {
   const { attendance, loading } = useAttendance();
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [monthFilter, setMonthFilter] = useState('');
+  const { toast } = useToast();
 
   const filteredAttendance = attendance.filter(a => {
     const matchesSearch = a.user_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDate = !dateFilter || a.date === dateFilter;
-    return matchesSearch && matchesDate;
+    const matchesMonth = !monthFilter || a.date.startsWith(monthFilter);
+    return matchesSearch && matchesDate && matchesMonth;
   });
-
-  // Get unique dates for grouping
-  const uniqueDates = [...new Set(attendance.map(a => a.date))].sort((a, b) => 
-    new Date(b).getTime() - new Date(a).getTime()
-  );
 
   const getStatusBadge = (status: string) => (
     <span className={cn(
@@ -41,12 +41,76 @@ const AdminAttendance = () => {
   const presentToday = todayRecords.filter(a => a.status === 'present').length;
   const absentToday = todayRecords.filter(a => a.status === 'absent').length;
 
+  // Export to CSV
+  const exportToCSV = () => {
+    const dataToExport = filteredAttendance.length > 0 ? filteredAttendance : attendance;
+    
+    if (dataToExport.length === 0) {
+      toast({ title: 'No Data', description: 'No attendance records to export', variant: 'destructive' });
+      return;
+    }
+
+    const headers = ['Employee Name', 'Date', 'Status', 'Marked At', 'Leave Reason'];
+    const csvContent = [
+      headers.join(','),
+      ...dataToExport.map(record => [
+        `"${record.user_name || 'Unknown'}"`,
+        record.date,
+        record.status,
+        new Date(record.marked_at).toLocaleString(),
+        `"${record.leave_reason || ''}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `attendance_report_${monthFilter || dateFilter || today}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({ title: 'Success', description: 'Attendance report exported successfully' });
+  };
+
+  // Generate monthly summary
+  const getMonthlyStats = () => {
+    const month = monthFilter || new Date().toISOString().slice(0, 7);
+    const monthRecords = attendance.filter(a => a.date.startsWith(month));
+    
+    const employeeStats: { [key: string]: { name: string; present: number; absent: number } } = {};
+    
+    monthRecords.forEach(record => {
+      const name = record.user_name || 'Unknown';
+      if (!employeeStats[record.user_id]) {
+        employeeStats[record.user_id] = { name, present: 0, absent: 0 };
+      }
+      if (record.status === 'present') {
+        employeeStats[record.user_id].present++;
+      } else {
+        employeeStats[record.user_id].absent++;
+      }
+    });
+
+    return Object.values(employeeStats);
+  };
+
+  const monthlyStats = getMonthlyStats();
+
   return (
     <DashboardLayout requiredRole="admin">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Attendance Management</h1>
-          <p className="text-muted-foreground mt-1">View and track employee attendance</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Attendance Management</h1>
+            <p className="text-muted-foreground mt-1">View and track employee attendance</p>
+          </div>
+          <Button onClick={exportToCSV} className="gap-2">
+            <Download className="h-4 w-4" />
+            Export Report
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -92,6 +156,64 @@ const AdminAttendance = () => {
           </Card>
         </div>
 
+        {/* Monthly Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Monthly Summary
+            </CardTitle>
+            <div className="mt-2">
+              <Input
+                type="month"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+                className="w-auto"
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {monthlyStats.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">No data for selected month</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead className="text-center">Present Days</TableHead>
+                    <TableHead className="text-center">Absent Days</TableHead>
+                    <TableHead className="text-center">Attendance %</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {monthlyStats.map((stat, index) => {
+                    const total = stat.present + stat.absent;
+                    const percentage = total > 0 ? Math.round((stat.present / total) * 100) : 0;
+                    return (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{stat.name}</TableCell>
+                        <TableCell className="text-center text-green-600 font-semibold">{stat.present}</TableCell>
+                        <TableCell className="text-center text-red-600 font-semibold">{stat.absent}</TableCell>
+                        <TableCell className="text-center">
+                          <span className={cn(
+                            'px-2 py-1 rounded-full text-xs font-medium',
+                            percentage >= 80 ? 'bg-green-100 text-green-700' : 
+                            percentage >= 60 ? 'bg-amber-100 text-amber-700' : 
+                            'bg-red-100 text-red-700'
+                          )}>
+                            {percentage}%
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Detailed Records */}
         <Card>
           <CardHeader>
             <CardTitle>Attendance Records</CardTitle>
@@ -126,6 +248,7 @@ const AdminAttendance = () => {
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Marked At</TableHead>
+                    <TableHead>Leave Reason</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -135,6 +258,9 @@ const AdminAttendance = () => {
                       <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
                       <TableCell>{getStatusBadge(record.status)}</TableCell>
                       <TableCell>{new Date(record.marked_at).toLocaleTimeString()}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {record.leave_reason || '-'}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

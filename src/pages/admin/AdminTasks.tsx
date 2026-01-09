@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks, Task } from '@/hooks/useTasks';
 import { useEmployees } from '@/hooks/useEmployees';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,21 +10,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, Clock, PlayCircle, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Clock, PlayCircle, CheckCircle, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminTasks = () => {
-  const { tasks, loading, createTask, deleteTask } = useTasks();
+  const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
   const { employees } = useEmployees();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     assigned_to: '',
     due_date: ''
   });
+
+  useEffect(() => {
+    if (editingTask) {
+      setFormData({
+        title: editingTask.title,
+        description: editingTask.description || '',
+        assigned_to: editingTask.assigned_to,
+        due_date: editingTask.due_date ? editingTask.due_date.split('T')[0] : ''
+      });
+    } else {
+      setFormData({ title: '', description: '', assigned_to: '', due_date: '' });
+    }
+  }, [editingTask]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +48,31 @@ const AdminTasks = () => {
       return;
     }
 
-    const { error } = await createTask(formData);
-    if (!error) {
-      setOpen(false);
+    if (editingTask) {
+      const { error } = await updateTask(editingTask.id, formData);
+      if (!error) {
+        setOpen(false);
+        setEditingTask(null);
+        setFormData({ title: '', description: '', assigned_to: '', due_date: '' });
+      }
+    } else {
+      const { error } = await createTask(formData);
+      if (!error) {
+        setOpen(false);
+        setFormData({ title: '', description: '', assigned_to: '', due_date: '' });
+      }
+    }
+  };
+
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+    setOpen(true);
+  };
+
+  const handleDialogClose = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      setEditingTask(null);
       setFormData({ title: '', description: '', assigned_to: '', due_date: '' });
     }
   };
@@ -68,7 +104,7 @@ const AdminTasks = () => {
             <h1 className="text-3xl font-bold text-foreground">Task Management</h1>
             <p className="text-muted-foreground mt-1">Assign and manage tasks for employees</p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={handleDialogClose}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -77,7 +113,7 @@ const AdminTasks = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Assign New Task</DialogTitle>
+                <DialogTitle>{editingTask ? 'Edit Task' : 'Assign New Task'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -124,11 +160,11 @@ const AdminTasks = () => {
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+                  <Button type="button" variant="outline" onClick={() => handleDialogClose(false)} className="flex-1">
                     Cancel
                   </Button>
                   <Button type="submit" className="flex-1">
-                    Assign Task
+                    {editingTask ? 'Update Task' : 'Assign Task'}
                   </Button>
                 </div>
               </form>
@@ -154,7 +190,7 @@ const AdminTasks = () => {
                     <TableHead>Status</TableHead>
                     <TableHead>Due Date</TableHead>
                     <TableHead>Created</TableHead>
-                    <TableHead className="w-[80px]">Actions</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -175,14 +211,24 @@ const AdminTasks = () => {
                       </TableCell>
                       <TableCell>{new Date(task.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteTask(task.id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(task)}
+                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteTask(task.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
