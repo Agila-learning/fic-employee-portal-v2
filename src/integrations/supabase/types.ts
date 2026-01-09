@@ -45,6 +45,7 @@ export type Database = {
         Row: {
           date: string
           id: string
+          leave_reason: string | null
           marked_at: string
           status: string
           user_id: string
@@ -52,6 +53,7 @@ export type Database = {
         Insert: {
           date?: string
           id?: string
+          leave_reason?: string | null
           marked_at?: string
           status: string
           user_id: string
@@ -59,6 +61,7 @@ export type Database = {
         Update: {
           date?: string
           id?: string
+          leave_reason?: string | null
           marked_at?: string
           status?: string
           user_id?: string
@@ -244,6 +247,7 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string | null
+          email_sent: boolean | null
           id: string
           status: string
           title: string
@@ -255,6 +259,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          email_sent?: boolean | null
           id?: string
           status?: string
           title: string
@@ -266,6 +271,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          email_sent?: boolean | null
           id?: string
           status?: string
           title?: string
