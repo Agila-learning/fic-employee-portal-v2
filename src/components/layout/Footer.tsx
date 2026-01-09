@@ -1,4 +1,4 @@
-import { Building2, Mail, Globe } from 'lucide-react';
+import { Building2, Mail, Globe, Link2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 const Footer = () => {
@@ -55,6 +55,21 @@ const Footer = () => {
                   </li>
                 </ul>
               </div>
+            </div>
+
+            {/* Candidate Screening Portal */}
+            <div className="flex items-center justify-center gap-2 mb-4 sm:mb-6 py-3 px-4 rounded-lg bg-gradient-to-r from-amber-500/10 to-amber-600/10 border border-amber-500/20">
+              <Link2 className="h-4 w-4 text-amber-400" />
+              <span className="text-white/80 text-xs sm:text-sm">Candidate Screening & Tracking Portal</span>
+              <span className="text-amber-400">|</span>
+              <a 
+                href="https://job-path-guard.vercel.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-amber-400 hover:text-amber-300 transition-colors text-xs sm:text-sm font-medium"
+              >
+                🔗 https://job-path-guard.vercel.app/
+              </a>
             </div>
 
             {/* Divider */}

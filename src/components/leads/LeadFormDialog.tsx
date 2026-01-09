@@ -25,6 +25,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { Upload, MessageSquare, History, Send, Clock, Calendar, CreditCard, FileImage, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
+import ConfettiCelebration from '@/components/ui/ConfettiCelebration';
 
 interface LeadFormDialogProps {
   open: boolean;
@@ -93,6 +94,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [paymentSlipFile, setPaymentSlipFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Fetch comments and history if viewing
   const { comments, addComment, isLoading: commentsLoading } = useLeadComments(lead?.id || '');
@@ -266,9 +268,14 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
 
         const success = await updateLead(lead.id, dataToSave, lead.status);
         if (success) {
-          toast.success('Lead updated successfully');
-          onSave?.();
-          onOpenChange(false);
+          // Show celebration if full payment done
+          if (formData.payment_stage === 'full_payment_done') {
+            setShowCelebration(true);
+          } else {
+            toast.success('Lead updated successfully');
+            onSave?.();
+            onOpenChange(false);
+          }
         }
       }
     } finally {
@@ -307,14 +314,23 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
     return STATUS_OPTIONS.find(s => s.value === status)?.label || status;
   };
 
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    toast.success('Lead updated successfully');
+    onSave?.();
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            {mode === 'add' ? 'Add New Lead' : mode === 'edit' ? 'Edit Lead' : 'Lead Details'}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <ConfettiCelebration show={showCelebration} onComplete={handleCelebrationComplete} />
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {mode === 'add' ? 'Add New Lead' : mode === 'edit' ? 'Edit Lead' : 'Lead Details'}
+            </DialogTitle>
+          </DialogHeader>
 
         {(mode === 'view' || mode === 'edit') && lead ? (
           <Tabs defaultValue="details" className="flex-1 flex flex-col overflow-hidden">
@@ -468,6 +484,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
         )}
       </DialogContent>
     </Dialog>
+    </>
   );
 };
 

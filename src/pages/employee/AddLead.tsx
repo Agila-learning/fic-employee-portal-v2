@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LeadStatus, LeadSource, STATUS_OPTIONS, SOURCE_OPTIONS } from '@/types';
+import { LeadStatus, LeadSource, InterestedDomain, STATUS_OPTIONS, SOURCE_OPTIONS, INTERESTED_DOMAIN_OPTIONS } from '@/types';
 import { useLeads } from '@/hooks/useLeads';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -25,6 +25,7 @@ const AddLead = () => {
     name: '', email: '', phone: '', qualification: '', past_experience: '',
     current_ctc: '', expected_ctc: '', status: 'nc1' as LeadStatus,
     source: 'social_media' as LeadSource, notes: '', resume_url: '',
+    interested_domain: 'it' as InterestedDomain,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,9 +66,10 @@ const AddLead = () => {
                 <div className="space-y-2"><Label>Current CTC</Label><Input value={formData.current_ctc} onChange={(e) => setFormData(p => ({ ...p, current_ctc: e.target.value }))} placeholder="6 LPA" /></div>
                 <div className="space-y-2"><Label>Expected CTC</Label><Input value={formData.expected_ctc} onChange={(e) => setFormData(p => ({ ...p, expected_ctc: e.target.value }))} placeholder="10 LPA" /></div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2"><Label>Status</Label><Select value={formData.status} onValueChange={(v: LeadStatus) => setFormData(p => ({ ...p, status: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent></Select></div>
                 <div className="space-y-2"><Label>Source</Label><Select value={formData.source} onValueChange={(v: LeadSource) => setFormData(p => ({ ...p, source: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{SOURCE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent></Select></div>
+                <div className="space-y-2"><Label>Interested Domain</Label><Select value={formData.interested_domain} onValueChange={(v: InterestedDomain) => setFormData(p => ({ ...p, interested_domain: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{INTERESTED_DOMAIN_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent></Select></div>
               </div>
               <div className="space-y-2"><Label>Notes</Label><Textarea value={formData.notes} onChange={(e) => setFormData(p => ({ ...p, notes: e.target.value }))} placeholder="Additional notes..." rows={3} /></div>
               <div className="flex justify-end gap-3 pt-4">
