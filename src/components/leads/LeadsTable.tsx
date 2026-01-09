@@ -81,32 +81,35 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps)
       const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
       const matchesSource = sourceFilter === 'all' || lead.source === sourceFilter;
       
-      // Date filter for success leads
+      // Date filter for success leads - only apply when success date filter is selected
       let matchesSuccessDate = true;
-      if (successDateFilter !== 'all' && lead.status === 'success') {
-        const threshold = getDateThreshold(successDateFilter);
-        if (threshold) {
-          const leadDate = parseISO(lead.updated_at);
-          matchesSuccessDate = isAfter(leadDate, threshold);
-        }
-      } else if (successDateFilter !== 'all' && lead.status !== 'success') {
-        // If filtering success by date, only show success leads
-        if (statusFilter === 'success') {
+      if (successDateFilter !== 'all') {
+        // Only show success leads that match the date filter
+        if (lead.status === 'success') {
+          const threshold = getDateThreshold(successDateFilter);
+          if (threshold) {
+            const leadDate = parseISO(lead.updated_at);
+            matchesSuccessDate = isAfter(leadDate, threshold);
+          }
+        } else {
+          // Hide non-success leads when filtering by success date
           matchesSuccessDate = false;
         }
       }
 
-      // Date filter for rejected leads
+      // Date filter for rejected leads - only apply when rejected date filter is selected
+      const rejectedStatuses = ['rejected', 'not_interested', 'not_interested_paid', 'different_domain'];
       let matchesRejectedDate = true;
-      if (rejectedDateFilter !== 'all' && (lead.status === 'rejected' || lead.status === 'not_interested' || lead.status === 'not_interested_paid' || lead.status === 'different_domain')) {
-        const threshold = getDateThreshold(rejectedDateFilter);
-        if (threshold) {
-          const leadDate = parseISO(lead.updated_at);
-          matchesRejectedDate = isAfter(leadDate, threshold);
-        }
-      } else if (rejectedDateFilter !== 'all' && !['rejected', 'not_interested', 'not_interested_paid', 'different_domain'].includes(lead.status)) {
-        // If filtering rejected by date, only show rejected leads
-        if (statusFilter === 'rejected' || statusFilter === 'not_interested' || statusFilter === 'not_interested_paid' || statusFilter === 'different_domain') {
+      if (rejectedDateFilter !== 'all') {
+        // Only show rejected leads that match the date filter
+        if (rejectedStatuses.includes(lead.status)) {
+          const threshold = getDateThreshold(rejectedDateFilter);
+          if (threshold) {
+            const leadDate = parseISO(lead.updated_at);
+            matchesRejectedDate = isAfter(leadDate, threshold);
+          }
+        } else {
+          // Hide non-rejected leads when filtering by rejected date
           matchesRejectedDate = false;
         }
       }

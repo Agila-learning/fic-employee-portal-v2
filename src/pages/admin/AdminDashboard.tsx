@@ -5,7 +5,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import LeadFormDialog from '@/components/leads/LeadFormDialog';
-import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight } from 'lucide-react';
+import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { STATUS_OPTIONS, Lead } from '@/types';
@@ -21,9 +21,15 @@ const AdminDashboard = () => {
   const activeEmployees = employees.filter(e => e.is_active).length;
   const totalLeads = leads.length;
   const convertedLeads = leads.filter(l => l.status === 'converted').length;
+  const successLeads = leads.filter(l => l.status === 'success').length;
   const pendingLeads = leads.filter(l => ['nc1', 'nc2', 'nc3', 'follow_up'].includes(l.status)).length;
+  
+  // Payment stage counts
+  const registrationDone = leads.filter(l => l.payment_stage === 'registration_done').length;
+  const initialPaymentDone = leads.filter(l => l.payment_stage === 'initial_payment_done').length;
+  const fullPaymentDone = leads.filter(l => l.payment_stage === 'full_payment_done').length;
 
-  const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
+  const conversionRate = totalLeads > 0 ? Math.round(((convertedLeads + successLeads) / totalLeads) * 100) : 0;
 
   const statusDistribution = STATUS_OPTIONS.map(status => ({
     ...status,
@@ -32,7 +38,7 @@ const AdminDashboard = () => {
 
   const employeePerformance = employees.map(emp => ({
     ...emp,
-    converted: leads.filter(l => l.assigned_to === emp.user_id && l.status === 'converted').length,
+    converted: leads.filter(l => l.assigned_to === emp.user_id && (l.status === 'converted' || l.status === 'success')).length,
     total: leads.filter(l => l.assigned_to === emp.user_id).length
   })).sort((a, b) => b.converted - a.converted).slice(0, 5);
 
@@ -53,7 +59,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards with staggered animation */}
-        <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-5">
           <StatsCard 
             title="Total Employees" 
             value={employees.length} 
@@ -73,6 +79,13 @@ const AdminDashboard = () => {
             value={totalLeads} 
             icon={FileSpreadsheet} 
             iconClassName="bg-gradient-to-br from-purple-500 to-purple-600"
+            delay={150}
+          />
+          <StatsCard 
+            title="Success" 
+            value={successLeads} 
+            icon={Trophy} 
+            iconClassName="bg-gradient-to-br from-green-500 to-green-600"
             delay={200}
           />
           <StatsCard 
@@ -80,10 +93,55 @@ const AdminDashboard = () => {
             value={`${conversionRate}%`} 
             icon={TrendingUp} 
             trend={{ value: conversionRate, isPositive: conversionRate > 0 }}
-            iconClassName="bg-gradient-to-br from-green-500 to-green-600"
+            iconClassName="bg-gradient-to-br from-teal-500 to-teal-600"
             delay={300}
           />
         </div>
+
+        {/* Payment Stage Stats */}
+        {(registrationDone > 0 || initialPaymentDone > 0 || fullPaymentDone > 0) && (
+          <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-3 animate-fade-in">
+            <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/10">
+                    <CreditCard className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Registration Done</p>
+                    <p className="text-xl font-bold text-blue-700 dark:text-blue-300">{registrationDone}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10">
+                    <CreditCard className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Initial Payment</p>
+                    <p className="text-xl font-bold text-amber-700 dark:text-amber-300">{initialPaymentDone}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <CreditCard className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-600 dark:text-green-400 font-medium">Full Payment</p>
+                    <p className="text-xl font-bold text-green-700 dark:text-green-300">{fullPaymentDone}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid gap-6 lg:grid-cols-2">
