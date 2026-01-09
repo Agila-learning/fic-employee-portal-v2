@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Lead, STATUS_OPTIONS, SOURCE_OPTIONS } from '@/types';
 import { useLeads } from '@/hooks/useLeads';
 import {
@@ -26,8 +26,9 @@ import { Button } from '@/components/ui/button';
 import LeadStatusBadge from './LeadStatusBadge';
 import LeadFormDialog from './LeadFormDialog';
 import TypewriterPlaceholder from '@/components/ui/TypewriterPlaceholder';
-import { MoreHorizontal, Pencil, Trash2, Eye, Download, Filter, Search } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, Eye, Download, Filter, Search, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
+import { startOfDay, startOfWeek, startOfMonth, isAfter, parseISO } from 'date-fns';
 
 const SEARCH_PLACEHOLDERS = [
   'Search by name...',
@@ -43,26 +44,76 @@ interface LeadsTableProps {
   onRefresh?: () => void;
 }
 
+type DateFilterType = 'all' | 'today' | 'this_week' | 'this_month';
+
 const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps) => {
   const { deleteLead } = useLeads();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [successDateFilter, setSuccessDateFilter] = useState<DateFilterType>('all');
+  const [rejectedDateFilter, setRejectedDateFilter] = useState<DateFilterType>('all');
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
 
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = 
-      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.candidate_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.phone.includes(searchTerm);
-    
-    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    const matchesSource = sourceFilter === 'all' || lead.source === sourceFilter;
-    
-    return matchesSearch && matchesStatus && matchesSource;
-  });
+  const getDateThreshold = (filter: DateFilterType): Date | null => {
+    const now = new Date();
+    switch (filter) {
+      case 'today':
+        return startOfDay(now);
+      case 'this_week':
+        return startOfWeek(now, { weekStartsOn: 1 });
+      case 'this_month':
+        return startOfMonth(now);
+      default:
+        return null;
+    }
+  };
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter(lead => {
+      const matchesSearch = 
+        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.candidate_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.phone.includes(searchTerm);
+      
+      const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
+      const matchesSource = sourceFilter === 'all' || lead.source === sourceFilter;
+      
+      // Date filter for success leads
+      let matchesSuccessDate = true;
+      if (successDateFilter !== 'all' && lead.status === 'success') {
+        const threshold = getDateThreshold(successDateFilter);
+        if (threshold) {
+          const leadDate = parseISO(lead.updated_at);
+          matchesSuccessDate = isAfter(leadDate, threshold);
+        }
+      } else if (successDateFilter !== 'all' && lead.status !== 'success') {
+        // If filtering success by date, only show success leads
+        if (statusFilter === 'success') {
+          matchesSuccessDate = false;
+        }
+      }
+
+      // Date filter for rejected leads
+      let matchesRejectedDate = true;
+      if (rejectedDateFilter !== 'all' && (lead.status === 'rejected' || lead.status === 'not_interested' || lead.status === 'not_interested_paid' || lead.status === 'different_domain')) {
+        const threshold = getDateThreshold(rejectedDateFilter);
+        if (threshold) {
+          const leadDate = parseISO(lead.updated_at);
+          matchesRejectedDate = isAfter(leadDate, threshold);
+        }
+      } else if (rejectedDateFilter !== 'all' && !['rejected', 'not_interested', 'not_interested_paid', 'different_domain'].includes(lead.status)) {
+        // If filtering rejected by date, only show rejected leads
+        if (statusFilter === 'rejected' || statusFilter === 'not_interested' || statusFilter === 'not_interested_paid' || statusFilter === 'different_domain') {
+          matchesRejectedDate = false;
+        }
+      }
+      
+      return matchesSearch && matchesStatus && matchesSource && matchesSuccessDate && matchesRejectedDate;
+    });
+  }, [leads, searchTerm, statusFilter, sourceFilter, successDateFilter, rejectedDateFilter]);
 
   const handleDelete = async (id: string) => {
     const success = await deleteLead(id);
@@ -73,7 +124,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps)
   };
 
   const exportToExcel = () => {
-    const headers = ['Candidate ID', 'Name', 'Email', 'Phone', 'Qualification', 'Experience', 'Current CTC', 'Expected CTC', 'Status', 'Source'];
+    const headers = ['Candidate ID', 'Name', 'Email', 'Phone', 'Qualification', 'Experience', 'Current CTC', 'Expected CTC', 'Status', 'Payment Stage', 'Source'];
     const csvContent = [
       headers.join(','),
       ...filteredLeads.map(lead => [
@@ -86,6 +137,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps)
         lead.current_ctc || '',
         lead.expected_ctc || '',
         STATUS_OPTIONS.find(s => s.value === lead.status)?.label || lead.status,
+        lead.payment_stage || '',
         SOURCE_OPTIONS.find(s => s.value === lead.source)?.label || lead.source,
       ].join(','))
     ].join('\n');
@@ -97,6 +149,10 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps)
     link.click();
     toast.success('Leads exported successfully');
   };
+
+  // Count success and rejected leads
+  const successCount = leads.filter(l => l.status === 'success').length;
+  const rejectedCount = leads.filter(l => ['rejected', 'not_interested', 'not_interested_paid', 'different_domain'].includes(l.status)).length;
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -146,6 +202,39 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps)
             <Download className="h-4 w-4" />
             Export
           </Button>
+        </div>
+
+        {/* Date Filters for Success and Rejected */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2 border-t border-border/50">
+          <div className="flex items-center gap-2 flex-1">
+            <CalendarDays className="h-4 w-4 text-green-600 hidden sm:block" />
+            <Select value={successDateFilter} onValueChange={(v) => setSuccessDateFilter(v as DateFilterType)}>
+              <SelectTrigger className="w-full sm:w-[180px] transition-all duration-300 hover:border-green-500/50 border-green-200 dark:border-green-900">
+                <SelectValue placeholder="Success by date" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Success ({successCount})</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="this_week">This Week</SelectItem>
+                <SelectItem value="this_month">This Month</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2 flex-1">
+            <CalendarDays className="h-4 w-4 text-red-600 hidden sm:block" />
+            <Select value={rejectedDateFilter} onValueChange={(v) => setRejectedDateFilter(v as DateFilterType)}>
+              <SelectTrigger className="w-full sm:w-[180px] transition-all duration-300 hover:border-red-500/50 border-red-200 dark:border-red-900">
+                <SelectValue placeholder="Rejected by date" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Rejected ({rejectedCount})</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="this_week">This Week</SelectItem>
+                <SelectItem value="this_month">This Month</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -214,7 +303,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps)
                     </div>
                   </TableCell>
                   <TableCell>
-                    <LeadStatusBadge status={lead.status} />
+                    <LeadStatusBadge status={lead.status} paymentStage={lead.payment_stage} />
                   </TableCell>
                   <TableCell className="text-sm">
                     {SOURCE_OPTIONS.find(s => s.value === lead.source)?.label}

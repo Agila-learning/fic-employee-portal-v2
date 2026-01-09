@@ -153,6 +153,7 @@ export type Database = {
           notes: string | null
           past_experience: string | null
           payment_slip_url: string | null
+          payment_stage: Database["public"]["Enums"]["payment_stage"] | null
           phone: string
           qualification: string | null
           resume_url: string | null
@@ -174,6 +175,7 @@ export type Database = {
           notes?: string | null
           past_experience?: string | null
           payment_slip_url?: string | null
+          payment_stage?: Database["public"]["Enums"]["payment_stage"] | null
           phone: string
           qualification?: string | null
           resume_url?: string | null
@@ -195,6 +197,7 @@ export type Database = {
           notes?: string | null
           past_experience?: string | null
           payment_slip_url?: string | null
+          payment_stage?: Database["public"]["Enums"]["payment_stage"] | null
           phone?: string
           qualification?: string | null
           resume_url?: string | null
@@ -335,6 +338,10 @@ export type Database = {
         | "converted"
         | "follow_up"
         | "success"
+      payment_stage:
+        | "registration_done"
+        | "initial_payment_done"
+        | "full_payment_done"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -483,6 +490,11 @@ export const Constants = {
         "converted",
         "follow_up",
         "success",
+      ],
+      payment_stage: [
+        "registration_done",
+        "initial_payment_done",
+        "full_payment_done",
       ],
     },
   },
