@@ -55,6 +55,7 @@ export const useLeads = () => {
           resume_url: leadData.resume_url,
           followup_date: leadData.followup_date,
           payment_slip_url: leadData.payment_slip_url,
+          payment_stage: leadData.payment_stage,
           assigned_to: user.id,
           created_by: user.id,
         })

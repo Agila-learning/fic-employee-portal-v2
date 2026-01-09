@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lead, LeadStatus, LeadSource, STATUS_OPTIONS, SOURCE_OPTIONS } from '@/types';
+import { Lead, LeadStatus, LeadSource, PaymentStage, STATUS_OPTIONS, SOURCE_OPTIONS, PAYMENT_STAGE_OPTIONS } from '@/types';
 import { useLeads, useLeadComments, useLeadStatusHistory } from '@/hooks/useLeads';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Upload, MessageSquare, History, Send, Clock, Calendar, CreditCard, FileImage, AlertCircle } from 'lucide-react';
+import { Upload, MessageSquare, History, Send, Clock, Calendar, CreditCard, FileImage, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface LeadFormDialogProps {
@@ -81,6 +81,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
     resume_url: '',
     followup_date: '',
     payment_slip_url: '',
+    payment_stage: null as PaymentStage | null,
   });
 
   const [newComment, setNewComment] = useState('');
@@ -113,6 +114,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
         resume_url: lead.resume_url || '',
         followup_date: lead.followup_date ? format(new Date(lead.followup_date), "yyyy-MM-dd'T'HH:mm") : '',
         payment_slip_url: lead.payment_slip_url || '',
+        payment_stage: lead.payment_stage || null,
       });
       setPreviousStatus(lead.status);
     } else {
@@ -133,6 +135,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
           resume_url: '',
           followup_date: '',
           payment_slip_url: '',
+          payment_stage: null,
         });
       });
       setPreviousStatus(null);
@@ -151,6 +154,13 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
       setShowRejectionWarning(false);
     }
   }, [formData.status, previousStatus]);
+
+  // Auto-set status to success when full payment is done
+  useEffect(() => {
+    if (formData.payment_stage === 'full_payment_done' && formData.status === 'converted') {
+      setFormData(prev => ({ ...prev, status: 'success' }));
+    }
+  }, [formData.payment_stage, formData.status]);
 
   const uploadFile = async (file: File, bucket: string): Promise<string | null> => {
     try {
@@ -184,9 +194,16 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
       return;
     }
 
-    // Check if success status requires payment slip
-    if (formData.status === 'success' && !formData.payment_slip_url && !paymentSlipFile) {
-      toast.error('Payment slip/screenshot is required for Success status');
+    // Check if converted status requires payment stage
+    if (formData.status === 'converted' && !formData.payment_stage) {
+      toast.error('Please select a payment stage for Converted status');
+      return;
+    }
+
+    // Check if payment stage (initial or full) requires payment slip
+    if ((formData.payment_stage === 'initial_payment_done' || formData.payment_stage === 'full_payment_done') && 
+        !formData.payment_slip_url && !paymentSlipFile) {
+      toast.error('Payment slip/screenshot is required for payment stages');
       return;
     }
 
@@ -217,8 +234,15 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
         if (uploadedUrl) paymentSlipUrl = uploadedUrl;
       }
 
+      // Auto-upgrade to success if full payment done
+      let finalStatus = formData.status;
+      if (formData.payment_stage === 'full_payment_done') {
+        finalStatus = 'success';
+      }
+
       const dataToSave = {
         ...formData,
+        status: finalStatus,
         resume_url: resumeUrl,
         payment_slip_url: paymentSlipUrl,
         followup_date: formData.followup_date ? new Date(formData.followup_date).toISOString() : null,
@@ -603,14 +627,21 @@ const LeadForm = ({
         <Label>Lead Status</Label>
         <Select
           value={formData.status}
-          onValueChange={(value: LeadStatus) => setFormData((prev: any) => ({ ...prev, status: value }))}
-          disabled={isViewMode}
+          onValueChange={(value: LeadStatus) => {
+            setFormData((prev: any) => ({ 
+              ...prev, 
+              status: value,
+              // Reset payment stage when changing away from converted
+              payment_stage: value === 'converted' || value === 'success' ? prev.payment_stage : null 
+            }));
+          }}
+          disabled={isViewMode || formData.status === 'success'}
         >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_OPTIONS.map(option => (
+            {STATUS_OPTIONS.filter(opt => opt.value !== 'success').map(option => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -638,6 +669,42 @@ const LeadForm = ({
         </Select>
       </div>
     </div>
+
+    {/* Payment Stage - Show when status is converted or success */}
+    {(formData.status === 'converted' || formData.status === 'success') && (
+      <div className="space-y-3 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900">
+        <Label className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+          <CheckCircle2 className="h-4 w-4" />
+          Payment Stage <span className="text-red-500">*</span>
+        </Label>
+        <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-2">
+          Select the current payment stage. Full payment will automatically mark as Success.
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {PAYMENT_STAGE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              disabled={isViewMode}
+              onClick={() => setFormData((prev: any) => ({ ...prev, payment_stage: option.value }))}
+              className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                formData.payment_stage === option.value
+                  ? 'border-emerald-500 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300'
+                  : 'border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 text-emerald-600 dark:text-emerald-400'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        {formData.payment_stage === 'full_payment_done' && (
+          <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-2 flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3" />
+            This lead will be marked as Success upon saving.
+          </p>
+        )}
+      </div>
+    )}
 
     {/* Follow-up Date - Show when status is follow_up */}
     {(formData.status === 'follow_up' || formData.followup_date) && (
@@ -715,15 +782,15 @@ const LeadForm = ({
       )}
     </div>
 
-    {/* Payment Slip Upload - Required for success status */}
-    {(formData.status === 'success' || formData.payment_slip_url) && (
+    {/* Payment Slip Upload - Required for payment stages */}
+    {(formData.payment_stage === 'initial_payment_done' || formData.payment_stage === 'full_payment_done' || formData.payment_slip_url) && (
       <div className="space-y-2 p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
         <Label className="flex items-center gap-2 text-green-700 dark:text-green-400">
           <CreditCard className="h-4 w-4" />
-          Payment Slip / Screenshot {formData.status === 'success' && <span className="text-red-500">*</span>}
+          Payment Slip / Screenshot <span className="text-red-500">*</span>
         </Label>
         <p className="text-xs text-green-600 dark:text-green-400 mb-2">
-          Upload payment proof for future reference (required for Success status)
+          Upload payment proof for future reference (required for payment stages)
         </p>
         {!isViewMode ? (
           <div className="flex items-center gap-4">
