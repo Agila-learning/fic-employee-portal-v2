@@ -663,7 +663,7 @@ const LeadForm = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {STATUS_OPTIONS.filter(opt => opt.value !== 'success').map(option => (
+            {STATUS_OPTIONS.map(option => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
