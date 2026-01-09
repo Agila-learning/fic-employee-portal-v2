@@ -74,6 +74,27 @@ export const useTasks = () => {
     return { error: null };
   };
 
+  const updateTask = async (taskId: string, updates: { title?: string; description?: string; assigned_to?: string; due_date?: string }) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({
+        title: updates.title,
+        description: updates.description,
+        assigned_to: updates.assigned_to,
+        due_date: updates.due_date
+      })
+      .eq('id', taskId);
+
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return { error };
+    }
+
+    toast({ title: 'Success', description: 'Task updated successfully' });
+    fetchTasks();
+    return { error: null };
+  };
+
   const updateTaskStatus = async (taskId: string, status: 'pending' | 'in_progress' | 'completed') => {
     const { error } = await supabase
       .from('tasks')
@@ -107,5 +128,5 @@ export const useTasks = () => {
     if (user) fetchTasks();
   }, [user]);
 
-  return { tasks, loading, fetchTasks, createTask, updateTaskStatus, deleteTask };
+  return { tasks, loading, fetchTasks, createTask, updateTask, updateTaskStatus, deleteTask };
 };

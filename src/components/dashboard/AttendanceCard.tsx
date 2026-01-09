@@ -1,13 +1,23 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { useAttendance } from '@/hooks/useAttendance';
 import { CheckCircle, XCircle, Clock, CalendarCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 const AttendanceCard = () => {
   const { todayAttendance, markAttendance, canMarkAttendance, loading } = useAttendance();
   const [marking, setMarking] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [leaveReason, setLeaveReason] = useState('');
 
   const now = new Date();
   const cutoffHour = 11;
@@ -16,10 +26,19 @@ const AttendanceCard = () => {
     ? `${cutoffHour - now.getHours() - 1}h ${60 - now.getMinutes()}m remaining`
     : 'Time exceeded';
 
-  const handleMarkAttendance = async (status: 'present' | 'absent') => {
+  const handleMarkPresent = async () => {
     setMarking(true);
-    await markAttendance(status);
+    await markAttendance('present');
     setMarking(false);
+  };
+
+  const handleMarkAbsent = async () => {
+    if (!leaveReason.trim()) return;
+    setMarking(true);
+    await markAttendance('absent', leaveReason);
+    setMarking(false);
+    setShowLeaveDialog(false);
+    setLeaveReason('');
   };
 
   if (loading) {
@@ -33,75 +52,115 @@ const AttendanceCard = () => {
   }
 
   return (
-    <Card className={cn(
-      "border-border/50 overflow-hidden transition-all duration-300",
-      todayAttendance?.status === 'present' && "border-green-500/50 bg-gradient-to-br from-green-50/50 to-emerald-50/30 dark:from-green-950/20 dark:to-emerald-950/10",
-      todayAttendance?.status === 'absent' && "border-red-500/50 bg-gradient-to-br from-red-50/50 to-rose-50/30 dark:from-red-950/20 dark:to-rose-950/10"
-    )}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <CalendarCheck className="h-5 w-5 text-primary" />
-          Today's Attendance
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {todayAttendance ? (
-          <div className="flex items-center gap-4">
-            <div className={cn(
-              "flex h-14 w-14 items-center justify-center rounded-full",
-              todayAttendance.status === 'present' 
-                ? "bg-green-500/20 text-green-600 dark:text-green-400" 
-                : "bg-red-500/20 text-red-600 dark:text-red-400"
-            )}>
-              {todayAttendance.status === 'present' 
-                ? <CheckCircle className="h-7 w-7" /> 
-                : <XCircle className="h-7 w-7" />
-              }
+    <>
+      <Card className={cn(
+        "border-border/50 overflow-hidden transition-all duration-300",
+        todayAttendance?.status === 'present' && "border-green-500/50 bg-gradient-to-br from-green-50/50 to-emerald-50/30 dark:from-green-950/20 dark:to-emerald-950/10",
+        todayAttendance?.status === 'absent' && "border-red-500/50 bg-gradient-to-br from-red-50/50 to-rose-50/30 dark:from-red-950/20 dark:to-rose-950/10"
+      )}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <CalendarCheck className="h-4 w-4 text-primary" />
+            Today's Attendance
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-2">
+          {todayAttendance ? (
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-full shrink-0",
+                todayAttendance.status === 'present' 
+                  ? "bg-green-500/20 text-green-600 dark:text-green-400" 
+                  : "bg-red-500/20 text-red-600 dark:text-red-400"
+              )}>
+                {todayAttendance.status === 'present' 
+                  ? <CheckCircle className="h-5 w-5" /> 
+                  : <XCircle className="h-5 w-5" />
+                }
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold capitalize">
+                  {todayAttendance.status === 'present' ? 'Present' : 'On Leave'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Marked at {new Date(todayAttendance.marked_at).toLocaleTimeString()}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold capitalize text-lg">
-                {todayAttendance.status === 'present' ? 'Present' : 'Absent'}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Marked at {new Date(todayAttendance.marked_at).toLocaleTimeString()}
-              </p>
+          ) : isBeforeCutoff ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>{timeRemaining}</span>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleMarkPresent}
+                  disabled={marking}
+                  size="sm"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 gap-1 text-xs"
+                >
+                  <CheckCircle className="h-3 w-3" />
+                  Present
+                </Button>
+                <Button 
+                  onClick={() => setShowLeaveDialog(true)}
+                  disabled={marking}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 border-red-500/50 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 gap-1 text-xs"
+                >
+                  <XCircle className="h-3 w-3" />
+                  Leave
+                </Button>
+              </div>
             </div>
-          </div>
-        ) : isBeforeCutoff ? (
+          ) : (
+            <div className="text-center py-2">
+              <XCircle className="h-8 w-8 mx-auto text-muted-foreground mb-1" />
+              <p className="text-sm text-muted-foreground">Window closed</p>
+              <p className="text-xs text-muted-foreground">Mark before 11:00 AM</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Leave Reason</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>{timeRemaining}</span>
+            <div className="space-y-2">
+              <Label htmlFor="leave-reason">Please provide a reason for your leave *</Label>
+              <Textarea
+                id="leave-reason"
+                value={leaveReason}
+                onChange={(e) => setLeaveReason(e.target.value)}
+                placeholder="Enter your leave reason..."
+                rows={3}
+              />
             </div>
             <div className="flex gap-3">
               <Button 
-                onClick={() => handleMarkAttendance('present')}
-                disabled={marking}
-                className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 gap-2"
+                variant="outline" 
+                onClick={() => setShowLeaveDialog(false)} 
+                className="flex-1"
               >
-                <CheckCircle className="h-4 w-4" />
-                Present
+                Cancel
               </Button>
               <Button 
-                onClick={() => handleMarkAttendance('absent')}
-                disabled={marking}
-                variant="outline"
-                className="flex-1 border-red-500/50 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 gap-2"
+                onClick={handleMarkAbsent}
+                disabled={marking || !leaveReason.trim()}
+                className="flex-1 bg-red-500 hover:bg-red-600"
               >
-                <XCircle className="h-4 w-4" />
-                Absent
+                {marking ? 'Marking...' : 'Confirm Leave'}
               </Button>
             </div>
           </div>
-        ) : (
-          <div className="text-center py-4">
-            <XCircle className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Attendance window closed</p>
-            <p className="text-xs text-muted-foreground mt-1">Mark attendance before 11:00 AM</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

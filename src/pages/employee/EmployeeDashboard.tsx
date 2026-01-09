@@ -8,6 +8,7 @@ import LeadFormDialog from '@/components/leads/LeadFormDialog';
 import AttendanceCard from '@/components/dashboard/AttendanceCard';
 import AnnouncementsCard from '@/components/dashboard/AnnouncementsCard';
 import TasksCard from '@/components/dashboard/TasksCard';
+import AnnouncementNotification from '@/components/dashboard/AnnouncementNotification';
 import { FileSpreadsheet, CheckCircle, Clock, XCircle, Plus, Bell, ArrowRight, TrendingUp, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,7 @@ const EmployeeDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <AnnouncementNotification />
               <FollowupNotifications leads={myLeads} onViewLead={(lead) => setViewingLead(lead)} />
               <Link to="/employee/add-lead">
                 <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 gap-2 shadow-lg shadow-amber-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105">
