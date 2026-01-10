@@ -330,7 +330,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
     <>
       <ConfettiCelebration show={showCelebration} onComplete={handleCelebrationComplete} />
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] w-[95vw] sm:w-full overflow-hidden flex flex-col p-4 sm:p-6">
+        <DialogContent className="max-w-3xl max-h-[95vh] w-[95vw] sm:w-full overflow-hidden flex flex-col p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {mode === 'add' ? 'Add New Lead' : mode === 'edit' ? 'Edit Lead' : 'Lead Details'}
@@ -351,8 +351,8 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="details" className="flex-1 overflow-auto">
-              <ScrollArea className="h-[60vh] pr-4">
+            <TabsContent value="details" className="flex-1 overflow-auto mt-2">
+              <ScrollArea className="h-[55vh] sm:h-[60vh] pr-2 sm:pr-4">
                 <LeadForm
                   formData={formData}
                   setFormData={setFormData}
@@ -532,7 +532,7 @@ const LeadForm = ({
   setRejectionReason,
   lead
 }: LeadFormProps) => (
-  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-2 sm:py-4">
+  <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6 py-2 sm:py-4">
     {/* Lead Created Info */}
     {lead && (
       <div className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50 text-xs sm:text-sm">
@@ -774,20 +774,43 @@ const LeadForm = ({
     {/* Follow-up Date - Show when status is follow_up (hide for success/full_payment_done) */}
     {formData.status === 'follow_up' && formData.payment_stage !== 'full_payment_done' && formData.status !== 'success' && (
       <div className="space-y-2 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900">
-        <Label htmlFor="followup_date" className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
-          <Calendar className="h-4 w-4" />
-          Follow-up Date & Time <span className="text-red-500">*</span>
+        <Label htmlFor="followup_date" className="flex items-center justify-between gap-2 text-amber-700 dark:text-amber-400">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Follow-up Date & Time <span className="text-red-500">*</span>
+          </div>
+          {lead && (
+            <div className="flex items-center gap-1 text-xs">
+              <span className={`font-medium ${(lead.followup_count || 0) >= 6 ? 'text-red-600' : 'text-amber-600'}`}>
+                Attempts: {lead.followup_count || 0}/6
+              </span>
+              <div className="flex gap-0.5 ml-1">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1.5 h-1.5 rounded-full ${i < (lead.followup_count || 0) ? 'bg-amber-500' : 'bg-amber-200 dark:bg-amber-800'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </Label>
+        {lead && (lead.followup_count || 0) >= 6 && (
+          <div className="p-2 rounded bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-400 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Maximum follow-up attempts reached. Please convert or reject this lead.
+          </div>
+        )}
         <Input
           id="followup_date"
           type="datetime-local"
           value={formData.followup_date}
           onChange={(e) => setFormData((prev: any) => ({ ...prev, followup_date: e.target.value }))}
-          disabled={isViewMode}
+          disabled={isViewMode || (lead && (lead.followup_count || 0) >= 6)}
           className="bg-white dark:bg-slate-800"
         />
         <p className="text-xs text-amber-600 dark:text-amber-400">
-          You will be notified on this date to follow up with the candidate.
+          You will be notified on this date to follow up with the candidate. {lead && `(${6 - (lead.followup_count || 0)} changes remaining)`}
         </p>
       </div>
     )}
