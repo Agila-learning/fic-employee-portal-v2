@@ -36,16 +36,17 @@ const AdminAnnouncements = () => {
   return (
     <DashboardLayout requiredRole="admin">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Announcements</h1>
-            <p className="text-muted-foreground mt-1">Post announcements for all employees</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Announcements</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Post announcements for all employees</p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 w-full sm:w-auto text-sm">
                 <Plus className="h-4 w-4" />
-                New Announcement
+                <span className="hidden sm:inline">New Announcement</span>
+                <span className="sm:hidden">New</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
