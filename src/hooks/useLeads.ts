@@ -82,10 +82,23 @@ export const useLeads = () => {
     }
   };
 
-  const updateLead = async (id: string, updates: Partial<Lead>, oldStatus?: LeadStatus) => {
+  const updateLead = async (id: string, updates: Partial<Lead>, oldStatus?: LeadStatus, incrementFollowup?: boolean) => {
     if (!user) return false;
 
     try {
+      // If incrementing followup, first get current lead to check count
+      if (incrementFollowup) {
+        const currentLead = leads.find(l => l.id === id);
+        const currentCount = currentLead?.followup_count || 0;
+        
+        if (currentCount >= 6) {
+          toast.error('Maximum follow-up attempts (6) reached. Please reject or convert this lead.');
+          return false;
+        }
+        
+        updates.followup_count = currentCount + 1;
+      }
+
       const { data, error } = await supabase
         .from('leads')
         .update(updates)

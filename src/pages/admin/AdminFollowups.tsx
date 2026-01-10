@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ const AdminFollowups = () => {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [employeeNames, setEmployeeNames] = useState<Record<string, string>>({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch employee names
   useEffect(() => {
@@ -38,6 +39,12 @@ const AdminFollowups = () => {
     };
     fetchEmployeeNames();
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetchLeads();
+    setIsRefreshing(false);
+  }, [refetchLeads]);
 
   // Filter leads that have follow_up status
   const followupLeads = useMemo(() => {
@@ -153,9 +160,9 @@ const AdminFollowups = () => {
             </h1>
             <p className="text-muted-foreground">Monitor all employee follow-up activities</p>
           </div>
-          <Button onClick={() => refetchLeads()} variant="outline" className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
+          <Button onClick={handleRefresh} variant="outline" className="gap-2" disabled={isRefreshing}>
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>
 
@@ -345,7 +352,7 @@ const AdminFollowups = () => {
         onOpenChange={setDialogOpen}
         lead={selectedLead || undefined}
         mode="view"
-        onSave={refetchLeads}
+        onSave={handleRefresh}
       />
     </DashboardLayout>
   );

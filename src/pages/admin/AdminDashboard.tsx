@@ -5,6 +5,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import LeadFormDialog from '@/components/leads/LeadFormDialog';
+import FAQSection from '@/components/dashboard/FAQSection';
 import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -323,6 +324,9 @@ const AdminDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* FAQ Section */}
+        <FAQSection />
       </div>
 
       {/* View Lead Dialog */}
