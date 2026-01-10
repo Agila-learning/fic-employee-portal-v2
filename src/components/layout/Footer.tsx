@@ -1,5 +1,6 @@
-import { Building2, Mail, Globe, Link2 } from 'lucide-react';
+import { Building2, Mail, Globe, Link2, LayoutDashboard, FileSpreadsheet, UserPlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -30,13 +31,22 @@ const Footer = () => {
                 <h4 className="font-semibold text-white text-sm sm:text-base">Quick Links</h4>
                 <ul className="space-y-2 text-xs sm:text-sm">
                   <li>
-                    <a href="/employee" className="text-white/60 hover:text-amber-400 transition-colors cursor-pointer">Dashboard</a>
+                    <Link to="/employee" className="flex items-center gap-2 text-white/60 hover:text-amber-400 transition-all duration-300 hover:translate-x-1 group">
+                      <LayoutDashboard className="h-3.5 w-3.5 text-amber-500 group-hover:text-amber-400 transition-colors" />
+                      <span>Dashboard</span>
+                    </Link>
                   </li>
                   <li>
-                    <a href="/employee/leads" className="text-white/60 hover:text-amber-400 transition-colors cursor-pointer">Manage Leads</a>
+                    <Link to="/employee/leads" className="flex items-center gap-2 text-white/60 hover:text-amber-400 transition-all duration-300 hover:translate-x-1 group">
+                      <FileSpreadsheet className="h-3.5 w-3.5 text-amber-500 group-hover:text-amber-400 transition-colors" />
+                      <span>Manage Leads</span>
+                    </Link>
                   </li>
                   <li>
-                    <a href="/employee/add-lead" className="text-white/60 hover:text-amber-400 transition-colors cursor-pointer">Add Lead</a>
+                    <Link to="/employee/add-lead" className="flex items-center gap-2 text-white/60 hover:text-amber-400 transition-all duration-300 hover:translate-x-1 group">
+                      <UserPlus className="h-3.5 w-3.5 text-amber-500 group-hover:text-amber-400 transition-colors" />
+                      <span>Add Lead</span>
+                    </Link>
                   </li>
                 </ul>
               </div>

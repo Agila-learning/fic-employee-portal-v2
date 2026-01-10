@@ -72,8 +72,8 @@ const Sidebar = () => {
         variant="ghost"
         size="icon"
         className={cn(
-          "fixed top-4 left-4 z-50 md:hidden bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 shadow-lg shadow-amber-500/30 transition-all duration-300 border-2 border-white/20",
-          isOpen && "left-[220px]"
+          "fixed top-4 z-50 md:hidden bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 shadow-xl shadow-amber-500/40 transition-all duration-300 border-2 border-white/30 h-10 w-10",
+          isOpen ? "left-[216px]" : "left-4"
         )}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -132,13 +132,13 @@ const Sidebar = () => {
                   key={link.to}
                   to={link.to}
                   className={cn(
-                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200',
+                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300',
                     isActive
                       ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30'
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      : 'text-amber-100/90 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:text-white hover:pl-5'
                   )}
                 >
-                  <link.icon className="h-5 w-5" />
+                  <link.icon className={cn("h-5 w-5 transition-colors", isActive ? "text-white" : "text-amber-400")} />
                   <span className="flex-1">{link.label}</span>
                   {isActive && <ChevronRight className="h-4 w-4" />}
                 </Link>

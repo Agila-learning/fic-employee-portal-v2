@@ -90,11 +90,14 @@ export const STATUS_OPTIONS_ADMIN: { value: LeadStatus; label: string; color: st
   { value: 'not_interested_paid', label: 'Not Interested (Paid)', color: 'bg-orange-100 text-orange-700 border-orange-200' },
 ];
 
-// Full status options (for display purposes)
-export const STATUS_OPTIONS: { value: LeadStatus; label: string; color: string }[] = [
+// Full status options (for employee view includes different_domain)
+export const STATUS_OPTIONS_EMPLOYEE: { value: LeadStatus; label: string; color: string }[] = [
   ...STATUS_OPTIONS_ADMIN,
   { value: 'different_domain', label: 'Different Domain', color: 'bg-purple-100 text-purple-700 border-purple-200' },
 ];
+
+// All status options for display purposes (used for labels/badges)
+export const STATUS_OPTIONS: { value: LeadStatus; label: string; color: string }[] = STATUS_OPTIONS_EMPLOYEE;
 
 export const PAYMENT_STAGE_OPTIONS: { value: PaymentStage; label: string }[] = [
   { value: 'registration_done', label: 'Registration Done' },

@@ -756,12 +756,12 @@ const LeadForm = ({
       </div>
     )}
 
-    {/* Follow-up Date - Show when status is follow_up */}
-    {(formData.status === 'follow_up' || formData.followup_date) && (
+    {/* Follow-up Date - Show when status is follow_up (hide for success/full_payment_done) */}
+    {formData.status === 'follow_up' && formData.payment_stage !== 'full_payment_done' && formData.status !== 'success' && (
       <div className="space-y-2 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900">
         <Label htmlFor="followup_date" className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
           <Calendar className="h-4 w-4" />
-          Follow-up Date & Time {formData.status === 'follow_up' && <span className="text-red-500">*</span>}
+          Follow-up Date & Time <span className="text-red-500">*</span>
         </Label>
         <Input
           id="followup_date"

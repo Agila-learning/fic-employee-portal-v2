@@ -20,11 +20,11 @@ const AnnouncementsCard = () => {
   return (
     <Card className="border-border/50 overflow-hidden border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/10">
       <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
-        <CardTitle className="text-sm sm:text-lg font-semibold flex items-center gap-2 text-amber-700 dark:text-amber-400">
+        <CardTitle className="text-sm sm:text-lg font-semibold flex items-center gap-2 text-amber-700 dark:text-amber-400 flex-wrap">
           <Megaphone className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
           <span className="truncate">Announcements</span>
           {activeAnnouncements.length > 0 && (
-            <span className="ml-auto sm:ml-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] sm:text-xs font-bold shrink-0">
+            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] sm:text-xs font-bold shrink-0">
               {activeAnnouncements.length}
             </span>
           )}
