@@ -179,13 +179,24 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
+      // For payment-slips (private bucket), use signed URLs; for resumes (public bucket), use public URL
+      if (bucket === 'payment-slips') {
+        const { data: signedData, error: signedError } = await supabase.storage
+          .from(bucket)
+          .createSignedUrl(filePath, 86400); // 24 hour expiry
 
-      return publicUrl;
+        if (signedError) throw signedError;
+        return signedData.signedUrl;
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(filePath);
+        return publicUrl;
+      }
     } catch (error: any) {
-      console.error(`Error uploading to ${bucket}:`, error);
+      if (import.meta.env.DEV) {
+        console.error(`[DEV] Error uploading to ${bucket}:`, error);
+      }
       toast.error(`Failed to upload file: ${error.message}`);
       return null;
     }
