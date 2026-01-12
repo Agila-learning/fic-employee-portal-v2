@@ -305,10 +305,18 @@ const EmployeeFollowups = () => {
       {/* Lead Dialog */}
       <LeadFormDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            refetchLeads();
+          }
+        }}
         lead={selectedLead || undefined}
         mode="edit"
-        onSave={refetchLeads}
+        onSave={() => {
+          refetchLeads();
+          setDialogOpen(false);
+        }}
       />
     </DashboardLayout>
   );

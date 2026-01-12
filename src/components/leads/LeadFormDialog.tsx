@@ -384,7 +384,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
             </TabsList>
 
             <TabsContent value="details" className="flex-1 overflow-auto mt-2">
-              <ScrollArea className="h-[50vh] sm:h-[55vh] md:h-[60vh] pr-1 sm:pr-2 md:pr-4">
+              <ScrollArea className="h-[55vh] sm:h-[58vh] md:h-[62vh] pr-2 sm:pr-3 md:pr-4">
                 <LeadForm
                   formData={formData}
                   setFormData={setFormData}
@@ -498,7 +498,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
             </TabsContent>
           </Tabs>
         ) : (
-          <ScrollArea className="h-[50vh] sm:h-[55vh] md:h-[60vh] pr-1 sm:pr-2 md:pr-4">
+          <ScrollArea className="h-[55vh] sm:h-[58vh] md:h-[62vh] pr-2 sm:pr-3 md:pr-4">
             <LeadForm
               formData={formData}
               setFormData={setFormData}
