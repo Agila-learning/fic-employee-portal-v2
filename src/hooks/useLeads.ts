@@ -19,7 +19,32 @@ export const useLeads = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setLeads(data || []);
+      
+      // Fetch creator names for all leads
+      const uniqueCreatorIds = [...new Set((data || []).map(lead => lead.created_by).filter(Boolean))];
+      let creatorNames: Record<string, string> = {};
+      
+      if (uniqueCreatorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, name')
+          .in('user_id', uniqueCreatorIds);
+        
+        if (profiles) {
+          creatorNames = profiles.reduce((acc, profile) => {
+            acc[profile.user_id] = profile.name;
+            return acc;
+          }, {} as Record<string, string>);
+        }
+      }
+      
+      // Attach creator name to each lead
+      const leadsWithCreatorNames = (data || []).map(lead => ({
+        ...lead,
+        created_by_name: lead.created_by ? creatorNames[lead.created_by] || 'Unknown' : 'Unknown'
+      }));
+      
+      setLeads(leadsWithCreatorNames);
     } catch (error: any) {
       console.error('Error fetching leads:', error);
       toast.error('Failed to fetch leads');

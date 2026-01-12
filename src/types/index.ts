@@ -29,6 +29,7 @@ export interface Lead {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  created_by_name?: string; // Populated when fetching leads
 }
 
 export interface LeadComment {

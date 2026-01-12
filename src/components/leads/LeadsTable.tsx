@@ -300,13 +300,16 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps)
               <TableHead className="font-semibold hover:text-primary transition-colors cursor-default">CTC</TableHead>
               <TableHead className="font-semibold hover:text-primary transition-colors cursor-default">Status</TableHead>
               <TableHead className="font-semibold hover:text-primary transition-colors cursor-default">Source</TableHead>
+              {showAssignee && (
+                <TableHead className="font-semibold hover:text-primary transition-colors cursor-default">Referred By</TableHead>
+              )}
               <TableHead className="text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredLeads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={showAssignee ? 9 : 8} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center gap-2">
                     <Search className="h-8 w-8 opacity-50" />
                     <p>No leads found</p>
@@ -351,6 +354,18 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh }: LeadsTableProps)
                   <TableCell className="text-sm">
                     {SOURCE_OPTIONS.find(s => s.value === lead.source)?.label}
                   </TableCell>
+                  {showAssignee && (
+                    <TableCell className="text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+                          <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                            {lead.created_by_name?.split(' ').map(n => n[0]).join('') || '?'}
+                          </span>
+                        </div>
+                        <span className="text-muted-foreground">{lead.created_by_name || 'Unknown'}</span>
+                      </div>
+                    </TableCell>
+                  )}
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
