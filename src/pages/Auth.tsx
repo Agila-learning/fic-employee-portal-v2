@@ -6,27 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Mail, Lock, LogIn, UserPlus, User, ArrowRight, ArrowLeft, KeyRound } from 'lucide-react';
+import { Mail, Lock, LogIn, ArrowLeft, KeyRound } from 'lucide-react';
 import ficLogo from '@/assets/fic-logo.jpeg';
 import { motion, AnimatePresence } from 'framer-motion';
 
-type AuthView = 'login' | 'signup' | 'forgot';
+type AuthView = 'login' | 'forgot';
 
 const Auth = () => {
-  const { user, login, signup, resetPassword, isLoading } = useAuth();
+  const { user, login, resetPassword, isLoading } = useAuth();
   const [view, setView] = useState<AuthView>('login');
   
   // Login state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
-  
-  // Signup state
-  const [signupName, setSignupName] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
-  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
-  const [isSignupSubmitting, setIsSignupSubmitting] = useState(false);
 
   // Forgot password state
   const [forgotEmail, setForgotEmail] = useState('');
@@ -61,38 +54,6 @@ const Auth = () => {
     }
     
     setIsLoginSubmitting(false);
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (signupPassword !== signupConfirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-
-    if (signupPassword.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
-
-    setIsSignupSubmitting(true);
-
-    const result = await signup(signupEmail, signupPassword, signupName);
-    
-    if (result.success) {
-      toast.success('Account created successfully! You can now login.');
-      setView('login');
-      setLoginEmail(signupEmail);
-      setSignupName('');
-      setSignupEmail('');
-      setSignupPassword('');
-      setSignupConfirmPassword('');
-    } else {
-      toast.error(result.error || 'Failed to create account');
-    }
-    
-    setIsSignupSubmitting(false);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -138,10 +99,10 @@ const Auth = () => {
           <Card className="border-white/10 shadow-2xl bg-white/5 backdrop-blur-xl hover:bg-white/10 transition-all duration-500">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-xl text-white">
-                {view === 'login' ? 'Welcome Back' : view === 'signup' ? 'Create Account' : 'Reset Password'}
+                {view === 'login' ? 'Welcome Back' : 'Reset Password'}
               </CardTitle>
               <CardDescription className="text-white/60">
-                {view === 'login' ? 'Sign in to continue' : view === 'signup' ? 'Sign up to get started' : 'Enter your email to reset'}
+                {view === 'login' ? 'Sign in to continue' : 'Enter your email to reset'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -212,119 +173,9 @@ const Auth = () => {
                       )}
                     </Button>
 
-                    <div className="text-center pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setView('signup')}
-                        className="text-sm text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 mx-auto"
-                      >
-                        Don't have an account? Sign up
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </motion.form>
-                )}
-
-                {view === 'signup' && (
-                  <motion.form
-                    key="signup"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
-                    onSubmit={handleSignup}
-                    className="space-y-4"
-                  >
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-name" className="text-white/80">Full Name</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
-                        <Input
-                          id="signup-name"
-                          type="text"
-                          placeholder="Enter your full name"
-                          value={signupName}
-                          onChange={(e) => setSignupName(e.target.value)}
-                          className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email" className="text-white/80">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
-                        <Input
-                          id="signup-email"
-                          type="email"
-                          placeholder="Enter your email"
-                          value={signupEmail}
-                          onChange={(e) => setSignupEmail(e.target.value)}
-                          className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password" className="text-white/80">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
-                        <Input
-                          id="signup-password"
-                          type="password"
-                          placeholder="Create a password (min 6 chars)"
-                          value={signupPassword}
-                          onChange={(e) => setSignupPassword(e.target.value)}
-                          className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                          required
-                          minLength={6}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-confirm" className="text-white/80">Confirm Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
-                        <Input
-                          id="signup-confirm"
-                          type="password"
-                          placeholder="Confirm your password"
-                          value={signupConfirmPassword}
-                          onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                          className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white gap-2 shadow-lg" 
-                      disabled={isSignupSubmitting}
-                    >
-                      {isSignupSubmitting ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      ) : (
-                        <>
-                          <UserPlus className="h-4 w-4" />
-                          Create Account
-                        </>
-                      )}
-                    </Button>
-
-                    <div className="text-center pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setView('login')}
-                        className="text-sm text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 mx-auto"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        Already have an account? Sign in
-                      </button>
-                    </div>
+                    <p className="text-center text-xs text-white/40 pt-4">
+                      Contact your administrator to request an account
+                    </p>
                   </motion.form>
                 )}
 
