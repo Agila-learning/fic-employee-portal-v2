@@ -132,13 +132,28 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create or update role for the new user (upsert to handle edge cases)
-    const { error: roleInsertError } = await adminClient
+    // Check if role already exists for this user
+    const { data: existingRole } = await adminClient
       .from('user_roles')
-      .upsert({
-        user_id: newUser.user.id,
-        role
-      }, { onConflict: 'user_id' });
+      .select('id')
+      .eq('user_id', newUser.user.id)
+      .single();
+
+    let roleInsertError = null;
+    if (existingRole) {
+      // Update existing role
+      const { error } = await adminClient
+        .from('user_roles')
+        .update({ role })
+        .eq('user_id', newUser.user.id);
+      roleInsertError = error;
+    } else {
+      // Insert new role
+      const { error } = await adminClient
+        .from('user_roles')
+        .insert({ user_id: newUser.user.id, role });
+      roleInsertError = error;
+    }
 
     if (roleInsertError) {
       console.error('Error creating role:', roleInsertError);
