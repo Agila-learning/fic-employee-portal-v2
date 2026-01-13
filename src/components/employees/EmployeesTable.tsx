@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import EmployeeFormDialog from './EmployeeFormDialog';
-import { MoreHorizontal, Pencil, UserX, UserCheck, Search } from 'lucide-react';
+import CreateEmployeeDialog from './CreateEmployeeDialog';
+import { MoreHorizontal, Pencil, UserX, UserCheck, Search, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -14,6 +15,7 @@ const EmployeesTable = () => {
   const { employees, toggleEmployeeStatus, isLoading, refetchEmployees } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const filteredEmployees = employees.filter(emp =>
     emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,9 +33,15 @@ const EmployeesTable = () => {
 
   return (
     <div className="space-y-4">
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+      <div className="flex flex-col sm:flex-row gap-4 justify-between">
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+        </div>
+        <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+          <UserPlus className="h-4 w-4" />
+          Create Employee
+        </Button>
       </div>
 
       <div className="rounded-xl border border-border/50 bg-card shadow-sm overflow-hidden">
@@ -87,6 +95,12 @@ const EmployeesTable = () => {
       </div>
 
       {editingEmployee && <EmployeeFormDialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)} employee={editingEmployee} onSuccess={refetchEmployees} />}
+      
+      <CreateEmployeeDialog 
+        open={isCreateDialogOpen} 
+        onOpenChange={setIsCreateDialogOpen} 
+        onSuccess={refetchEmployees} 
+      />
     </div>
   );
 };
