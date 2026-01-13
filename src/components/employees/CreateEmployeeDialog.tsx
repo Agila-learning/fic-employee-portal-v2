@@ -158,7 +158,7 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="employee">Employee (BDA)</SelectItem>
+                <SelectItem value="employee">Employee</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
