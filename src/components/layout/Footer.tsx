@@ -1,4 +1,4 @@
-import { Building2, Mail, Globe, Link2, LayoutDashboard, FileSpreadsheet, UserPlus } from 'lucide-react';
+import { Building2, Mail, Globe, Link2, LayoutDashboard, FileSpreadsheet, UserPlus, Smartphone } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 
@@ -65,6 +65,21 @@ const Footer = () => {
                   </li>
                 </ul>
               </div>
+            </div>
+
+            {/* FIC Connect App */}
+            <div className="flex items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/20">
+              <Smartphone className="h-4 w-4 text-blue-400" />
+              <span className="text-white/80 text-xs sm:text-sm">Explore FIC Connect App</span>
+              <span className="text-blue-400">|</span>
+              <a 
+                href="https://connectapp.forgeindiaconnect.com/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors text-xs sm:text-sm font-medium"
+              >
+                🔗 connectapp.forgeindiaconnect.com
+              </a>
             </div>
 
             {/* Candidate Screening Portal */}

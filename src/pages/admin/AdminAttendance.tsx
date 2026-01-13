@@ -9,6 +9,7 @@ import { CalendarCheck, CheckCircle, XCircle, Search, Download, FileText, Pencil
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import AttendanceEditDialog from '@/components/attendance/AttendanceEditDialog';
+import * as XLSX from 'xlsx';
 
 const AdminAttendance = () => {
   const { attendance, loading, updateAttendance } = useAttendance();
@@ -43,8 +44,8 @@ const AdminAttendance = () => {
   const presentToday = todayRecords.filter(a => a.status === 'present').length;
   const absentToday = todayRecords.filter(a => a.status === 'absent').length;
 
-  // Export to CSV
-  const exportToCSV = () => {
+  // Export to Excel
+  const exportToExcel = () => {
     const dataToExport = filteredAttendance.length > 0 ? filteredAttendance : attendance;
     
     if (dataToExport.length === 0) {
@@ -52,27 +53,35 @@ const AdminAttendance = () => {
       return;
     }
 
-    const headers = ['Employee Name', 'Date', 'Status', 'Marked At', 'Leave Reason'];
-    const csvContent = [
-      headers.join(','),
-      ...dataToExport.map(record => [
-        `"${record.user_name || 'Unknown'}"`,
-        record.date,
-        record.status,
-        new Date(record.marked_at).toLocaleString(),
-        `"${record.leave_reason || ''}"`
-      ].join(','))
-    ].join('\n');
+    // Prepare data for Excel
+    const excelData = dataToExport.map(record => ({
+      'Employee Name': record.user_name || 'Unknown',
+      'Date': record.date,
+      'Status': record.status === 'present' ? 'Present' : 'Absent',
+      'Marked At': new Date(record.marked_at).toLocaleTimeString(),
+      'Leave Reason': record.status === 'absent' ? (record.leave_reason || '-') : '-'
+    }));
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `attendance_report_${monthFilter || dateFilter || today}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 25 }, // Employee Name
+      { wch: 12 }, // Date
+      { wch: 10 }, // Status
+      { wch: 12 }, // Marked At
+      { wch: 40 }, // Leave Reason
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
+
+    // Generate filename
+    const fileName = `attendance_report_${monthFilter || dateFilter || today}.xlsx`;
+    
+    // Download file
+    XLSX.writeFile(wb, fileName);
 
     toast({ title: 'Success', description: 'Attendance report exported successfully' });
   };
@@ -109,9 +118,9 @@ const AdminAttendance = () => {
             <h1 className="text-3xl font-bold text-foreground">Attendance Management</h1>
             <p className="text-muted-foreground mt-1">View, edit, and track employee attendance</p>
           </div>
-          <Button onClick={exportToCSV} className="gap-2">
+          <Button onClick={exportToExcel} className="gap-2">
             <Download className="h-4 w-4" />
-            Export Report
+            Export Excel
           </Button>
         </div>
 

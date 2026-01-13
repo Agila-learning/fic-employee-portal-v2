@@ -20,10 +20,16 @@ const AttendanceCard = () => {
   const [leaveReason, setLeaveReason] = useState('');
 
   const now = new Date();
-  const cutoffHour = 11;
-  const isBeforeCutoff = now.getHours() < cutoffHour;
+  const cutoffHour = 10;
+  const cutoffMinute = 30;
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const cutoffMinutes = cutoffHour * 60 + cutoffMinute;
+  const isBeforeCutoff = currentMinutes < cutoffMinutes;
+  const minutesRemaining = cutoffMinutes - currentMinutes;
+  const hoursLeft = Math.floor(minutesRemaining / 60);
+  const minsLeft = minutesRemaining % 60;
   const timeRemaining = isBeforeCutoff 
-    ? `${cutoffHour - now.getHours() - 1}h ${60 - now.getMinutes()}m remaining`
+    ? `${hoursLeft}h ${minsLeft}m remaining`
     : 'Time exceeded';
 
   const handleMarkPresent = async () => {
@@ -119,7 +125,7 @@ const AttendanceCard = () => {
             <div className="text-center py-2">
               <XCircle className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-muted-foreground mb-1" />
               <p className="text-xs sm:text-sm text-muted-foreground">Window closed</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Mark before 11:00 AM</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Mark before 10:30 AM</p>
             </div>
           )}
         </CardContent>

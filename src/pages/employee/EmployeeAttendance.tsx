@@ -1,6 +1,7 @@
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import AttendanceCard from '@/components/dashboard/AttendanceCard';
-import { CalendarCheck } from 'lucide-react';
+import { CalendarCheck, Mail, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const EmployeeAttendance = () => {
   return (
@@ -18,10 +19,26 @@ const EmployeeAttendance = () => {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold">My Attendance</h1>
-              <p className="text-white/70 text-sm mt-1">Mark your daily attendance before 11:00 AM</p>
+              <p className="text-white/70 text-sm mt-1">Mark your daily attendance before 10:30 AM</p>
             </div>
           </div>
         </div>
+
+        {/* Leave Policy Notice */}
+        <Alert className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800 dark:text-amber-200">
+            <strong>Leave Policy:</strong> If you need to take leave, please send an email at least 
+            <strong> 1 day before </strong> to{' '}
+            <a 
+              href="mailto:info@forgeindiaconnect.com" 
+              className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 hover:underline font-semibold"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              info@forgeindiaconnect.com
+            </a>
+          </AlertDescription>
+        </Alert>
 
         {/* Attendance Card - Full Width */}
         <div className="max-w-2xl mx-auto">
