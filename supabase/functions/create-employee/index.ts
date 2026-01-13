@@ -111,16 +111,16 @@ Deno.serve(async (req) => {
 
     console.log(`User created with ID: ${newUser.user.id}`);
 
-    // Create profile for the new user
+    // Create or update profile for the new user (upsert to handle edge cases)
     const { error: profileError } = await adminClient
       .from('profiles')
-      .insert({
+      .upsert({
         user_id: newUser.user.id,
         name,
         email,
         employee_id: employee_id || null,
         is_active: true
-      });
+      }, { onConflict: 'user_id' });
 
     if (profileError) {
       console.error('Error creating profile:', profileError);
@@ -132,13 +132,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create role for the new user
+    // Create or update role for the new user (upsert to handle edge cases)
     const { error: roleInsertError } = await adminClient
       .from('user_roles')
-      .insert({
+      .upsert({
         user_id: newUser.user.id,
         role
-      });
+      }, { onConflict: 'user_id' });
 
     if (roleInsertError) {
       console.error('Error creating role:', roleInsertError);
