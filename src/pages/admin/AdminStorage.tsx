@@ -65,30 +65,50 @@ const AdminStorage = () => {
       const stats: BucketStats[] = [];
 
       for (const bucket of buckets) {
-        const { data: files, error } = await supabase.storage
+        // First, list all folders (user IDs) in the bucket root
+        const { data: folders, error: folderError } = await supabase.storage
           .from(bucket)
-          .list('', { limit: 1000, sortBy: { column: 'created_at', order: 'desc' } });
+          .list('', { limit: 1000 });
 
-        if (error) {
-          if (import.meta.env.DEV) console.error(`Error fetching ${bucket}:`, error);
+        if (folderError) {
+          if (import.meta.env.DEV) console.error(`Error fetching ${bucket} folders:`, folderError);
           stats.push({ name: bucket, fileCount: 0, totalSize: 0, files: [] });
           continue;
         }
 
-        // Filter out folders
-        const actualFiles = (files || []).filter(f => f.id && f.metadata);
-        const totalSize = actualFiles.reduce((sum, f) => sum + (Number(f.metadata?.size) || 0), 0);
+        // Get all actual files by listing each user folder
+        const allFiles: StorageFile[] = [];
+        const userFolders = (folders || []).filter(f => !f.id && !f.metadata); // Folders don't have id/metadata
+
+        for (const folder of userFolders) {
+          const { data: filesInFolder, error: filesError } = await supabase.storage
+            .from(bucket)
+            .list(folder.name, { limit: 1000, sortBy: { column: 'created_at', order: 'desc' } });
+
+          if (filesError) {
+            if (import.meta.env.DEV) console.error(`Error fetching files in ${bucket}/${folder.name}:`, filesError);
+            continue;
+          }
+
+          // Filter actual files (have id and metadata)
+          const actualFiles = (filesInFolder || []).filter(f => f.id && f.metadata);
+          actualFiles.forEach(f => {
+            allFiles.push({
+              name: `${folder.name}/${f.name}`, // Full path for storage operations
+              id: f.id || '',
+              created_at: f.created_at || new Date().toISOString(),
+              metadata: f.metadata || null,
+            });
+          });
+        }
+
+        const totalSize = allFiles.reduce((sum, f) => sum + (Number(f.metadata?.size) || 0), 0);
 
         stats.push({
           name: bucket,
-          fileCount: actualFiles.length,
+          fileCount: allFiles.length,
           totalSize,
-          files: actualFiles.map(f => ({
-            name: f.name,
-            id: f.id || '',
-            created_at: f.created_at || new Date().toISOString(),
-            metadata: f.metadata || null,
-          })),
+          files: allFiles,
         });
       }
 
@@ -103,12 +123,17 @@ const AdminStorage = () => {
         const leadMap: Record<string, { name: string; candidate_id: string; status: string; id: string }> = {};
         leads.forEach(lead => {
           if (lead.resume_url) {
-            const fileName = lead.resume_url.split('/').pop() || '';
-            leadMap[fileName] = { name: lead.name, candidate_id: lead.candidate_id, status: lead.status, id: lead.id };
+            // Handle both old URL format and new path format
+            const urlPath = lead.resume_url.includes('://') 
+              ? lead.resume_url.split('/').slice(-2).join('/') // Extract folder/filename from URL
+              : lead.resume_url.replace('resumes:', ''); // Handle resumes:path format
+            leadMap[urlPath] = { name: lead.name, candidate_id: lead.candidate_id, status: lead.status, id: lead.id };
           }
           if (lead.payment_slip_url) {
-            const fileName = lead.payment_slip_url.split('/').pop() || '';
-            leadMap[fileName] = { name: lead.name, candidate_id: lead.candidate_id, status: lead.status, id: lead.id };
+            const urlPath = lead.payment_slip_url.includes('://') 
+              ? lead.payment_slip_url.split('/').slice(-2).join('/')
+              : lead.payment_slip_url.replace('payment-slips:', '');
+            leadMap[urlPath] = { name: lead.name, candidate_id: lead.candidate_id, status: lead.status, id: lead.id };
           }
         });
         setLeadData(leadMap);
