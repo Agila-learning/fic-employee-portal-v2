@@ -68,6 +68,39 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_reports: {
+        Row: {
+          afternoon_description: string | null
+          created_at: string
+          department: Database["public"]["Enums"]["department"]
+          id: string
+          morning_description: string | null
+          report_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          afternoon_description?: string | null
+          created_at?: string
+          department: Database["public"]["Enums"]["department"]
+          id?: string
+          morning_description?: string | null
+          report_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          afternoon_description?: string | null
+          created_at?: string
+          department?: Database["public"]["Enums"]["department"]
+          id?: string
+          morning_description?: string | null
+          report_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lead_access_audit: {
         Row: {
           accessed_at: string
@@ -372,6 +405,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "employee"
+      department:
+        | "BDA"
+        | "HR"
+        | "Tech"
+        | "Ops"
+        | "Marketing"
+        | "Finance"
+        | "Other"
       interested_domain: "it" | "non_it" | "banking"
       lead_source:
         | "social_media"
@@ -524,6 +565,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "employee"],
+      department: ["BDA", "HR", "Tech", "Ops", "Marketing", "Finance", "Other"],
       interested_domain: ["it", "non_it", "banking"],
       lead_source: [
         "social_media",
