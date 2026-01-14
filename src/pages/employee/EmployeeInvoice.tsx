@@ -344,12 +344,12 @@ const EmployeeInvoice = () => {
             <div style={{ flexGrow: 1, minHeight: '40px' }} />
 
             {/* Signature */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '30px', paddingTop: '20px' }}>
-              <div style={{ textAlign: 'center', width: '200px' }}>
-                <img src={signatureImage} alt="Signature" style={{ width: '120px', height: '60px', objectFit: 'contain', mixBlendMode: 'multiply', filter: 'contrast(1.2)' }} crossOrigin="anonymous" />
-                <div style={{ borderTop: '2px solid #1e293b', marginTop: '8px', paddingTop: '8px' }}>
-                  <p style={{ fontSize: '12px', color: '#1e293b', fontWeight: 600, margin: 0 }}>Authorised Signatory</p>
-                  <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 0 0' }}>Forge India Connect Pvt. Ltd.</p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <div style={{ textAlign: 'center', width: '180px' }}>
+                <img src={signatureImage} alt="Signature" style={{ width: '100px', height: '50px', objectFit: 'contain', mixBlendMode: 'multiply', filter: 'contrast(1.2)', display: 'block', margin: '0 auto' }} crossOrigin="anonymous" />
+                <div style={{ borderTop: '2px solid #1e293b', marginTop: '4px', paddingTop: '6px' }}>
+                  <p style={{ fontSize: '11px', color: '#1e293b', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>Authorised Signatory</p>
+                  <p style={{ fontSize: '9px', color: '#64748b', margin: '2px 0 0 0', lineHeight: 1.2 }}>Forge India Connect Pvt. Ltd.</p>
                 </div>
               </div>
             </div>
