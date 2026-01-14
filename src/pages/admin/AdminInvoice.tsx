@@ -72,9 +72,14 @@ const AdminInvoice = () => {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
-  const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-  const calculateGst = () => (calculateSubtotal() * GST_RATE) / 100;
-  const calculateTotal = () => calculateSubtotal() + calculateGst();
+  // Total amount entered by user (GST inclusive)
+  const calculateGrossTotal = () => items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+  // Reverse GST calculation: Base = Total / 1.18
+  const calculateSubtotal = () => calculateGrossTotal() / (1 + GST_RATE / 100);
+  // GST = Total - Base
+  const calculateGst = () => calculateGrossTotal() - calculateSubtotal();
+  // Final total remains the same as entered amount
+  const calculateTotal = () => calculateGrossTotal();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2 }).format(amount);
@@ -137,7 +142,7 @@ const AdminInvoice = () => {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Invoice Generator</h1>
-            <p className="text-muted-foreground text-sm mt-1">Create professional invoices with 18% GST</p>
+            <p className="text-muted-foreground text-sm mt-1">Create professional invoices (18% GST inclusive)</p>
           </div>
           <Button onClick={generateAndDownloadPDF} disabled={isGenerating} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
             <Download className="h-4 w-4 mr-2" />
@@ -262,8 +267,8 @@ const AdminInvoice = () => {
                       <Input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)} />
                     </div>
                     <div className="col-span-4 md:col-span-2">
-                      <Label className="text-xs text-muted-foreground">Rate (₹)</Label>
-                      <Input type="number" min="0" value={item.rate} onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)} />
+                      <Label className="text-xs text-muted-foreground">Amount (₹)</Label>
+                      <Input type="number" min="0" value={item.rate} onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)} placeholder="Total incl. GST" />
                     </div>
                     <div className="col-span-3 md:col-span-2">
                       <Label className="text-xs text-muted-foreground">Amount</Label>
@@ -406,7 +411,7 @@ const AdminInvoice = () => {
             {invoiceType === 'with-gst-number' && (
               <div style={{ backgroundColor: '#fef3c7', padding: '12px 16px', borderRadius: '6px', marginTop: '20px', borderLeft: '4px solid #f59e0b' }}>
                 <p style={{ fontSize: '11px', color: '#92400e', margin: 0 }}><strong>GST Registration:</strong> {GST_NUMBER}</p>
-                <p style={{ fontSize: '11px', color: '#92400e', margin: '4px 0 0 0' }}>Tax calculated at {GST_RATE}% GST on total taxable value.</p>
+                <p style={{ fontSize: '11px', color: '#92400e', margin: '4px 0 0 0' }}>GST at {GST_RATE}% is included in the total amount.</p>
               </div>
             )}
 
