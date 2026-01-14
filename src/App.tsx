@@ -18,11 +18,13 @@ import AdminAttendance from "./pages/admin/AdminAttendance";
 import AdminFollowups from "./pages/admin/AdminFollowups";
 import AdminStorage from "./pages/admin/AdminStorage";
 import AdminInvoice from "./pages/admin/AdminInvoice";
+import AdminReports from "./pages/admin/AdminReports";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 import EmployeeLeads from "./pages/employee/EmployeeLeads";
 import EmployeeFollowups from "./pages/employee/EmployeeFollowups";
 import EmployeeAttendance from "./pages/employee/EmployeeAttendance";
 import EmployeeTasks from "./pages/employee/EmployeeTasks";
+import EmployeeReports from "./pages/employee/EmployeeReports";
 import AddLead from "./pages/employee/AddLead";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -48,6 +50,7 @@ const App = () => (
               <Route path="/admin/employees" element={<AdminEmployees />} />
               <Route path="/admin/leads" element={<AdminLeads />} />
               <Route path="/admin/tasks" element={<AdminTasks />} />
+              <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/announcements" element={<AdminAnnouncements />} />
               <Route path="/admin/attendance" element={<AdminAttendance />} />
               <Route path="/admin/followups" element={<AdminFollowups />} />
@@ -59,6 +62,7 @@ const App = () => (
               <Route path="/employee/leads" element={<EmployeeLeads />} />
               <Route path="/employee/add-lead" element={<AddLead />} />
               <Route path="/employee/followups" element={<EmployeeFollowups />} />
+              <Route path="/employee/reports" element={<EmployeeReports />} />
               <Route path="/employee/attendance" element={<EmployeeAttendance />} />
               <Route path="/employee/tasks" element={<EmployeeTasks />} />
               
