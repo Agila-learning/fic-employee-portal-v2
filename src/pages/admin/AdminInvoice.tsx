@@ -1,14 +1,14 @@
-// Invoice Generator with PDF download
+// Admin Invoice Generator with GST and Non-GST options
 import { useState, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Download, Plus, Trash2, FileText } from 'lucide-react';
+import { Download, Plus, Trash2, FileText, Receipt, ReceiptText } from 'lucide-react';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -26,24 +26,25 @@ interface InvoiceItem {
 const GST_NUMBER = '33AAGCF4763Q1Z3';
 const GST_RATE = 18;
 
-const getSequentialInvoiceNumber = () => {
+const getSequentialInvoiceNumber = (invoiceType: 'gst' | 'non-gst') => {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const financialYear = month >= 4 ? `${year}-${(year + 1).toString().slice(-2)}` : `${year - 1}-${year.toString().slice(-2)}`;
   
-  const fyKey = `invoice_fy_counter_${financialYear}`;
+  const prefix = invoiceType === 'gst' ? 'FIC-GST' : 'FIC';
+  const fyKey = `invoice_fy_counter_${invoiceType}_${financialYear}`;
   let fyCounter = parseInt(localStorage.getItem(fyKey) || '0', 10);
   fyCounter += 1;
   localStorage.setItem(fyKey, fyCounter.toString());
   
-  return `FIC/${financialYear}/${fyCounter.toString().padStart(4, '0')}`;
+  return `${prefix}/${financialYear}/${fyCounter.toString().padStart(4, '0')}`;
 };
 
-const EmployeeInvoice = () => {
-  const { user } = useAuth();
+const AdminInvoice = () => {
   const invoiceRef = useRef<HTMLDivElement>(null);
-  const [invoiceId] = useState(getSequentialInvoiceNumber());
+  const [invoiceType, setInvoiceType] = useState<'gst' | 'non-gst'>('gst');
+  const [invoiceId, setInvoiceId] = useState(() => getSequentialInvoiceNumber('gst'));
   const [clientName, setClientName] = useState('');
   const [clientAddress, setClientAddress] = useState('');
   const [clientGst, setClientGst] = useState('');
@@ -51,6 +52,11 @@ const EmployeeInvoice = () => {
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: '1', description: '', quantity: 1, rate: 0 }
   ]);
+
+  const handleInvoiceTypeChange = (type: 'gst' | 'non-gst') => {
+    setInvoiceType(type);
+    setInvoiceId(getSequentialInvoiceNumber(type));
+  };
 
   const addItem = () => {
     setItems([...items, { id: Date.now().toString(), description: '', quantity: 1, rate: 0 }]);
@@ -67,7 +73,7 @@ const EmployeeInvoice = () => {
   };
 
   const calculateSubtotal = () => items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-  const calculateGst = () => (calculateSubtotal() * GST_RATE) / 100;
+  const calculateGst = () => invoiceType === 'gst' ? (calculateSubtotal() * GST_RATE) / 100 : 0;
   const calculateTotal = () => calculateSubtotal() + calculateGst();
 
   const formatCurrency = (amount: number) => {
@@ -93,7 +99,7 @@ const EmployeeInvoice = () => {
 
     try {
       const canvas = await html2canvas(invoiceRef.current, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -109,7 +115,7 @@ const EmployeeInvoice = () => {
       const finalWidth = imgWidth * scaleFactor;
 
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, finalWidth, finalHeight, undefined, 'FAST');
+      pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 0, 0, finalWidth, finalHeight, undefined, 'FAST');
       pdf.save(`Invoice_${invoiceId.replace(/\//g, '-')}.pdf`);
 
       toast.dismiss();
@@ -128,10 +134,10 @@ const EmployeeInvoice = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Invoice Generator</h1>
-            <p className="text-muted-foreground text-sm mt-1">Create and download professional invoices with GST</p>
+            <p className="text-muted-foreground text-sm mt-1">Create professional invoices with or without GST</p>
           </div>
           <Button onClick={generateAndDownloadPDF} disabled={isGenerating} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
             <Download className="h-4 w-4 mr-2" />
@@ -141,6 +147,58 @@ const EmployeeInvoice = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+            {/* Invoice Type Selection */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-amber-500" />
+                  Invoice Type
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup 
+                  value={invoiceType} 
+                  onValueChange={(value) => handleInvoiceTypeChange(value as 'gst' | 'non-gst')}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  <Label 
+                    htmlFor="gst" 
+                    className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      invoiceType === 'gst' 
+                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30' 
+                        : 'border-border hover:border-amber-300'
+                    }`}
+                  >
+                    <RadioGroupItem value="gst" id="gst" />
+                    <div className="flex items-center gap-2">
+                      <ReceiptText className="h-5 w-5 text-amber-600" />
+                      <div>
+                        <p className="font-semibold">With GST</p>
+                        <p className="text-xs text-muted-foreground">Includes 18% GST calculation</p>
+                      </div>
+                    </div>
+                  </Label>
+                  <Label 
+                    htmlFor="non-gst" 
+                    className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      invoiceType === 'non-gst' 
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' 
+                        : 'border-border hover:border-blue-300'
+                    }`}
+                  >
+                    <RadioGroupItem value="non-gst" id="non-gst" />
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-semibold">Without GST</p>
+                        <p className="text-xs text-muted-foreground">Simple invoice without tax</p>
+                      </div>
+                    </div>
+                  </Label>
+                </RadioGroup>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -175,10 +233,12 @@ const EmployeeInvoice = () => {
                   <Label className="text-sm font-medium">Client Address</Label>
                   <Textarea placeholder="Enter client address" value={clientAddress} onChange={(e) => setClientAddress(e.target.value)} rows={3} />
                 </div>
-                <div>
-                  <Label className="text-sm font-medium">Client GST Number</Label>
-                  <Input placeholder="Enter client GST (optional)" value={clientGst} onChange={(e) => setClientGst(e.target.value.toUpperCase())} />
-                </div>
+                {invoiceType === 'gst' && (
+                  <div>
+                    <Label className="text-sm font-medium">Client GST Number</Label>
+                    <Input placeholder="Enter client GST (optional)" value={clientGst} onChange={(e) => setClientGst(e.target.value.toUpperCase())} />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -233,10 +293,12 @@ const EmployeeInvoice = () => {
                     <span className="text-muted-foreground">Subtotal</span>
                     <span className="font-medium">{formatCurrency(calculateSubtotal())}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">GST ({GST_RATE}%)</span>
-                    <span className="font-medium">{formatCurrency(calculateGst())}</span>
-                  </div>
+                  {invoiceType === 'gst' && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">GST ({GST_RATE}%)</span>
+                      <span className="font-medium">{formatCurrency(calculateGst())}</span>
+                    </div>
+                  )}
                   <div className="border-t pt-3">
                     <div className="flex justify-between">
                       <span className="font-semibold text-lg">Total</span>
@@ -244,10 +306,18 @@ const EmployeeInvoice = () => {
                     </div>
                   </div>
                 </div>
-                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-                  <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">GST Registration</p>
-                  <p className="text-sm font-mono mt-1 text-amber-900 dark:text-amber-300">{GST_NUMBER}</p>
-                </div>
+                {invoiceType === 'gst' && (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">GST Registration</p>
+                    <p className="text-sm font-mono mt-1 text-amber-900 dark:text-amber-300">{GST_NUMBER}</p>
+                  </div>
+                )}
+                {invoiceType === 'non-gst' && (
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-xs text-blue-700 dark:text-blue-400 font-medium">Invoice Type</p>
+                    <p className="text-sm mt-1 text-blue-900 dark:text-blue-300">Non-GST Invoice</p>
+                  </div>
+                )}
                 <Button onClick={generateAndDownloadPDF} disabled={isGenerating} className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
                   <Download className="h-4 w-4 mr-2" />
                   {isGenerating ? 'Generating...' : 'Generate & Download'}
@@ -262,19 +332,24 @@ const EmployeeInvoice = () => {
         <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
           <div ref={invoiceRef} style={{ width: '794px', minHeight: '1123px', padding: '40px', backgroundColor: '#ffffff', fontFamily: 'Segoe UI, Arial, sans-serif', color: '#1a1a1a', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '3px solid #f59e0b', paddingBottom: '20px', marginBottom: '25px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: `3px solid ${invoiceType === 'gst' ? '#f59e0b' : '#3b82f6'}`, paddingBottom: '20px', marginBottom: '25px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <img src={companyLogo} alt="Logo" style={{ width: '80px', height: '80px', objectFit: 'contain' }} crossOrigin="anonymous" />
                 <div>
                   <h1 style={{ fontSize: '22px', color: '#1e40af', marginBottom: '4px', fontWeight: 700, margin: 0 }}>Forge India Connect Pvt. Ltd.</h1>
-                  <p style={{ color: '#f59e0b', fontSize: '12px', margin: '4px 0 0 0', fontWeight: 600 }}>Shaping Future</p>
-                  <p style={{ color: '#64748b', fontSize: '11px', margin: '8px 0 0 0' }}><strong>GST:</strong> {GST_NUMBER}</p>
+                  <p style={{ color: invoiceType === 'gst' ? '#f59e0b' : '#3b82f6', fontSize: '12px', margin: '4px 0 0 0', fontWeight: 600 }}>Shaping Future</p>
+                  {invoiceType === 'gst' && (
+                    <p style={{ color: '#64748b', fontSize: '11px', margin: '8px 0 0 0' }}><strong>GST:</strong> {GST_NUMBER}</p>
+                  )}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <h2 style={{ fontSize: '32px', color: '#f59e0b', fontWeight: 800, letterSpacing: '3px', margin: 0 }}>INVOICE</h2>
+                <h2 style={{ fontSize: '32px', color: invoiceType === 'gst' ? '#f59e0b' : '#3b82f6', fontWeight: 800, letterSpacing: '3px', margin: 0 }}>INVOICE</h2>
                 <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}><strong>Invoice #:</strong> {invoiceId}</p>
                 <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0' }}><strong>Date:</strong> {invoiceDate}</p>
+                {invoiceType === 'non-gst' && (
+                  <p style={{ fontSize: '11px', color: '#3b82f6', margin: '8px 0 0 0', fontWeight: 600 }}>Non-GST Invoice</p>
+                )}
               </div>
             </div>
 
@@ -284,12 +359,11 @@ const EmployeeInvoice = () => {
                 <h3 style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 8px 0' }}>Bill To</h3>
                 <p style={{ fontSize: '14px', color: '#1e293b', fontWeight: 600, margin: 0 }}>{clientName || 'Client Name'}</p>
                 <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', whiteSpace: 'pre-line', margin: '4px 0 0 0' }}>{clientAddress || 'Client Address'}</p>
-                {clientGst && <p style={{ fontSize: '12px', color: '#1e293b', margin: '8px 0 0 0' }}><strong>GST:</strong> {clientGst}</p>}
+                {invoiceType === 'gst' && clientGst && <p style={{ fontSize: '12px', color: '#1e293b', margin: '8px 0 0 0' }}><strong>GST:</strong> {clientGst}</p>}
               </div>
               <div style={{ textAlign: 'right' }}>
                 <h3 style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 8px 0' }}>Generated By</h3>
-                <p style={{ fontSize: '12px', color: '#1e293b', margin: 0 }}>{user?.name || 'Employee'}</p>
-                <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0 0' }}>{user?.email || ''}</p>
+                <p style={{ fontSize: '12px', color: '#1e293b', margin: 0, fontWeight: 600 }}>Forge India Connect</p>
               </div>
             </div>
 
@@ -324,10 +398,12 @@ const EmployeeInvoice = () => {
                   <span>Subtotal</span>
                   <span>{formatCurrency(calculateSubtotal())}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
-                  <span>GST ({GST_RATE}%)</span>
-                  <span>{formatCurrency(calculateGst())}</span>
-                </div>
+                {invoiceType === 'gst' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e2e8f0', fontSize: '13px' }}>
+                    <span>GST ({GST_RATE}%)</span>
+                    <span>{formatCurrency(calculateGst())}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: '#1e293b', color: 'white', fontWeight: 700, fontSize: '15px' }}>
                   <span>Total</span>
                   <span>{formatCurrency(calculateTotal())}</span>
@@ -335,11 +411,13 @@ const EmployeeInvoice = () => {
               </div>
             </div>
 
-            {/* GST Info */}
-            <div style={{ backgroundColor: '#fef3c7', padding: '12px 16px', borderRadius: '6px', marginTop: '20px', borderLeft: '4px solid #f59e0b' }}>
-              <p style={{ fontSize: '11px', color: '#92400e', margin: 0 }}><strong>GST Registration:</strong> {GST_NUMBER}</p>
-              <p style={{ fontSize: '11px', color: '#92400e', margin: '4px 0 0 0' }}>Tax calculated at {GST_RATE}% GST on total taxable value.</p>
-            </div>
+            {/* GST Info - only for GST invoices */}
+            {invoiceType === 'gst' && (
+              <div style={{ backgroundColor: '#fef3c7', padding: '12px 16px', borderRadius: '6px', marginTop: '20px', borderLeft: '4px solid #f59e0b' }}>
+                <p style={{ fontSize: '11px', color: '#92400e', margin: 0 }}><strong>GST Registration:</strong> {GST_NUMBER}</p>
+                <p style={{ fontSize: '11px', color: '#92400e', margin: '4px 0 0 0' }}>Tax calculated at {GST_RATE}% GST on total taxable value.</p>
+              </div>
+            )}
 
             <div style={{ flexGrow: 1, minHeight: '40px' }} />
 
@@ -366,4 +444,4 @@ const EmployeeInvoice = () => {
   );
 };
 
-export default EmployeeInvoice;
+export default AdminInvoice;

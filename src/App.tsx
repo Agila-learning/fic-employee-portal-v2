@@ -17,13 +17,13 @@ import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminAttendance from "./pages/admin/AdminAttendance";
 import AdminFollowups from "./pages/admin/AdminFollowups";
 import AdminStorage from "./pages/admin/AdminStorage";
+import AdminInvoice from "./pages/admin/AdminInvoice";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 import EmployeeLeads from "./pages/employee/EmployeeLeads";
 import EmployeeFollowups from "./pages/employee/EmployeeFollowups";
 import EmployeeAttendance from "./pages/employee/EmployeeAttendance";
 import EmployeeTasks from "./pages/employee/EmployeeTasks";
 import AddLead from "./pages/employee/AddLead";
-import EmployeeInvoice from "./pages/employee/EmployeeInvoice";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +52,7 @@ const App = () => (
               <Route path="/admin/attendance" element={<AdminAttendance />} />
               <Route path="/admin/followups" element={<AdminFollowups />} />
               <Route path="/admin/storage" element={<AdminStorage />} />
+              <Route path="/admin/invoice" element={<AdminInvoice />} />
               
               {/* Employee Routes */}
               <Route path="/employee" element={<EmployeeDashboard />} />
@@ -60,7 +61,6 @@ const App = () => (
               <Route path="/employee/followups" element={<EmployeeFollowups />} />
               <Route path="/employee/attendance" element={<EmployeeAttendance />} />
               <Route path="/employee/tasks" element={<EmployeeTasks />} />
-              <Route path="/employee/invoice" element={<EmployeeInvoice />} />
               
               {/* Common Routes */}
               <Route path="/settings" element={<Settings />} />
