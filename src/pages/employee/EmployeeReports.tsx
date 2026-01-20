@@ -533,7 +533,7 @@ const EmployeeReports = () => {
             {/* Morning Report */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Sun className="h-4 w-4 text-amber-500" />
+                <Sun className="h-4 w-4 text-warning" />
                 Morning Report
               </Label>
               <Textarea
@@ -548,7 +548,7 @@ const EmployeeReports = () => {
             {/* Afternoon Report */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Moon className="h-4 w-4 text-blue-500" />
+                <Moon className="h-4 w-4 text-primary" />
                 Afternoon Report
               </Label>
               <Textarea
@@ -637,7 +637,7 @@ const EmployeeReports = () => {
                         </TableCell>
                         <TableCell>
                           {isToday(new Date(report.report_date)) ? (
-                            <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-green-500/20">
+                            <Badge variant="secondary" className="bg-success/10 text-success border-success/20">
                               Editable
                             </Badge>
                           ) : (
@@ -743,7 +743,7 @@ const EmployeeReports = () => {
                   <div className="space-y-3 pt-4 border-t">
                     <div>
                       <h4 className="font-medium text-sm flex items-center gap-2 mb-2">
-                        <Sun className="h-4 w-4 text-amber-500" />
+                        <Sun className="h-4 w-4 text-warning" />
                         Morning Report
                       </h4>
                       <p className="text-sm bg-muted/50 p-3 rounded-md whitespace-pre-wrap">
@@ -752,7 +752,7 @@ const EmployeeReports = () => {
                     </div>
                     <div>
                       <h4 className="font-medium text-sm flex items-center gap-2 mb-2">
-                        <Moon className="h-4 w-4 text-blue-500" />
+                        <Moon className="h-4 w-4 text-primary" />
                         Afternoon Report
                       </h4>
                       <p className="text-sm bg-muted/50 p-3 rounded-md whitespace-pre-wrap">
