@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarCheck, CheckCircle, XCircle, Search, Download, FileText, Pencil, UserPlus } from 'lucide-react';
+import { CalendarCheck, CheckCircle, XCircle, Search, Download, FileText, Pencil, UserPlus, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import AttendanceEditDialog from '@/components/attendance/AttendanceEditDialog';
@@ -30,22 +30,33 @@ const AdminAttendance = () => {
     return matchesSearch && matchesDate && matchesMonth;
   });
 
-  const getStatusBadge = (status: string) => (
-    <span className={cn(
-      'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium',
-      status === 'present' 
-        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-    )}>
-      {status === 'present' ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-      {status}
-    </span>
-  );
+  const getStatusBadge = (record: Attendance) => {
+    if (record.half_day) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-warning/20 text-warning">
+          <Clock className="h-3 w-3" />
+          Half Day
+        </span>
+      );
+    }
+    return (
+      <span className={cn(
+        'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium',
+        record.status === 'present' 
+          ? 'bg-success/20 text-success' 
+          : 'bg-destructive/20 text-destructive'
+      )}>
+        {record.status === 'present' ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+        {record.status}
+      </span>
+    );
+  };
 
   // Calculate stats for today
   const today = new Date().toISOString().split('T')[0];
   const todayRecords = attendance.filter(a => a.date === today);
-  const presentToday = todayRecords.filter(a => a.status === 'present').length;
+  const presentToday = todayRecords.filter(a => a.status === 'present' && !a.half_day).length;
+  const halfDayToday = todayRecords.filter(a => a.half_day === true).length;
   const absentToday = todayRecords.filter(a => a.status === 'absent').length;
 
   // Export to Excel
@@ -61,9 +72,10 @@ const AdminAttendance = () => {
     const excelData = dataToExport.map(record => ({
       'Employee Name': record.user_name || 'Unknown',
       'Date': record.date,
-      'Status': record.status === 'present' ? 'Present' : 'Absent',
+      'Status': record.half_day ? 'Half Day' : (record.status === 'present' ? 'Present' : 'Absent'),
       'Marked At': new Date(record.marked_at).toLocaleTimeString(),
-      'Leave Reason': record.status === 'absent' ? (record.leave_reason || '-') : '-'
+      'Leave Reason': record.status === 'absent' ? (record.leave_reason || '-') : '-',
+      'Location Verified': record.location_verified ? 'Yes' : 'No'
     }));
 
     // Create workbook and worksheet
@@ -77,6 +89,7 @@ const AdminAttendance = () => {
       { wch: 10 }, // Status
       { wch: 12 }, // Marked At
       { wch: 40 }, // Leave Reason
+      { wch: 15 }, // Location Verified
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
@@ -95,14 +108,16 @@ const AdminAttendance = () => {
     const month = monthFilter || new Date().toISOString().slice(0, 7);
     const monthRecords = attendance.filter(a => a.date.startsWith(month));
     
-    const employeeStats: { [key: string]: { name: string; present: number; absent: number } } = {};
+    const employeeStats: { [key: string]: { name: string; present: number; halfDay: number; absent: number } } = {};
     
     monthRecords.forEach(record => {
       const name = record.user_name || 'Unknown';
       if (!employeeStats[record.user_id]) {
-        employeeStats[record.user_id] = { name, present: 0, absent: 0 };
+        employeeStats[record.user_id] = { name, present: 0, halfDay: 0, absent: 0 };
       }
-      if (record.status === 'present') {
+      if (record.half_day) {
+        employeeStats[record.user_id].halfDay++;
+      } else if (record.status === 'present') {
         employeeStats[record.user_id].present++;
       } else {
         employeeStats[record.user_id].absent++;
@@ -135,7 +150,7 @@ const AdminAttendance = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card className="border-border/50">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -149,27 +164,40 @@ const AdminAttendance = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
+          <Card className="border-success/30 bg-success/5">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/20">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/20">
+                  <CheckCircle className="h-6 w-6 text-success" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-600">{presentToday}</p>
+                  <p className="text-2xl font-bold text-success">{presentToday}</p>
                   <p className="text-sm text-muted-foreground">Present Today</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20">
+          <Card className="border-warning/30 bg-warning/5">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/20">
-                  <XCircle className="h-6 w-6 text-red-600" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning/20">
+                  <Clock className="h-6 w-6 text-warning" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-red-600">{absentToday}</p>
+                  <p className="text-2xl font-bold text-warning">{halfDayToday}</p>
+                  <p className="text-sm text-muted-foreground">Half Day Today</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/20">
+                  <XCircle className="h-6 w-6 text-destructive" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-destructive">{absentToday}</p>
                   <p className="text-sm text-muted-foreground">Absent Today</p>
                 </div>
               </div>
@@ -201,26 +229,30 @@ const AdminAttendance = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Employee</TableHead>
-                    <TableHead className="text-center">Present Days</TableHead>
-                    <TableHead className="text-center">Absent Days</TableHead>
+                    <TableHead className="text-center">Present</TableHead>
+                    <TableHead className="text-center">Half Day</TableHead>
+                    <TableHead className="text-center">Absent</TableHead>
                     <TableHead className="text-center">Attendance %</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {monthlyStats.map((stat, index) => {
-                    const total = stat.present + stat.absent;
-                    const percentage = total > 0 ? Math.round((stat.present / total) * 100) : 0;
+                    // Half days count as 0.5 for percentage calculation
+                    const effectivePresent = stat.present + (stat.halfDay * 0.5);
+                    const total = stat.present + stat.halfDay + stat.absent;
+                    const percentage = total > 0 ? Math.round((effectivePresent / total) * 100) : 0;
                     return (
                       <TableRow key={index}>
                         <TableCell className="font-medium">{stat.name}</TableCell>
-                        <TableCell className="text-center text-green-600 font-semibold">{stat.present}</TableCell>
-                        <TableCell className="text-center text-red-600 font-semibold">{stat.absent}</TableCell>
+                        <TableCell className="text-center text-success font-semibold">{stat.present}</TableCell>
+                        <TableCell className="text-center text-warning font-semibold">{stat.halfDay}</TableCell>
+                        <TableCell className="text-center text-destructive font-semibold">{stat.absent}</TableCell>
                         <TableCell className="text-center">
                           <span className={cn(
                             'px-2 py-1 rounded-full text-xs font-medium',
-                            percentage >= 80 ? 'bg-green-100 text-green-700' : 
-                            percentage >= 60 ? 'bg-amber-100 text-amber-700' : 
-                            'bg-red-100 text-red-700'
+                            percentage >= 80 ? 'bg-success/20 text-success' : 
+                            percentage >= 60 ? 'bg-warning/20 text-warning' : 
+                            'bg-destructive/20 text-destructive'
                           )}>
                             {percentage}%
                           </span>
@@ -278,7 +310,7 @@ const AdminAttendance = () => {
                     <TableRow key={record.id}>
                       <TableCell className="font-medium">{record.user_name}</TableCell>
                       <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
-                      <TableCell>{getStatusBadge(record.status)}</TableCell>
+                      <TableCell>{getStatusBadge(record)}</TableCell>
                       <TableCell>{new Date(record.marked_at).toLocaleTimeString()}</TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {record.leave_reason || '-'}

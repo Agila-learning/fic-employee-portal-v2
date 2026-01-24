@@ -28,7 +28,8 @@ interface AdminMarkAttendanceDialogProps {
     employeeId: string,
     status: 'present' | 'absent',
     date: string,
-    leaveReason?: string
+    leaveReason?: string,
+    isHalfDay?: boolean
   ) => Promise<{ error: Error | null }>;
 }
 
@@ -42,6 +43,7 @@ const AdminMarkAttendanceDialog = ({
   const [status, setStatus] = useState<'present' | 'absent'>('present');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [leaveReason, setLeaveReason] = useState('');
+  const [isHalfDay, setIsHalfDay] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Reset form when dialog opens
@@ -51,6 +53,7 @@ const AdminMarkAttendanceDialog = ({
       setStatus('present');
       setDate(new Date().toISOString().split('T')[0]);
       setLeaveReason('');
+      setIsHalfDay(false);
     }
   }, [open]);
 
@@ -62,7 +65,8 @@ const AdminMarkAttendanceDialog = ({
       selectedEmployee,
       status,
       date,
-      status === 'absent' ? leaveReason : undefined
+      status === 'absent' ? leaveReason : undefined,
+      isHalfDay
     );
     setSaving(false);
 
@@ -114,33 +118,56 @@ const AdminMarkAttendanceDialog = ({
 
           <div className="space-y-2">
             <Label>Status</Label>
-            <div className="flex gap-4">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 type="button"
-                variant={status === 'present' ? 'default' : 'outline'}
-                onClick={() => setStatus('present')}
+                variant={status === 'present' && !isHalfDay ? 'default' : 'outline'}
+                onClick={() => { setStatus('present'); setIsHalfDay(false); }}
                 className={
-                  status === 'present'
+                  status === 'present' && !isHalfDay
                     ? 'bg-green-600 hover:bg-green-700'
                     : ''
                 }
+                size="sm"
               >
                 Present
               </Button>
               <Button
                 type="button"
+                variant={status === 'present' && isHalfDay ? 'default' : 'outline'}
+                onClick={() => { setStatus('present'); setIsHalfDay(true); }}
+                className={
+                  status === 'present' && isHalfDay
+                    ? 'bg-amber-600 hover:bg-amber-700'
+                    : ''
+                }
+                size="sm"
+              >
+                Half Day
+              </Button>
+              <Button
+                type="button"
                 variant={status === 'absent' ? 'default' : 'outline'}
-                onClick={() => setStatus('absent')}
+                onClick={() => { setStatus('absent'); setIsHalfDay(false); }}
                 className={
                   status === 'absent'
                     ? 'bg-red-600 hover:bg-red-700'
                     : ''
                 }
+                size="sm"
               >
                 Absent
               </Button>
             </div>
           </div>
+
+          {isHalfDay && (
+            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Half-day attendance will be recorded. This is typically used when an employee works for half the day (morning/afternoon).
+              </p>
+            </div>
+          )}
 
           {status === 'absent' && (
             <div className="space-y-2">

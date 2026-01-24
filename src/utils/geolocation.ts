@@ -1,0 +1,108 @@
+// Office location coordinates for Krishnagiri
+// No 10-I KNT Manickam Road, New bus stand, Krishnagiri-635001
+export const OFFICE_LOCATION = {
+  latitude: 12.5266,
+  longitude: 78.2141,
+  // Radius in meters - 100m radius around office
+  radiusMeters: 100,
+  address: 'No 10-I KNT Manickam Road, New bus stand, Krishnagiri-635001'
+};
+
+export interface LocationResult {
+  success: boolean;
+  latitude?: number;
+  longitude?: number;
+  error?: string;
+  isWithinOffice?: boolean;
+}
+
+/**
+ * Calculate distance between two coordinates using Haversine formula
+ * @returns distance in meters
+ */
+export const calculateDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number => {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
+
+/**
+ * Check if the given coordinates are within office premises
+ */
+export const isWithinOfficePremises = (latitude: number, longitude: number): boolean => {
+  const distance = calculateDistance(
+    latitude,
+    longitude,
+    OFFICE_LOCATION.latitude,
+    OFFICE_LOCATION.longitude
+  );
+  return distance <= OFFICE_LOCATION.radiusMeters;
+};
+
+/**
+ * Get current user location
+ */
+export const getCurrentLocation = (): Promise<LocationResult> => {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve({
+        success: false,
+        error: 'Geolocation is not supported by your browser'
+      });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const isWithinOffice = isWithinOfficePremises(latitude, longitude);
+        
+        resolve({
+          success: true,
+          latitude,
+          longitude,
+          isWithinOffice
+        });
+      },
+      (error) => {
+        let errorMessage: string;
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location permission denied. Please enable location access to mark attendance.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out.';
+            break;
+          default:
+            errorMessage = 'An unknown error occurred while getting location.';
+        }
+        resolve({
+          success: false,
+          error: errorMessage
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  });
+};

@@ -12,6 +12,7 @@ import { format, isToday, isTomorrow, isPast, isThisWeek, startOfDay, endOfDay }
 import { CalendarClock, AlertTriangle, Clock, Phone, Mail, User, Filter, Search, RefreshCw, Users } from 'lucide-react';
 import LeadFormDialog from '@/components/leads/LeadFormDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const MAX_FOLLOWUP_COUNT = 6;
 
@@ -44,6 +45,7 @@ const AdminFollowups = () => {
     setIsRefreshing(true);
     await refetchLeads();
     setIsRefreshing(false);
+    toast.success('Follow-ups refreshed');
   }, [refetchLeads]);
 
   // Filter leads that have follow_up status

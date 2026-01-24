@@ -25,19 +25,22 @@ const AttendanceCard = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
-  // Create maps for present and absent dates
-  const { presentDates, absentDates } = useMemo(() => {
+  // Create maps for present, absent, and half-day dates
+  const { presentDates, absentDates, halfDayDates } = useMemo(() => {
     const present: Date[] = [];
     const absent: Date[] = [];
+    const halfDay: Date[] = [];
     myAttendance.forEach((record) => {
       const date = parseISO(record.date);
-      if (record.status === 'present') {
+      if (record.half_day) {
+        halfDay.push(date);
+      } else if (record.status === 'present') {
         present.push(date);
       } else if (record.status === 'absent') {
         absent.push(date);
       }
     });
-    return { presentDates: present, absentDates: absent };
+    return { presentDates: present, absentDates: absent, halfDayDates: halfDay };
   }, [myAttendance]);
 
   const now = new Date();
@@ -185,26 +188,33 @@ const AttendanceCard = () => {
               {/* Current Month Stats */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">{currentMonthName} (Current Month)</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 rounded-xl bg-success/10 border border-success/20">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-4 w-4 text-success" />
-                      <span className="text-xs font-medium text-success">Present</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-3 rounded-xl bg-success/10 border border-success/20">
+                    <div className="flex items-center gap-1 mb-1">
+                      <CheckCircle className="h-3 w-3 text-success" />
+                      <span className="text-[10px] font-medium text-success">Present</span>
                     </div>
-                    <p className="text-2xl font-bold text-success">
+                    <p className="text-xl font-bold text-success">
                       {attendanceSummary.currentMonthPresent}
                     </p>
-                    <p className="text-[10px] text-success/70">days</p>
                   </div>
-                  <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
-                    <div className="flex items-center gap-2 mb-1">
-                      <XCircle className="h-4 w-4 text-destructive" />
-                      <span className="text-xs font-medium text-destructive">Absent</span>
+                  <div className="p-3 rounded-xl bg-warning/10 border border-warning/20">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Clock className="h-3 w-3 text-warning" />
+                      <span className="text-[10px] font-medium text-warning">Half Day</span>
                     </div>
-                    <p className="text-2xl font-bold text-destructive">
+                    <p className="text-xl font-bold text-warning">
+                      {attendanceSummary.currentMonthHalfDays}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <div className="flex items-center gap-1 mb-1">
+                      <XCircle className="h-3 w-3 text-destructive" />
+                      <span className="text-[10px] font-medium text-destructive">Absent</span>
+                    </div>
+                    <p className="text-xl font-bold text-destructive">
                       {attendanceSummary.currentMonthAbsent}
                     </p>
-                    <p className="text-[10px] text-destructive/70">days</p>
                   </div>
                 </div>
               </div>
@@ -214,26 +224,33 @@ const AttendanceCard = () => {
               {/* All Time Stats */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">All Time</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-4 w-4 text-primary" />
-                      <span className="text-xs font-medium text-primary">Total Present</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+                    <div className="flex items-center gap-1 mb-1">
+                      <CheckCircle className="h-3 w-3 text-primary" />
+                      <span className="text-[10px] font-medium text-primary">Present</span>
                     </div>
-                    <p className="text-2xl font-bold text-primary">
+                    <p className="text-xl font-bold text-primary">
                       {attendanceSummary.totalPresent}
                     </p>
-                    <p className="text-[10px] text-primary/70">days</p>
                   </div>
-                  <div className="p-4 rounded-xl bg-warning/10 border border-warning/20">
-                    <div className="flex items-center gap-2 mb-1">
-                      <XCircle className="h-4 w-4 text-warning" />
-                      <span className="text-xs font-medium text-warning">Total Absent</span>
+                  <div className="p-3 rounded-xl bg-warning/10 border border-warning/20">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Clock className="h-3 w-3 text-warning" />
+                      <span className="text-[10px] font-medium text-warning">Half Day</span>
                     </div>
-                    <p className="text-2xl font-bold text-warning">
+                    <p className="text-xl font-bold text-warning">
+                      {attendanceSummary.totalHalfDays}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                    <div className="flex items-center gap-1 mb-1">
+                      <XCircle className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-[10px] font-medium text-muted-foreground">Absent</span>
+                    </div>
+                    <p className="text-xl font-bold text-foreground">
                       {attendanceSummary.totalAbsent}
                     </p>
-                    <p className="text-[10px] text-warning/70">days</p>
                   </div>
                 </div>
               </div>
@@ -261,10 +278,14 @@ const AttendanceCard = () => {
             
             <TabsContent value="calendar" className="mt-4">
               {/* Legend */}
-              <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-success" />
                   <span className="text-xs text-muted-foreground">Present</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-warning" />
+                  <span className="text-xs text-muted-foreground">Half Day</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-destructive" />
@@ -282,10 +303,12 @@ const AttendanceCard = () => {
                   modifiers={{
                     present: presentDates,
                     absent: absentDates,
+                    halfDay: halfDayDates,
                   }}
                   modifiersClassNames={{
                     present: "bg-success/20 text-success font-semibold hover:bg-success/30",
                     absent: "bg-destructive/20 text-destructive font-semibold hover:bg-destructive/30",
+                    halfDay: "bg-warning/20 text-warning font-semibold hover:bg-warning/30",
                   }}
                   disabled={(date) => date > new Date()}
                 />
@@ -297,6 +320,10 @@ const AttendanceCard = () => {
                   {format(calendarMonth, 'MMMM yyyy')}: {' '}
                   <span className="text-success font-medium">
                     {presentDates.filter(d => d.getMonth() === calendarMonth.getMonth() && d.getFullYear() === calendarMonth.getFullYear()).length} present
+                  </span>
+                  {' · '}
+                  <span className="text-warning font-medium">
+                    {halfDayDates.filter(d => d.getMonth() === calendarMonth.getMonth() && d.getFullYear() === calendarMonth.getFullYear()).length} half-day
                   </span>
                   {' · '}
                   <span className="text-destructive font-medium">

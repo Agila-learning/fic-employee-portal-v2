@@ -44,24 +44,36 @@ export type Database = {
       attendance: {
         Row: {
           date: string
+          half_day: boolean | null
           id: string
+          latitude: number | null
           leave_reason: string | null
+          location_verified: boolean | null
+          longitude: number | null
           marked_at: string
           status: string
           user_id: string
         }
         Insert: {
           date?: string
+          half_day?: boolean | null
           id?: string
+          latitude?: number | null
           leave_reason?: string | null
+          location_verified?: boolean | null
+          longitude?: number | null
           marked_at?: string
           status: string
           user_id: string
         }
         Update: {
           date?: string
+          half_day?: boolean | null
           id?: string
+          latitude?: number | null
           leave_reason?: string | null
+          location_verified?: boolean | null
+          longitude?: number | null
           marked_at?: string
           status?: string
           user_id?: string
