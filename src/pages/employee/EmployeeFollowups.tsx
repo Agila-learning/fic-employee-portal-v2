@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,14 @@ const EmployeeFollowups = () => {
   const [timeFilter, setTimeFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetchLeads();
+    setIsRefreshing(false);
+    toast.success('Follow-ups refreshed');
+  }, [refetchLeads]);
 
   // Filter leads for current employee that have follow_up status
   const followupLeads = useMemo(() => {
@@ -128,9 +136,9 @@ const EmployeeFollowups = () => {
             </h1>
             <p className="text-muted-foreground">Manage your scheduled follow-ups</p>
           </div>
-          <Button onClick={() => refetchLeads()} variant="outline" className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
+          <Button onClick={handleRefresh} variant="outline" className="gap-2" disabled={isRefreshing}>
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>
 
