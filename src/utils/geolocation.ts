@@ -43,6 +43,7 @@ export const calculateDistance = (
 
 /**
  * Check if the given coordinates are within office premises
+ * Returns both the boolean result and the calculated distance
  */
 export const isWithinOfficePremises = (latitude: number, longitude: number): boolean => {
   const distance = calculateDistance(
@@ -51,7 +52,22 @@ export const isWithinOfficePremises = (latitude: number, longitude: number): boo
     OFFICE_LOCATION.latitude,
     OFFICE_LOCATION.longitude
   );
+  console.log(`[GPS Debug] User location: ${latitude}, ${longitude}`);
+  console.log(`[GPS Debug] Office location: ${OFFICE_LOCATION.latitude}, ${OFFICE_LOCATION.longitude}`);
+  console.log(`[GPS Debug] Distance from office: ${Math.round(distance)}m (allowed: ${OFFICE_LOCATION.radiusMeters}m)`);
   return distance <= OFFICE_LOCATION.radiusMeters;
+};
+
+/**
+ * Get the distance from office in meters
+ */
+export const getDistanceFromOffice = (latitude: number, longitude: number): number => {
+  return calculateDistance(
+    latitude,
+    longitude,
+    OFFICE_LOCATION.latitude,
+    OFFICE_LOCATION.longitude
+  );
 };
 
 /**
