@@ -149,9 +149,19 @@ export const useAttendance = () => {
   const markAttendance = async (status: 'present' | 'absent', leaveReason?: string) => {
     if (!user) return { error: new Error('Not authenticated'), locationError: false };
 
-    // Check if it's past the cutoff time (extended to 11:30 PM for testing)
+    // Check if it's past 10:30 AM
     const now = new Date();
-    const cutoffHour = 23;
+    const cutoffHour = 10;
+    const cutoffMinute = 30;
+    
+    if (now.getHours() > cutoffHour || (now.getHours() === cutoffHour && now.getMinutes() >= cutoffMinute)) {
+      toast({ 
+        title: "Attendance window closed",
+        description: "Attendance can only be marked before 10:30 AM",
+        variant: "destructive"
+      });
+      return { error: new Error('Attendance window closed'), locationError: false };
+    }
     
     if (now.getHours() >= cutoffHour) {
       toast({ 
