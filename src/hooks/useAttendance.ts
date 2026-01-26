@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentLocation, isWithinOfficePremises, OFFICE_LOCATION } from '@/utils/geolocation';
+import { getCurrentLocation, isWithinOfficePremises, getDistanceFromOffice, OFFICE_LOCATION } from '@/utils/geolocation';
 
 export type AttendanceStatus = 'present' | 'absent' | 'half_day';
 
@@ -205,9 +205,10 @@ export const useAttendance = () => {
       }
 
       if (!locationResult.isWithinOffice) {
+        const distance = getDistanceFromOffice(locationResult.latitude!, locationResult.longitude!);
         toast({ 
           title: 'Outside Office Premises', 
-          description: `You must be within ${OFFICE_LOCATION.radiusMeters}m of office to mark attendance. Office: ${OFFICE_LOCATION.address}`, 
+          description: `You are ${Math.round(distance)}m away from office. Must be within ${OFFICE_LOCATION.radiusMeters}m. Your coordinates: ${locationResult.latitude?.toFixed(6)}, ${locationResult.longitude?.toFixed(6)}`, 
           variant: 'destructive' 
         });
         return { error: new Error('Outside office premises'), locationError: true };
