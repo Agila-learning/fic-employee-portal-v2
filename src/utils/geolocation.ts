@@ -1,10 +1,11 @@
-// Office location coordinates for Krishnagiri
+// Office location coordinates for Forge India Connect, Krishnagiri
 // No 10-I KNT Manickam Road, New bus stand, Krishnagiri-635001
+// Google Maps: https://maps.app.goo.gl/b8pwZxvPLGAezuEu7
 export const OFFICE_LOCATION = {
-  latitude: 12.5266,
-  longitude: 78.2141,
-  // Radius in meters - 100m radius around office
-  radiusMeters: 100,
+  latitude: 12.527334,
+  longitude: 78.214152,
+  // Radius in meters - 500m radius around office for reliable GPS matching
+  radiusMeters: 500,
   address: 'No 10-I KNT Manickam Road, New bus stand, Krishnagiri-635001'
 };
 
