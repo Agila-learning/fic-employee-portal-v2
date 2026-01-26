@@ -80,34 +80,35 @@ const AttendanceMapView = ({ attendance, selectedDate }: AttendanceMapViewProps)
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <MapPin className="h-5 w-5 text-primary" />
-          Location Overview {selectedDate && `- ${new Date(selectedDate).toLocaleDateString()}`}
+      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <span className="truncate">Location Overview</span>
+          {selectedDate && <span className="text-xs text-muted-foreground hidden sm:inline">- {new Date(selectedDate).toLocaleDateString()}</span>}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6">
         {/* Location Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {locationsToShow.map(([location, stats]) => (
             <div
               key={location}
               className={cn(
-                "p-3 rounded-xl border-2 transition-all hover:shadow-md",
+                "p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all hover:shadow-md",
                 locationColors[location]
               )}
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-1.5 rounded-lg bg-white/50 dark:bg-black/20">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <div className="p-1 sm:p-1.5 rounded-md sm:rounded-lg bg-white/50 dark:bg-black/20">
                   {locationIcons[location]}
                 </div>
-                <span className="text-xl font-bold">{stats.count}</span>
+                <span className="text-lg sm:text-xl font-bold">{stats.count}</span>
               </div>
-              <h3 className="font-medium text-xs leading-tight">
+              <h3 className="font-medium text-[10px] sm:text-xs leading-tight truncate">
                 {OFFICE_LOCATIONS[location as WorkLocation]?.name || 'Legacy Records'}
               </h3>
               {stats.employees.length > 0 && (
-                <div className="mt-2 max-h-16 overflow-y-auto scrollbar-thin">
+                <div className="mt-1 sm:mt-2 max-h-12 sm:max-h-16 overflow-y-auto scrollbar-thin hidden sm:block">
                   {stats.employees.slice(0, 3).map((name, idx) => (
                     <div key={idx} className="flex items-center gap-1 text-xs opacity-80">
                       <CheckCircle className="h-3 w-3 flex-shrink-0" />
@@ -126,39 +127,39 @@ const AttendanceMapView = ({ attendance, selectedDate }: AttendanceMapViewProps)
         </div>
 
         {/* Office Locations Visual */}
-        <div className="p-3 rounded-xl bg-muted/50 border border-border">
+        <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-muted/50 border border-border">
           <div className="flex items-center gap-2 mb-2">
-            <MapPin className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Office Locations</span>
+            <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+            <span className="text-xs sm:text-sm font-medium">Office Locations</span>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
             {Object.entries(OFFICE_LOCATIONS)
               .filter(([key]) => key !== 'wfh')
               .map(([key, location]) => (
                 <div
                   key={key}
                   className={cn(
-                    "flex flex-col items-center p-2 rounded-lg transition-all",
+                    "flex flex-col items-center p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-all",
                     locationStats[key]?.count > 0 
                       ? "bg-white dark:bg-gray-800 shadow-md" 
                       : "bg-muted/30 opacity-60"
                   )}
                 >
                   <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center mb-1",
+                    "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center mb-0.5 sm:mb-1",
                     locationColors[key]
                   )}>
                     {locationIcons[key]}
                   </div>
-                  <span className="text-xs font-medium text-center">{location.name.split(' ')[0]}</span>
+                  <span className="text-[10px] sm:text-xs font-medium text-center">{location.name.split(' ')[0]}</span>
                   <span className={cn(
-                    "text-sm font-bold",
+                    "text-xs sm:text-sm font-bold",
                     locationStats[key]?.count > 0 ? "text-primary" : "text-muted-foreground"
                   )}>
                     {locationStats[key]?.count || 0}
                   </span>
                   {key === 'krishnagiri' && location.geoPoints && (
-                    <span className="text-[10px] text-muted-foreground mt-0.5">
+                    <span className="text-[8px] sm:text-[10px] text-muted-foreground mt-0.5">
                       {location.geoPoints.length} offices
                     </span>
                   )}
@@ -166,15 +167,15 @@ const AttendanceMapView = ({ attendance, selectedDate }: AttendanceMapViewProps)
               ))}
           </div>
           
-          {/* Krishnagiri Details */}
+          {/* Krishnagiri Details - Hidden on mobile for space */}
           {OFFICE_LOCATIONS.krishnagiri.geoPoints && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Krishnagiri Office Locations (500m radius each):</p>
+            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border hidden sm:block">
+              <p className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-1 sm:mb-2">Krishnagiri Office Locations (500m radius each):</p>
               <div className="space-y-1">
                 {OFFICE_LOCATIONS.krishnagiri.geoPoints.map((point, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-xs">
-                    <Navigation className="h-3 w-3 text-amber-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">{point.address}</span>
+                  <div key={idx} className="flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                    <Navigation className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground line-clamp-1">{point.address}</span>
                   </div>
                 ))}
               </div>
