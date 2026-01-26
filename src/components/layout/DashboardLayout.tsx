@@ -31,8 +31,8 @@ const DashboardLayout = ({ children, requiredRole }: DashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-background flex flex-col scroll-smooth transition-colors duration-300">
       <Sidebar />
-      <main className="ml-0 md:ml-64 flex-1 p-4 sm:p-6 pb-8 pt-16 md:pt-6">
-        <div className="animate-fade-in max-w-7xl mx-auto">
+      <main className="ml-0 md:ml-64 flex-1 px-3 py-4 sm:p-6 pb-8 pt-16 md:pt-6">
+        <div className="animate-fade-in max-w-7xl mx-auto w-full">
           {children}
         </div>
       </main>
