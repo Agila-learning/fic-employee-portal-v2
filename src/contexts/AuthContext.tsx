@@ -63,39 +63,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    let isMounted = true;
+    let initialSessionHandled = false;
+
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!isMounted) return;
+
         setSession(session);
         
         if (session?.user) {
-          // Defer fetching user data to avoid deadlock
+          // Defer fetching user data to avoid deadlock with Supabase internals
           setTimeout(async () => {
+            if (!isMounted) return;
             const userData = await fetchUserData(session.user);
+            if (!isMounted) return;
             setUser(userData);
             setIsLoading(false);
+            initialSessionHandled = true;
           }, 0);
         } else {
           setUser(null);
           setIsLoading(false);
+          initialSessionHandled = true;
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Fallback: if onAuthStateChange hasn't fired within 1s, use getSession
+    const fallbackTimer = setTimeout(async () => {
+      if (!isMounted || initialSessionHandled) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!isMounted || initialSessionHandled) return;
       setSession(session);
       if (session?.user) {
-        fetchUserData(session.user).then((userData) => {
-          setUser(userData);
-          setIsLoading(false);
-        });
-      } else {
-        setIsLoading(false);
+        const userData = await fetchUserData(session.user);
+        if (!isMounted) return;
+        setUser(userData);
       }
-    });
+      setIsLoading(false);
+    }, 1000);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(fallbackTimer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
