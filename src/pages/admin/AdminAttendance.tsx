@@ -206,7 +206,7 @@ const AdminAttendance = () => {
     });
     XLSX.utils.book_append_sheet(wb, summarySheet, 'Employee Summary');
 
-    // ===== SHEET 2: All Records =====
+    // ===== SHEET 2: All Records (Grouped by Date) =====
     const mapRecord = (record: Attendance) => ({
       'Employee Name': record.user_name || 'Unknown',
       'Date': record.date,
@@ -218,20 +218,102 @@ const AdminAttendance = () => {
       'Location Verified': record.location_verified ? 'Yes' : 'No'
     });
 
-    const allData = dataToExport.map(mapRecord);
     const colWidths = [
-      { wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 40 }, { wch: 16 },
+      { wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 14 }, { wch: 40 }, { wch: 16 },
     ];
-    const allSheet = XLSX.utils.json_to_sheet(allData);
+    const cols = ['Employee Name', 'Date', 'Day', 'Status', 'Work Location', 'Marked At', 'Leave Reason', 'Location Verified'];
+
+    // Group records by date
+    const sortedData = [...dataToExport].sort((a, b) => a.date.localeCompare(b.date));
+    const dateGroups: Record<string, Attendance[]> = {};
+    sortedData.forEach(record => {
+      if (!dateGroups[record.date]) dateGroups[record.date] = [];
+      dateGroups[record.date].push(record);
+    });
+
+    // Build rows with date headers and blank separator rows
+    const allSheet = XLSX.utils.aoa_to_sheet([cols]); // header row
     allSheet['!cols'] = colWidths;
     applyHeaderStyle(allSheet, 8, '1A5276');
-    applyRowStyles(allSheet, allData.length, 8, (row) => {
-      const status = allData[row - 1]?.['Status'];
-      if (status === 'Present') return 'D5F5E3';
-      if (status === 'Half Day') return 'FEF9E7';
-      if (status === 'Absent') return 'FADBD8';
-      return null;
+
+    let currentRow = 1; // row 0 is header
+    const dateHeaderRows: number[] = [];
+    const statusRowMap: Record<number, string> = {};
+
+    const sortedDates = Object.keys(dateGroups).sort();
+    sortedDates.forEach((date, dateIdx) => {
+      // Add blank separator row before each date group (except the first)
+      if (dateIdx > 0) {
+        const blankRow = Array(8).fill('');
+        XLSX.utils.sheet_add_aoa(allSheet, [blankRow], { origin: currentRow });
+        currentRow++;
+      }
+
+      // Date header row
+      const dayName = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
+      const dateLabel = `📅  ${date}  —  ${dayName}  (${dateGroups[date].length} employees)`;
+      const dateHeaderRow = [dateLabel, '', '', '', '', '', '', ''];
+      XLSX.utils.sheet_add_aoa(allSheet, [dateHeaderRow], { origin: currentRow });
+      // Merge the date header across all columns
+      if (!allSheet['!merges']) allSheet['!merges'] = [];
+      allSheet['!merges'].push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 7 } });
+      dateHeaderRows.push(currentRow);
+      currentRow++;
+
+      // Employee rows for this date
+      dateGroups[date].forEach(record => {
+        const mapped = mapRecord(record);
+        const row = cols.map(c => mapped[c as keyof typeof mapped]);
+        XLSX.utils.sheet_add_aoa(allSheet, [row], { origin: currentRow });
+        statusRowMap[currentRow] = mapped['Status'];
+        currentRow++;
+      });
     });
+
+    // Style date header rows (dark blue background)
+    dateHeaderRows.forEach(r => {
+      for (let c = 0; c < 8; c++) {
+        const cellRef = XLSX.utils.encode_cell({ r, c });
+        if (!allSheet[cellRef]) allSheet[cellRef] = { v: '', t: 's' };
+        allSheet[cellRef].s = {
+          fill: { fgColor: { rgb: '1B4F72' } },
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 },
+          alignment: { horizontal: 'left', vertical: 'center' },
+          border: {
+            top: { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } },
+          }
+        };
+      }
+    });
+
+    // Style data rows with status colors
+    Object.entries(statusRowMap).forEach(([rowStr, status]) => {
+      const r = parseInt(rowStr);
+      let bgColor = 'FFFFFF';
+      if (status === 'Present') bgColor = 'D5F5E3';
+      else if (status === 'Half Day') bgColor = 'FEF9E7';
+      else if (status === 'Absent') bgColor = 'FADBD8';
+      for (let c = 0; c < 8; c++) {
+        const cellRef = XLSX.utils.encode_cell({ r, c });
+        if (!allSheet[cellRef]) continue;
+        allSheet[cellRef].s = {
+          fill: { fgColor: { rgb: bgColor } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: {
+            top: { style: 'thin', color: { rgb: 'D0D0D0' } },
+            bottom: { style: 'thin', color: { rgb: 'D0D0D0' } },
+            left: { style: 'thin', color: { rgb: 'D0D0D0' } },
+            right: { style: 'thin', color: { rgb: 'D0D0D0' } },
+          }
+        };
+      }
+    });
+
+    // Set the range for the sheet
+    allSheet['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: currentRow - 1, c: 7 } });
     XLSX.utils.book_append_sheet(wb, allSheet, 'All Records');
 
     // ===== SHEET 3: Present =====
