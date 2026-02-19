@@ -18,7 +18,7 @@ import * as XLSX from 'xlsx-js-style';
 const CATEGORIES = [
   'Tea/Coffee', 'Snacks', 'Pooja Materials', 'Office Use Things',
   'Sanitary Products', 'Food', 'Transport', 'Travel',
-  'Office Supplies', 'Communication', 'Miscellaneous'
+  'Office Supplies', 'Others'
 ];
 
 const EmployeeExpenses = () => {
@@ -28,6 +28,7 @@ const EmployeeExpenses = () => {
   const [expAmount, setExpAmount] = useState('');
   const [expDesc, setExpDesc] = useState('');
   const [expCategory, setExpCategory] = useState('Tea/Coffee');
+  const [customCategory, setCustomCategory] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,14 +46,15 @@ const EmployeeExpenses = () => {
     if (receiptFile) {
       receiptPath = await uploadReceipt(receiptFile);
     }
+    const finalCategory = expCategory === 'Others' ? (customCategory || 'Others') : expCategory;
     await addExpense({
       expense_date: format(expDate, 'yyyy-MM-dd'),
       amount: parseFloat(expAmount),
       description: expDesc,
-      category: expCategory,
+      category: finalCategory,
       receipt_url: receiptPath || undefined,
     });
-    setExpAmount(''); setExpDesc(''); setReceiptFile(null);
+    setExpAmount(''); setExpDesc(''); setReceiptFile(null); setCustomCategory('');
     if (fileInputRef.current) fileInputRef.current.value = '';
     setUploading(false);
   };
@@ -209,6 +211,12 @@ const EmployeeExpenses = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  {expCategory === 'Others' && (
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Specify Category</label>
+                      <Input placeholder="Enter category" value={customCategory} onChange={e => setCustomCategory(e.target.value)} />
+                    </div>
+                  )}
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Amount (₹)</label>
                     <Input type="number" placeholder="0.00" value={expAmount} onChange={e => setExpAmount(e.target.value)} />
