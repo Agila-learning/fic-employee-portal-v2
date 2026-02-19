@@ -1,32 +1,37 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { useExpenses } from '@/hooks/useExpenses';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
-import { CalendarIcon, Plus, Trash2, Download, IndianRupee, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, Download, IndianRupee, TrendingUp, TrendingDown, Wallet, Upload, FileImage, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx-js-style';
 
-const CATEGORIES = ['Travel', 'Food', 'Office Supplies', 'Communication', 'Transport', 'Miscellaneous'];
+const CATEGORIES = [
+  'Tea/Coffee', 'Snacks', 'Pooja Materials', 'Office Use Things',
+  'Sanitary Products', 'Food', 'Transport', 'Travel',
+  'Office Supplies', 'Communication', 'Miscellaneous'
+];
 
 const EmployeeExpenses = () => {
-  const { expenses, credits, loading, addExpense, deleteExpense, addCredit, deleteCredit } = useExpenses();
-  
-  // Expense form
+  const { expenses, credits, loading, addExpense, deleteExpense, addCredit, deleteCredit, uploadReceipt, getReceiptUrl } = useExpenses();
+
   const [expDate, setExpDate] = useState<Date>(new Date());
   const [expAmount, setExpAmount] = useState('');
   const [expDesc, setExpDesc] = useState('');
-  const [expCategory, setExpCategory] = useState('Travel');
-  
-  // Credit form
+  const [expCategory, setExpCategory] = useState('Tea/Coffee');
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [credDate, setCredDate] = useState<Date>(new Date());
   const [credAmount, setCredAmount] = useState('');
   const [credGivenBy, setCredGivenBy] = useState('');
@@ -35,8 +40,21 @@ const EmployeeExpenses = () => {
 
   const handleAddExpense = async () => {
     if (!expAmount || !expDesc) return;
-    await addExpense({ expense_date: format(expDate, 'yyyy-MM-dd'), amount: parseFloat(expAmount), description: expDesc, category: expCategory });
-    setExpAmount(''); setExpDesc('');
+    setUploading(true);
+    let receiptPath: string | null = null;
+    if (receiptFile) {
+      receiptPath = await uploadReceipt(receiptFile);
+    }
+    await addExpense({
+      expense_date: format(expDate, 'yyyy-MM-dd'),
+      amount: parseFloat(expAmount),
+      description: expDesc,
+      category: expCategory,
+      receipt_url: receiptPath || undefined,
+    });
+    setExpAmount(''); setExpDesc(''); setReceiptFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setUploading(false);
   };
 
   const handleAddCredit = async () => {
@@ -45,13 +63,18 @@ const EmployeeExpenses = () => {
     setCredAmount(''); setCredGivenBy(''); setCredDesc('');
   };
 
+  const handleViewReceipt = async (path: string) => {
+    const url = await getReceiptUrl(path);
+    if (url) window.open(url, '_blank');
+  };
+
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
   const monthStart = startOfMonth(today);
   const monthEnd = endOfMonth(today);
 
-  const filterExpensesByRange = (items: typeof expenses, range: 'daily' | 'weekly' | 'monthly') => {
+  const filterByRange = (items: typeof expenses, range: 'daily' | 'weekly' | 'monthly') => {
     return items.filter(item => {
       const d = parseISO(item.expense_date);
       if (range === 'daily') return format(d, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
@@ -62,15 +85,20 @@ const EmployeeExpenses = () => {
 
   const totalSpent = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const totalCredited = credits.reduce((s, c) => s + Number(c.amount), 0);
-  const dailySpent = filterExpensesByRange(expenses, 'daily').reduce((s, e) => s + Number(e.amount), 0);
-  const weeklySpent = filterExpensesByRange(expenses, 'weekly').reduce((s, e) => s + Number(e.amount), 0);
-  const monthlySpent = filterExpensesByRange(expenses, 'monthly').reduce((s, e) => s + Number(e.amount), 0);
+  const dailySpent = filterByRange(expenses, 'daily').reduce((s, e) => s + Number(e.amount), 0);
+  const weeklySpent = filterByRange(expenses, 'weekly').reduce((s, e) => s + Number(e.amount), 0);
+  const monthlySpent = filterByRange(expenses, 'monthly').reduce((s, e) => s + Number(e.amount), 0);
+
+  const statusBadge = (status: string) => {
+    if (status === 'approved') return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Approved</Badge>;
+    if (status === 'rejected') return <Badge variant="destructive">Rejected</Badge>;
+    return <Badge variant="outline" className="text-amber-600 border-amber-300 dark:text-amber-400">Pending</Badge>;
+  };
 
   const exportExcel = () => {
     const wb = XLSX.utils.book_new();
     const headerStyle = { font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 }, fill: { fgColor: { rgb: '1A5276' } }, alignment: { horizontal: 'center' as const }, border: { bottom: { style: 'thin' as const, color: { rgb: '000000' } } } };
-    
-    // Summary sheet
+
     const summaryData = [
       ['Expense Summary Report'],
       ['Generated:', format(new Date(), 'PPP')],
@@ -86,49 +114,39 @@ const EmployeeExpenses = () => {
     ];
     const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
     ws1['!cols'] = [{ wch: 25 }, { wch: 20 }];
-    // Style title
     if (ws1['A1']) ws1['A1'].s = { font: { bold: true, sz: 16, color: { rgb: '1A5276' } } };
-    // Style headers
     if (ws1['A4']) ws1['A4'].s = headerStyle;
     if (ws1['B4']) ws1['B4'].s = headerStyle;
-    // Color balance
     const balance = totalCredited - totalSpent;
     if (ws1['B7']) ws1['B7'].s = { font: { bold: true, color: { rgb: balance >= 0 ? '27AE60' : 'E74C3C' } }, fill: { fgColor: { rgb: balance >= 0 ? 'D5F5E3' : 'FADBD8' } } };
     XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
 
-    // Expenses sheet
-    const expHeaders = ['Date', 'Category', 'Description', 'Amount (₹)'];
-    const expRows = expenses.map(e => [format(parseISO(e.expense_date), 'dd-MMM-yyyy'), e.category, e.description, Number(e.amount)]);
+    const expHeaders = ['Date', 'Category', 'Description', 'Amount (₹)', 'Status'];
+    const expRows = expenses.map(e => [format(parseISO(e.expense_date), 'dd-MMM-yyyy'), e.category, e.description, Number(e.amount), e.approval_status]);
     const ws2 = XLSX.utils.aoa_to_sheet([expHeaders, ...expRows]);
-    ws2['!cols'] = [{ wch: 15 }, { wch: 18 }, { wch: 35 }, { wch: 15 }];
-    for (let c = 0; c < expHeaders.length; c++) {
-      const cell = XLSX.utils.encode_cell({ r: 0, c });
-      if (ws2[cell]) ws2[cell].s = headerStyle;
-    }
-    // Alternate row colors
-    expRows.forEach((_, i) => {
-      const bgColor = i % 2 === 0 ? 'F8F9FA' : 'FFFFFF';
-      for (let c = 0; c < 4; c++) {
+    ws2['!cols'] = [{ wch: 15 }, { wch: 18 }, { wch: 35 }, { wch: 15 }, { wch: 12 }];
+    for (let c = 0; c < expHeaders.length; c++) { const cell = XLSX.utils.encode_cell({ r: 0, c }); if (ws2[cell]) ws2[cell].s = headerStyle; }
+    expRows.forEach((row, i) => {
+      for (let c = 0; c < 5; c++) {
         const cell = XLSX.utils.encode_cell({ r: i + 1, c });
-        if (ws2[cell]) ws2[cell].s = { fill: { fgColor: { rgb: bgColor } }, border: { bottom: { style: 'thin' as const, color: { rgb: 'DEE2E6' } } } };
+        if (ws2[cell]) {
+          const status = row[4] as string;
+          const statusColor = status === 'approved' ? 'D5F5E3' : status === 'rejected' ? 'FADBD8' : 'FEF9E7';
+          ws2[cell].s = { fill: { fgColor: { rgb: c === 4 ? statusColor : (i % 2 === 0 ? 'F8F9FA' : 'FFFFFF') } }, border: { bottom: { style: 'thin' as const, color: { rgb: 'DEE2E6' } } } };
+        }
       }
     });
     XLSX.utils.book_append_sheet(wb, ws2, 'Expenses');
 
-    // Credits sheet
     const credHeaders = ['Date', 'Given By', 'Role', 'Description', 'Amount (₹)'];
     const credRows = credits.map(c => [format(parseISO(c.credit_date), 'dd-MMM-yyyy'), c.given_by, c.given_by_role, c.description || '-', Number(c.amount)]);
     const ws3 = XLSX.utils.aoa_to_sheet([credHeaders, ...credRows]);
     ws3['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 30 }, { wch: 15 }];
-    for (let c = 0; c < credHeaders.length; c++) {
-      const cell = XLSX.utils.encode_cell({ r: 0, c });
-      if (ws3[cell]) ws3[cell].s = headerStyle;
-    }
+    for (let c = 0; c < credHeaders.length; c++) { const cell = XLSX.utils.encode_cell({ r: 0, c }); if (ws3[cell]) ws3[cell].s = headerStyle; }
     credRows.forEach((_, i) => {
-      const bgColor = i % 2 === 0 ? 'EBF5FB' : 'FFFFFF';
       for (let c = 0; c < 5; c++) {
         const cell = XLSX.utils.encode_cell({ r: i + 1, c });
-        if (ws3[cell]) ws3[cell].s = { fill: { fgColor: { rgb: bgColor } }, border: { bottom: { style: 'thin' as const, color: { rgb: 'DEE2E6' } } } };
+        if (ws3[cell]) ws3[cell].s = { fill: { fgColor: { rgb: i % 2 === 0 ? 'EBF5FB' : 'FFFFFF' } }, border: { bottom: { style: 'thin' as const, color: { rgb: 'DEE2E6' } } } };
       }
     });
     XLSX.utils.book_append_sheet(wb, ws3, 'Credits');
@@ -151,31 +169,10 @@ const EmployeeExpenses = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><TrendingDown className="h-4 w-4" /> Total Spent</div>
-              <p className="text-2xl font-bold text-destructive mt-1">₹{totalSpent.toLocaleString()}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><TrendingUp className="h-4 w-4" /> Total Credited</div>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">₹{totalCredited.toLocaleString()}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Wallet className="h-4 w-4" /> Balance</div>
-              <p className={cn("text-2xl font-bold mt-1", totalCredited - totalSpent >= 0 ? "text-emerald-600" : "text-destructive")}>₹{(totalCredited - totalSpent).toLocaleString()}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><IndianRupee className="h-4 w-4" /> Today</div>
-              <p className="text-2xl font-bold mt-1">₹{dailySpent.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Week: ₹{weeklySpent.toLocaleString()} · Month: ₹{monthlySpent.toLocaleString()}</p>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><TrendingDown className="h-4 w-4" /> Total Spent</div><p className="text-2xl font-bold text-destructive mt-1">₹{totalSpent.toLocaleString()}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><TrendingUp className="h-4 w-4" /> Total Credited</div><p className="text-2xl font-bold text-emerald-600 mt-1">₹{totalCredited.toLocaleString()}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><Wallet className="h-4 w-4" /> Balance</div><p className={cn("text-2xl font-bold mt-1", totalCredited - totalSpent >= 0 ? "text-emerald-600" : "text-destructive")}>₹{(totalCredited - totalSpent).toLocaleString()}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><IndianRupee className="h-4 w-4" /> Today</div><p className="text-2xl font-bold mt-1">₹{dailySpent.toLocaleString()}</p><p className="text-xs text-muted-foreground">Week: ₹{weeklySpent.toLocaleString()} · Month: ₹{monthlySpent.toLocaleString()}</p></CardContent></Card>
         </div>
 
         <Tabs defaultValue="expenses">
@@ -185,11 +182,10 @@ const EmployeeExpenses = () => {
           </TabsList>
 
           <TabsContent value="expenses" className="space-y-4">
-            {/* Add Expense Form */}
             <Card>
               <CardHeader><CardTitle className="text-base">Add Expense</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Date</label>
                     <Popover>
@@ -221,17 +217,30 @@ const EmployeeExpenses = () => {
                     <label className="text-sm font-medium">Description</label>
                     <Input placeholder="What was it for?" value={expDesc} onChange={e => setExpDesc(e.target.value)} />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium invisible">Add</label>
-                    <Button onClick={handleAddExpense} className="w-full gap-2" disabled={!expAmount || !expDesc}>
-                      <Plus className="h-4 w-4" /> Add
-                    </Button>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 items-end">
+                  <div className="space-y-1 flex-1">
+                    <label className="text-sm font-medium">Receipt (optional)</label>
+                    <div className="flex gap-2">
+                      <Input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={e => setReceiptFile(e.target.files?.[0] || null)}
+                        className="flex-1"
+                      />
+                      {receiptFile && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1"><FileImage className="h-3 w-3" />{receiptFile.name.slice(0, 20)}</span>
+                      )}
+                    </div>
                   </div>
+                  <Button onClick={handleAddExpense} className="gap-2 sm:w-auto w-full" disabled={!expAmount || !expDesc || uploading}>
+                    {uploading ? <><Upload className="h-4 w-4 animate-spin" /> Uploading...</> : <><Plus className="h-4 w-4" /> Submit Expense</>}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Expenses Table */}
             <Card>
               <CardContent className="p-0">
                 <Table>
@@ -240,22 +249,36 @@ const EmployeeExpenses = () => {
                       <TableHead>Date</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Description</TableHead>
+                      <TableHead>Receipt</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loading ? (
-                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
                     ) : expenses.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No expenses recorded yet</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No expenses recorded yet</TableCell></TableRow>
                     ) : expenses.map(e => (
                       <TableRow key={e.id}>
                         <TableCell className="font-medium">{format(parseISO(e.expense_date), 'dd MMM yyyy')}</TableCell>
                         <TableCell><span className="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium dark:bg-amber-900/30 dark:text-amber-400">{e.category}</span></TableCell>
                         <TableCell>{e.description}</TableCell>
+                        <TableCell>
+                          {e.receipt_url ? (
+                            <Button variant="ghost" size="sm" className="gap-1 text-xs h-7" onClick={() => handleViewReceipt(e.receipt_url!)}>
+                              <ExternalLink className="h-3 w-3" /> View
+                            </Button>
+                          ) : <span className="text-xs text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell>{statusBadge(e.approval_status)}</TableCell>
                         <TableCell className="text-right font-semibold text-destructive">₹{Number(e.amount).toLocaleString()}</TableCell>
-                        <TableCell><Button variant="ghost" size="icon" onClick={() => deleteExpense(e.id)} className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></Button></TableCell>
+                        <TableCell>
+                          {e.approval_status === 'pending' && (
+                            <Button variant="ghost" size="icon" onClick={() => deleteExpense(e.id)} className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -265,7 +288,6 @@ const EmployeeExpenses = () => {
           </TabsContent>
 
           <TabsContent value="credits" className="space-y-4">
-            {/* Add Credit Form */}
             <Card>
               <CardHeader><CardTitle className="text-base">Add Credit Received</CardTitle></CardHeader>
               <CardContent>
@@ -317,7 +339,6 @@ const EmployeeExpenses = () => {
               </CardContent>
             </Card>
 
-            {/* Credits Table */}
             <Card>
               <CardContent className="p-0">
                 <Table>
