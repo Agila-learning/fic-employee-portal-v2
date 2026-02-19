@@ -226,29 +226,41 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           category: string
           created_at: string
           description: string
           expense_date: string
           id: string
+          receipt_url: string | null
           user_id: string
         }
         Insert: {
           amount: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           category?: string
           created_at?: string
           description: string
           expense_date?: string
           id?: string
+          receipt_url?: string | null
           user_id: string
         }
         Update: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           category?: string
           created_at?: string
           description?: string
           expense_date?: string
           id?: string
+          receipt_url?: string | null
           user_id?: string
         }
         Relationships: []

@@ -10,6 +10,10 @@ export interface Expense {
   amount: number;
   description: string;
   category: string;
+  receipt_url: string | null;
+  approval_status: string;
+  approved_by: string | null;
+  approved_at: string | null;
   created_at: string;
 }
 
@@ -57,13 +61,13 @@ export const useExpenses = () => {
     }
   };
 
-  const addExpense = async (expense: { expense_date: string; amount: number; description: string; category: string }) => {
+  const addExpense = async (expense: { expense_date: string; amount: number; description: string; category: string; receipt_url?: string }) => {
     if (!user) return;
-    const { error } = await supabase.from('expenses').insert({ ...expense, user_id: user.id });
+    const { error } = await supabase.from('expenses').insert({ ...expense, user_id: user.id, approval_status: 'pending' });
     if (error) {
       toast({ title: 'Error adding expense', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Expense added successfully' });
+      toast({ title: 'Expense submitted for approval' });
       fetchExpenses();
     }
   };
@@ -74,6 +78,17 @@ export const useExpenses = () => {
       toast({ title: 'Error deleting expense', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Expense deleted' });
+      fetchExpenses();
+    }
+  };
+
+  const updateExpenseStatus = async (id: string, status: 'approved' | 'rejected') => {
+    if (!user) return;
+    const { error } = await supabase.from('expenses').update({ approval_status: status, approved_by: user.id, approved_at: new Date().toISOString() }).eq('id', id);
+    if (error) {
+      toast({ title: 'Error updating expense', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: `Expense ${status}` });
       fetchExpenses();
     }
   };
@@ -99,6 +114,24 @@ export const useExpenses = () => {
     }
   };
 
+  const uploadReceipt = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+    const { error } = await supabase.storage.from('expense-receipts').upload(filePath, file, { upsert: false });
+    if (error) {
+      toast({ title: 'Error uploading receipt', description: error.message, variant: 'destructive' });
+      return null;
+    }
+    return filePath;
+  };
+
+  const getReceiptUrl = async (path: string): Promise<string | null> => {
+    const { data, error } = await supabase.storage.from('expense-receipts').createSignedUrl(path, 900);
+    if (error) return null;
+    return data.signedUrl;
+  };
+
   useEffect(() => {
     if (user) {
       fetchExpenses();
@@ -106,5 +139,5 @@ export const useExpenses = () => {
     }
   }, [user]);
 
-  return { expenses, credits, loading, addExpense, deleteExpense, addCredit, deleteCredit, fetchExpenses, fetchCredits };
+  return { expenses, credits, loading, addExpense, deleteExpense, addCredit, deleteCredit, updateExpenseStatus, uploadReceipt, getReceiptUrl, fetchExpenses, fetchCredits };
 };
