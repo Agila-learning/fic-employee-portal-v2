@@ -45,15 +45,16 @@ interface LeadsTableProps {
   showAssignee?: boolean;
   onRefresh?: () => void;
   defaultPaymentStageFilter?: string;
+  defaultStatusFilter?: string;
 }
 
 type DateFilterType = 'all' | 'today' | 'this_week' | 'this_month';
 
-const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStageFilter }: LeadsTableProps) => {
+const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStageFilter, defaultStatusFilter }: LeadsTableProps) => {
   const { employees } = useEmployees();
   const { deleteLead } = useLeads();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>(defaultStatusFilter || 'all');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [successDateFilter, setSuccessDateFilter] = useState<DateFilterType>('all');
   const [rejectedDateFilter, setRejectedDateFilter] = useState<DateFilterType>('all');

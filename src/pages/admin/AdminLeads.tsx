@@ -7,6 +7,7 @@ const AdminLeads = () => {
   const { leads, refetchLeads } = useLeads();
   const [searchParams] = useSearchParams();
   const paymentStageFilter = searchParams.get('payment_stage') || undefined;
+  const statusFilter = searchParams.get('status') || undefined;
 
   return (
     <DashboardLayout requiredRole="admin">
@@ -15,7 +16,7 @@ const AdminLeads = () => {
           <h1 className="text-2xl font-bold text-foreground">All Leads</h1>
           <p className="text-muted-foreground">View and manage all candidate leads across the team</p>
         </div>
-        <LeadsTable leads={leads} showAssignee onRefresh={refetchLeads} defaultPaymentStageFilter={paymentStageFilter} />
+        <LeadsTable leads={leads} showAssignee onRefresh={refetchLeads} defaultPaymentStageFilter={paymentStageFilter} defaultStatusFilter={statusFilter} />
       </div>
     </DashboardLayout>
   );
