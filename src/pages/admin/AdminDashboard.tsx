@@ -80,6 +80,7 @@ const AdminDashboard = () => {
             icon={Users} 
             iconClassName="bg-gradient-to-br from-blue-500 to-blue-600"
             delay={0}
+            link="/admin/employees"
           />
           <StatsCard 
             title="Active Employees" 
@@ -87,6 +88,7 @@ const AdminDashboard = () => {
             icon={UserCheck} 
             iconClassName="bg-gradient-to-br from-amber-500 to-amber-600"
             delay={100}
+            link="/admin/employees"
           />
           <StatsCard 
             title="Total Leads" 
@@ -94,6 +96,7 @@ const AdminDashboard = () => {
             icon={FileSpreadsheet} 
             iconClassName="bg-gradient-to-br from-purple-500 to-purple-600"
             delay={150}
+            link="/admin/leads"
           />
           <StatsCard 
             title="Success" 
@@ -101,6 +104,7 @@ const AdminDashboard = () => {
             icon={Trophy} 
             iconClassName="bg-gradient-to-br from-green-500 to-green-600"
             delay={200}
+            link="/admin/leads?status=success"
           />
           <StatsCard 
             title="Conversion Rate" 
@@ -109,6 +113,7 @@ const AdminDashboard = () => {
             trend={{ value: conversionRate, isPositive: conversionRate > 0 }}
             iconClassName="bg-gradient-to-br from-teal-500 to-teal-600"
             delay={300}
+            link="/admin/leads"
           />
         </div>
 

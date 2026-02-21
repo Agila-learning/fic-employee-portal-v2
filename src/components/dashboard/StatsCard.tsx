@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface StatsCardProps {
   title: string;
@@ -13,9 +14,10 @@ interface StatsCardProps {
   className?: string;
   iconClassName?: string;
   delay?: number;
+  link?: string;
 }
 
-const StatsCard = ({ title, value, icon: Icon, trend, className, iconClassName, delay = 0 }: StatsCardProps) => {
+const StatsCard = ({ title, value, icon: Icon, trend, className, iconClassName, delay = 0, link }: StatsCardProps) => {
   const [displayValue, setDisplayValue] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   
@@ -48,7 +50,7 @@ const StatsCard = ({ title, value, icon: Icon, trend, className, iconClassName, 
     return () => clearInterval(interval);
   }, [numericValue, isVisible]);
 
-  return (
+  const cardContent = (
     <div 
       className={cn(
         "group relative rounded-xl bg-card p-3 sm:p-4 border border-border/50 overflow-hidden",
@@ -56,6 +58,7 @@ const StatsCard = ({ title, value, icon: Icon, trend, className, iconClassName, 
         "hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10",
         "hover:border-primary/30",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
+        link && "cursor-pointer",
         className
       )}
       style={{ transitionDelay: `${delay}ms` }}
@@ -100,6 +103,12 @@ const StatsCard = ({ title, value, icon: Icon, trend, className, iconClassName, 
       </div>
     </div>
   );
+
+  if (link) {
+    return <Link to={link}>{cardContent}</Link>;
+  }
+
+  return cardContent;
 };
 
 export default StatsCard;

@@ -110,6 +110,7 @@ const EmployeeDashboard = () => {
             icon={FileSpreadsheet} 
             iconClassName="bg-gradient-to-br from-blue-500 to-blue-600"
             delay={0}
+            link="/employee/leads"
           />
           <StatsCard 
             title="Converted" 
@@ -117,6 +118,7 @@ const EmployeeDashboard = () => {
             icon={CheckCircle} 
             iconClassName="bg-gradient-to-br from-amber-500 to-amber-600"
             delay={100}
+            link="/employee/leads"
           />
           <StatsCard 
             title="Success" 
@@ -125,6 +127,7 @@ const EmployeeDashboard = () => {
             trend={{ value: conversionRate, isPositive: true }} 
             iconClassName="bg-gradient-to-br from-green-500 to-green-600"
             delay={150}
+            link="/employee/leads"
           />
           <StatsCard 
             title="Pending" 
@@ -132,6 +135,7 @@ const EmployeeDashboard = () => {
             icon={Clock} 
             iconClassName="bg-gradient-to-br from-purple-500 to-purple-600"
             delay={200}
+            link="/employee/leads"
           />
           <StatsCard 
             title="Closed (No)" 
@@ -139,51 +143,58 @@ const EmployeeDashboard = () => {
             icon={XCircle} 
             iconClassName="bg-gradient-to-br from-red-500 to-red-600"
             delay={300}
+            link="/employee/leads"
           />
         </div>
 
         {/* Payment Stage Stats */}
         {(registrationDone > 0 || initialPaymentDone > 0 || fullPaymentDone > 0) && (
           <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 sm:grid-cols-3 animate-fade-in">
-            <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+            <Link to="/employee/leads">
+              <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10 shrink-0">
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium truncate">Registration</p>
+                      <p className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-300">{registrationDone}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium truncate">Registration</p>
-                    <p className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-300">{registrationDone}</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/employee/leads">
+              <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10 shrink-0">
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 font-medium truncate">Initial Pay</p>
+                      <p className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-300">{initialPaymentDone}</p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/employee/leads">
+              <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 col-span-2 sm:col-span-1 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 shrink-0">
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400 font-medium truncate">Full Pay</p>
+                      <p className="text-lg sm:text-xl font-bold text-green-700 dark:text-green-300">{fullPaymentDone}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 font-medium truncate">Initial Pay</p>
-                    <p className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-300">{initialPaymentDone}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 col-span-2 sm:col-span-1">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400 font-medium truncate">Full Pay</p>
-                    <p className="text-lg sm:text-xl font-bold text-green-700 dark:text-green-300">{fullPaymentDone}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         )}
 
