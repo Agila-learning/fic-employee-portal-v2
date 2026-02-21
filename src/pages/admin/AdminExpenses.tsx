@@ -588,22 +588,23 @@ const EmployeeExpenseManagement = () => {
   const [employeeList, setEmployeeList] = useState<{ id: string; name: string }[]>([]);
 
   const fetchAll = async () => {
+    if (!user) return;
     setLoading(true);
     const [expRes, credRes, profRes] = await Promise.all([
-      supabase.from('expenses').select('*').order('expense_date', { ascending: false }),
-      supabase.from('expense_credits').select('*').order('credit_date', { ascending: false }),
+      supabase.from('expenses').select('*').neq('user_id', user.id).order('expense_date', { ascending: false }),
+      supabase.from('expense_credits').select('*').neq('user_id', user.id).order('credit_date', { ascending: false }),
       supabase.from('profiles').select('user_id, name'),
     ]);
 
     const profMap: Record<string, string> = {};
     (profRes.data || []).forEach(p => { profMap[p.user_id] = p.name; });
-    setEmployeeList((profRes.data || []).map(p => ({ id: p.user_id, name: p.name })));
+    setEmployeeList((profRes.data || []).filter(p => p.user_id !== user.id).map(p => ({ id: p.user_id, name: p.name })));
     setExpenses((expRes.data || []).map(e => ({ ...e, user_name: profMap[e.user_id] || 'Unknown' })));
     setCredits((credRes.data || []).map(c => ({ ...c, user_name: profMap[c.user_id] || 'Unknown' })));
     setLoading(false);
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { if (user) fetchAll(); }, [user]);
 
   const handleApproval = async (id: string, status: 'approved' | 'rejected') => {
     if (!user) return;
