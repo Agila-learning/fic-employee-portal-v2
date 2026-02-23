@@ -60,6 +60,58 @@ const AdminPayroll = () => {
 
   const activeEmployees = employees.filter(e => e.is_active !== false && e.role === 'employee');
 
+  // Auto-populate form from last payslip when employee is selected
+  const handleEmployeeSelect = async (userId: string) => {
+    setSelectedEmployee(userId);
+    const { data } = await supabase
+      .from('payslips')
+      .select('*')
+      .eq('user_id', userId)
+      .order('year', { ascending: false })
+      .order('month', { ascending: false })
+      .limit(1);
+
+    if (data && data.length > 0) {
+      const ps = data[0];
+      setForm({
+        designation: ps.designation || '',
+        department: ps.department || '',
+        basicSalary: ps.basic_salary?.toString() || '',
+        hra: ps.hra?.toString() || '',
+        conveyanceAllowance: ps.conveyance_allowance?.toString() || '',
+        medicalAllowance: ps.medical_allowance?.toString() || '',
+        specialAllowance: ps.special_allowance?.toString() || '',
+        otherEarnings: ps.other_earnings?.toString() || '',
+        pfEmployee: ps.pf_employee?.toString() || '',
+        pfEmployer: ps.pf_employer?.toString() || '',
+        esiEmployee: ps.esi_employee?.toString() || '',
+        esiEmployer: ps.esi_employer?.toString() || '',
+        professionalTax: ps.professional_tax?.toString() || '',
+        tds: ps.tds?.toString() || '',
+        otherDeductions: ps.other_deductions?.toString() || '',
+        ctc: ps.ctc?.toString() || '',
+        bankName: ps.bank_name || '',
+        bankAccountNumber: ps.bank_account_number || '',
+        panNumber: ps.pan_number || '',
+        uanNumber: ps.uan_number || '',
+        totalWorkingDays: ps.total_working_days?.toString() || '30',
+        daysWorked: ps.days_worked?.toString() || '30',
+        leaveDays: ps.leave_days?.toString() || '0',
+      });
+      toast.info('Previous payslip details loaded automatically');
+    } else {
+      // Reset form for new employee
+      setForm({
+        designation: '', department: '', basicSalary: '', hra: '',
+        conveyanceAllowance: '', medicalAllowance: '', specialAllowance: '',
+        otherEarnings: '', pfEmployee: '', pfEmployer: '', esiEmployee: '',
+        esiEmployer: '', professionalTax: '', tds: '', otherDeductions: '',
+        ctc: '', bankName: '', bankAccountNumber: '', panNumber: '',
+        uanNumber: '', totalWorkingDays: '30', daysWorked: '30', leaveDays: '0',
+      });
+    }
+  };
+
   const fetchPayslips = async () => {
     const { data, error } = await supabase
       .from('payslips')
@@ -176,7 +228,7 @@ const AdminPayroll = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>Select Employee *</Label>
-                <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                <Select value={selectedEmployee} onValueChange={handleEmployeeSelect}>
                   <SelectTrigger><SelectValue placeholder="Choose employee" /></SelectTrigger>
                   <SelectContent>
                     {activeEmployees.map(emp => (
