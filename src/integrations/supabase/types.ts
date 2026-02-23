@@ -523,6 +523,120 @@ export type Database = {
         }
         Relationships: []
       }
+      payslips: {
+        Row: {
+          bank_account_number: string | null
+          bank_name: string | null
+          basic_salary: number
+          conveyance_allowance: number
+          created_at: string
+          ctc: number
+          days_worked: number | null
+          department: string | null
+          designation: string | null
+          employee_id: string | null
+          employee_name: string
+          esi_employee: number
+          esi_employer: number
+          generated_by: string
+          gross_salary: number
+          hra: number
+          id: string
+          leave_days: number | null
+          medical_allowance: number
+          month: number
+          net_salary: number
+          other_deductions: number
+          other_earnings: number
+          pan_number: string | null
+          pf_employee: number
+          pf_employer: number
+          professional_tax: number
+          special_allowance: number
+          tds: number
+          total_deductions: number
+          total_working_days: number | null
+          uan_number: string | null
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          bank_account_number?: string | null
+          bank_name?: string | null
+          basic_salary?: number
+          conveyance_allowance?: number
+          created_at?: string
+          ctc?: number
+          days_worked?: number | null
+          department?: string | null
+          designation?: string | null
+          employee_id?: string | null
+          employee_name: string
+          esi_employee?: number
+          esi_employer?: number
+          generated_by: string
+          gross_salary?: number
+          hra?: number
+          id?: string
+          leave_days?: number | null
+          medical_allowance?: number
+          month: number
+          net_salary?: number
+          other_deductions?: number
+          other_earnings?: number
+          pan_number?: string | null
+          pf_employee?: number
+          pf_employer?: number
+          professional_tax?: number
+          special_allowance?: number
+          tds?: number
+          total_deductions?: number
+          total_working_days?: number | null
+          uan_number?: string | null
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          bank_account_number?: string | null
+          bank_name?: string | null
+          basic_salary?: number
+          conveyance_allowance?: number
+          created_at?: string
+          ctc?: number
+          days_worked?: number | null
+          department?: string | null
+          designation?: string | null
+          employee_id?: string | null
+          employee_name?: string
+          esi_employee?: number
+          esi_employer?: number
+          generated_by?: string
+          gross_salary?: number
+          hra?: number
+          id?: string
+          leave_days?: number | null
+          medical_allowance?: number
+          month?: number
+          net_salary?: number
+          other_deductions?: number
+          other_earnings?: number
+          pan_number?: string | null
+          pf_employee?: number
+          pf_employer?: number
+          professional_tax?: number
+          special_allowance?: number
+          tds?: number
+          total_deductions?: number
+          total_working_days?: number | null
+          uan_number?: string | null
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

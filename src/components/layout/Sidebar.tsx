@@ -82,6 +82,7 @@ const Sidebar = () => {
     { to: '/admin/storage', icon: HardDrive, label: 'Storage' },
     { to: '/admin/invoice', icon: Receipt, label: 'Invoice' },
     { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
+    { to: '/admin/payroll', icon: FileText, label: 'Payroll' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -95,6 +96,7 @@ const Sidebar = () => {
     { to: '/employee/tasks', icon: ClipboardList, label: 'Tasks' },
     { to: '/employee/leave', icon: CalendarClock, label: 'Leave Request' },
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
+    { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
