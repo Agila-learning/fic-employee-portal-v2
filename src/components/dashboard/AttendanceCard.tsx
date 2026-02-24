@@ -77,8 +77,8 @@ const AttendanceCard = () => {
   }, [myAttendance, holidays]);
 
   const now = new Date();
-  const cutoffHour = 11;
-  const cutoffMinute = 0;
+  const cutoffHour = 10;
+  const cutoffMinute = 30;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const cutoffMinutes = cutoffHour * 60 + cutoffMinute;
   const isBeforeCutoff = currentMinutes < cutoffMinutes;
