@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Mail, Lock, LogIn, ArrowLeft, KeyRound, Eye, EyeOff } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import ficLogo from '@/assets/fic-logo.jpeg';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,7 +14,6 @@ type AuthView = 'login' | 'forgot';
 
 const Auth = () => {
   const { user, login, resetPassword, isLoading } = useAuth();
-  const isMobile = useIsMobile();
   const [view, setView] = useState<AuthView>('login');
   
   // Login state
@@ -158,22 +156,20 @@ const Auth = () => {
                         <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
                         <Input
                           id="login-password"
-                          type={!isMobile && showPassword ? 'text' : 'password'}
+                          type={showPassword ? 'text' : 'password'}
                           placeholder="Enter your password"
                           value={loginPassword}
                           onChange={(e) => setLoginPassword(e.target.value)}
-                          className={`pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 ${!isMobile ? 'pr-10' : ''}`}
+                          className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/40"
                           required
                         />
-                        {!isMobile && (
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
-                          >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
                       </div>
                     </div>
 
