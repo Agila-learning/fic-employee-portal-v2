@@ -28,6 +28,7 @@ const AdminLeaveRequestsPage = lazy(() => import("./pages/admin/AdminLeaveReques
 const AdminExpenses = lazy(() => import("./pages/admin/AdminExpenses"));
 const AdminPayroll = lazy(() => import("./pages/admin/AdminPayroll"));
 const AdminOfferLetter = lazy(() => import("./pages/admin/AdminOfferLetter"));
+const AdminSuccessStories = lazy(() => import("./pages/admin/AdminSuccessStories"));
 
 // Lazy load employee pages
 const EmployeeDashboard = lazy(() => import("./pages/employee/EmployeeDashboard"));
@@ -40,6 +41,7 @@ const AddLead = lazy(() => import("./pages/employee/AddLead"));
 const EmployeeLeave = lazy(() => import("./pages/employee/EmployeeLeave"));
 const EmployeeExpenses = lazy(() => import("./pages/employee/EmployeeExpenses"));
 const EmployeePayslips = lazy(() => import("./pages/employee/EmployeePayslips"));
+const EmployeeSuccessStories = lazy(() => import("./pages/employee/EmployeeSuccessStories"));
 const Settings = lazy(() => import("./pages/Settings"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
@@ -98,6 +100,7 @@ const App = () => (
                 <Route path="/admin/expenses" element={<AdminExpenses />} />
                 <Route path="/admin/payroll" element={<AdminPayroll />} />
                 <Route path="/admin/offer-letter" element={<AdminOfferLetter />} />
+                <Route path="/admin/success-stories" element={<AdminSuccessStories />} />
                 
                 {/* Employee Routes */}
                 <Route path="/employee" element={<EmployeeDashboard />} />
@@ -110,6 +113,7 @@ const App = () => (
                 <Route path="/employee/leave" element={<EmployeeLeave />} />
                 <Route path="/employee/expenses" element={<EmployeeExpenses />} />
                 <Route path="/employee/payslips" element={<EmployeePayslips />} />
+                <Route path="/employee/success-stories" element={<EmployeeSuccessStories />} />
                 
                 {/* Common Routes */}
                 <Route path="/settings" element={<Settings />} />

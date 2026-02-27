@@ -20,7 +20,8 @@ import {
   Receipt,
   FileText,
   IndianRupee,
-  FileSignature
+  FileSignature,
+  Trophy
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -85,6 +86,7 @@ const Sidebar = () => {
     { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/admin/payroll', icon: FileText, label: 'Payroll' },
     { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
+    { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -99,6 +101,7 @@ const Sidebar = () => {
     { to: '/employee/leave', icon: CalendarClock, label: 'Leave Request' },
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
+    { to: '/employee/success-stories', icon: Trophy, label: 'Success Stories' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 

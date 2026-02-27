@@ -673,6 +673,42 @@ export type Database = {
         }
         Relationships: []
       }
+      success_stories: {
+        Row: {
+          candidate_name: string
+          created_at: string
+          created_by: string
+          domain: string
+          id: string
+          location: string
+          motivation_words: string
+          package: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_name: string
+          created_at?: string
+          created_by: string
+          domain: string
+          id?: string
+          location: string
+          motivation_words: string
+          package: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_name?: string
+          created_at?: string
+          created_by?: string
+          domain?: string
+          id?: string
+          location?: string
+          motivation_words?: string
+          package?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_by: string
