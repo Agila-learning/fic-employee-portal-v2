@@ -240,7 +240,7 @@ const AttendanceCard = () => {
             <div className="text-center py-2">
               <XCircle className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-muted-foreground mb-1" />
               <p className="text-xs sm:text-sm text-muted-foreground">Window closed</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Mark before 12:00 PM</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Mark before 10:30 AM</p>
             </div>
           )}
         </CardContent>
