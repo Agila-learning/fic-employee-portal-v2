@@ -14,5 +14,10 @@ export const authService = {
     getProfile: async () => {
         const response = await apiClient.get('/users/profile');
         return response.data;
+    },
+
+    updatePassword: async (password: string) => {
+        const response = await apiClient.put('/users/update-password', { password });
+        return response.data;
     }
 };
