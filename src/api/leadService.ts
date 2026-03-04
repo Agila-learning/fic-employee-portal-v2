@@ -19,5 +19,25 @@ export const leadService = {
     deleteLead: async (id: string) => {
         const response = await apiClient.delete(`/leads/${id}`);
         return response.data;
+    },
+
+    getComments: async (leadId: string) => {
+        const response = await apiClient.get(`/leads/${leadId}/comments`);
+        return response.data;
+    },
+
+    addComment: async (leadId: string, comment: string) => {
+        const response = await apiClient.post(`/leads/${leadId}/comments`, { comment });
+        return response.data;
+    },
+
+    getStatusHistory: async (leadId: string) => {
+        const response = await apiClient.get(`/leads/${leadId}/history`);
+        return response.data;
+    },
+
+    logAccess: async (accessData: any) => {
+        const response = await apiClient.post('/leads/audit', accessData);
+        return response.data;
     }
 };
