@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Employee } from '@/hooks/useEmployees';
-import { supabase } from '@/integrations/supabase/client';
+import { employeeService } from '@/api/employeeService';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,41 +20,36 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
 
   useEffect(() => {
     if (employee && open) {
-      setFormData({ 
-        name: employee.name, 
-        email: employee.email, 
-        employee_id: employee.employee_id || '', 
-        is_active: employee.is_active ?? true 
+      setFormData({
+        name: employee.name,
+        email: employee.email,
+        employee_id: employee.employee_id || '',
+        is_active: employee.is_active ?? true
       });
     }
   }, [employee, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email) { 
-      toast.error('Please fill in all required fields'); 
-      return; 
+    if (!formData.name || !formData.email) {
+      toast.error('Please fill in all required fields');
+      return;
     }
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          name: formData.name, 
-          email: formData.email, 
-          employee_id: formData.employee_id || null, 
-          is_active: formData.is_active 
-        })
-        .eq('user_id', employee.user_id);
-      
-      if (error) throw error;
-      
+      await employeeService.updateEmployee(employee.id || (employee as any)._id, {
+        name: formData.name,
+        email: formData.email,
+        employee_id: formData.employee_id || null,
+        is_active: formData.is_active
+      });
+
       toast.success('Employee updated successfully');
       onSuccess?.();
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error updating employee:', error);
-      toast.error(error.message || 'Failed to update employee');
+      toast.error(error.response?.data?.message || 'Failed to update employee');
     } finally {
       setIsSubmitting(false);
     }

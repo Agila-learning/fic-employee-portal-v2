@@ -14,5 +14,10 @@ export const employeeService = {
     deleteEmployee: async (id: string) => {
         const response = await apiClient.delete(`/users/${id}`);
         return response.data;
+    },
+
+    createEmployee: async (employeeData: any) => {
+        const response = await apiClient.post('/users/register', employeeData); // Reuse register for employee creation
+        return response.data;
     }
 };
