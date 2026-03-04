@@ -9,23 +9,29 @@ const seedAdmin = async () => {
         const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/fic_employee_portal';
         await mongoose.connect(mongoURI);
 
-        const adminExists = await User.findOne({ role: 'admin' });
-        if (adminExists) {
-            console.log('Admin user already exists');
-            process.exit(0);
+        const adminEmail = 'forgeindiahr22@gmail.com';
+        const adminPassword = 'Forgeindia@09';
+
+        let admin = await User.findOne({ email: adminEmail });
+
+        if (admin) {
+            console.log('Admin user found, updating password...');
+            admin.password = adminPassword;
+            await admin.save();
+            console.log('Admin password updated successfully!');
+        } else {
+            admin = new User({
+                name: 'Forge India Admin',
+                email: adminEmail,
+                password: adminPassword,
+                role: 'admin',
+            });
+            await admin.save();
+            console.log('Admin user created successfully!');
         }
 
-        const admin = new User({
-            name: 'Forge India Admin',
-            email: 'forgeindiahr22@gmail.com',
-            password: 'Forgeindia@09',
-            role: 'admin',
-        });
-
-        await admin.save();
-        console.log('Admin user seeded successfully!');
-        console.log('Email: forgeindiahr22@gmail.com');
-        console.log('Password: Forgeindia@09');
+        console.log(`Email: ${adminEmail}`);
+        console.log(`Password: ${adminPassword}`);
         process.exit(0);
     } catch (error) {
         console.error('Error seeding admin:', error);
