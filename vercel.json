@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/lovable-cloud/(.*)",
-      "destination": "https://cqbmtykhgcvgabizyamk.supabase.co/$1"
-    },
-    {
       "source": "/(.*)",
       "destination": "/"
     }

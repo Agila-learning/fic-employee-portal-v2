@@ -1,5 +1,3 @@
-import { supabase } from '@/integrations/supabase/client';
-
 // File size limits
 export const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 export const TARGET_COMPRESSED_SIZE_KB = 250; // Target 200-300 KB
@@ -32,11 +30,11 @@ export const validateFile = (
   fileType: 'resume' | 'paymentSlip'
 ): FileValidationResult => {
   const allowedTypes = ALLOWED_FILE_TYPES[fileType];
-  
+
   // Check file type
   if (!allowedTypes.includes(file.type)) {
-    const typeNames = fileType === 'resume' 
-      ? 'PDF or Word documents' 
+    const typeNames = fileType === 'resume'
+      ? 'PDF or Word documents'
       : 'JPEG, PNG, WebP images or PDF';
     return {
       valid: false,
@@ -93,7 +91,7 @@ export const compressImage = async (
       img.onload = () => {
         const canvas = document.createElement('canvas');
         let { width, height } = img;
-        
+
         // Scale down if very large
         const maxDimension = 1920;
         if (width > maxDimension || height > maxDimension) {
@@ -105,7 +103,7 @@ export const compressImage = async (
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        
+
         if (!ctx) {
           resolve({
             success: false,
@@ -201,7 +199,7 @@ export const compressImage = async (
 export const generateFileHash = async (file: File): Promise<string> => {
   const buffer = await file.slice(0, 8192).arrayBuffer(); // First 8KB sample
   const hashArray = new Uint8Array(buffer);
-  
+
   // Simple hash based on file characteristics
   let hash = `${file.size}-${file.type}-`;
   let sum = 0;
@@ -209,86 +207,33 @@ export const generateFileHash = async (file: File): Promise<string> => {
     sum = ((sum << 5) - sum + hashArray[i]) | 0;
   }
   hash += Math.abs(sum).toString(36);
-  
+
   return hash;
 };
 
 /**
  * Checks if a similar file already exists for this candidate
  * Prevents re-upload of the same resume
+ * Note: Migrated to MERN - logic should be handled by backend during upload
  */
 export const checkDuplicateFile = async (
   candidateId: string,
   fileHash: string,
   bucket: 'resumes' | 'payment-slips'
 ): Promise<{ isDuplicate: boolean; existingPath?: string }> => {
-  try {
-    // Check if candidate already has a file in this bucket by looking at leads table
-    const column = bucket === 'resumes' ? 'resume_url' : 'payment_slip_url';
-    
-    const { data, error } = await supabase
-      .from('leads')
-      .select(`id, ${column}`)
-      .eq('candidate_id', candidateId)
-      .not(column, 'is', null)
-      .maybeSingle();
-
-    if (error || !data) {
-      return { isDuplicate: false };
-    }
-
-    const existingUrl = data[column as keyof typeof data] as string | null;
-    
-    // If there's an existing file, it's a duplicate
-    if (existingUrl) {
-      return { 
-        isDuplicate: true, 
-        existingPath: existingUrl 
-      };
-    }
-
-    return { isDuplicate: false };
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error('[DEV] Error checking duplicate:', error);
-    }
-    return { isDuplicate: false };
-  }
+  // Backend now handles duplicate detection and file replacement logic
+  return { isDuplicate: false };
 };
 
 /**
  * Deletes an old file from storage when replacing
+ * Note: Migrated to MERN - logic should be handled by backend
  */
 export const deleteOldFile = async (
   storedPath: string
 ): Promise<boolean> => {
-  try {
-    // Parse stored path format "bucket:path"
-    const [bucket, ...pathParts] = storedPath.split(':');
-    const path = pathParts.join(':');
-    
-    if (!bucket || !path) {
-      return false;
-    }
-
-    const { error } = await supabase.storage
-      .from(bucket)
-      .remove([path]);
-
-    if (error) {
-      if (import.meta.env.DEV) {
-        console.error('[DEV] Error deleting old file:', error);
-      }
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error('[DEV] Error in deleteOldFile:', error);
-    }
-    return false;
-  }
+  // Backend now handles file cleanup automatically
+  return true;
 };
 
 /**
@@ -323,7 +268,7 @@ export const prepareFileForUpload = async (
   if (candidateId) {
     const bucket = fileType === 'resume' ? 'resumes' : 'payment-slips';
     const duplicate = await checkDuplicateFile(candidateId, '', bucket);
-    
+
     if (duplicate.isDuplicate && duplicate.existingPath) {
       // Delete the old file when replacing
       await deleteOldFile(duplicate.existingPath);
@@ -333,13 +278,13 @@ export const prepareFileForUpload = async (
   // Step 3: Compress image files (payment slips)
   if (file.type.startsWith('image/')) {
     const compression = await compressImage(file);
-    
+
     if (compression.success && compression.file) {
       const savedBytes = compression.originalSize - compression.compressedSize;
       const compressionInfo = savedBytes > 0
         ? `Compressed from ${formatFileSize(compression.originalSize)} to ${formatFileSize(compression.compressedSize)}`
         : undefined;
-      
+
       return {
         success: true,
         file: compression.file,
