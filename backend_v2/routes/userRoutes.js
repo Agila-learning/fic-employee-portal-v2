@@ -3,7 +3,7 @@ const router = express.Router();
 const { registerUser, loginUser, getUserProfile, updatePassword, getUsers, updateUser, deleteUser } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-router.post('/register', registerUser);
+router.post('/register', protect, admin, registerUser);
 router.post('/login', loginUser);
 router.get('/profile', protect, getUserProfile);
 router.put('/update-password', protect, updatePassword);
