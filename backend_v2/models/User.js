@@ -24,6 +24,15 @@ const userSchema = mongoose.Schema({
         type: Boolean,
         default: true,
     },
+    employee_id: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
+    leads_count: {
+        type: Number,
+        default: 0,
+    },
 }, {
     timestamps: true,
 });
