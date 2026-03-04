@@ -84,7 +84,9 @@ const EmployeesTable = () => {
                 <TableCell><Badge variant={employee.is_active ? 'default' : 'destructive'}>{employee.is_active ? 'Active' : 'Inactive'}</Badge></TableCell>
                 <TableCell className="capitalize text-sm">{employee.role}</TableCell>
                 <TableCell className="font-medium">{employee.leads_count}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{format(new Date(employee.created_at), 'MMM d, yyyy')}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {employee.created_at ? format(new Date(employee.created_at), 'MMM d, yyyy') : '-'}
+                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
@@ -108,11 +110,11 @@ const EmployeesTable = () => {
       </div>
 
       {editingEmployee && <EmployeeFormDialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)} employee={editingEmployee} onSuccess={refetchEmployees} />}
-      
-      <CreateEmployeeDialog 
-        open={isCreateDialogOpen} 
-        onOpenChange={setIsCreateDialogOpen} 
-        onSuccess={refetchEmployees} 
+
+      <CreateEmployeeDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSuccess={refetchEmployees}
       />
     </div>
   );

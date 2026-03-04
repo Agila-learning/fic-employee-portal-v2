@@ -48,6 +48,8 @@ export const useLeads = () => {
       const mappedLeads = data.map((l: any) => ({
         ...l,
         id: l._id,
+        created_at: l.createdAt || l.created_at,
+        updated_at: l.updatedAt || l.updated_at,
         created_by_name: l.created_by?.name || 'Unknown'
       }));
 
@@ -133,7 +135,11 @@ export const useLeadComments = (leadId: string) => {
   const fetchComments = async () => {
     try {
       const data = await leadService.getComments(leadId);
-      setComments(data.map((c: any) => ({ ...c, id: c._id })));
+      setComments(data.map((c: any) => ({
+        ...c,
+        id: c._id,
+        created_at: c.createdAt || c.created_at
+      })));
     } catch (error) {
       console.error('Error fetching comments:', error);
     } finally {
@@ -168,7 +174,11 @@ export const useLeadStatusHistory = (leadId: string) => {
   const fetchHistory = async () => {
     try {
       const data = await leadService.getStatusHistory(leadId);
-      setHistory(data.map((h: any) => ({ ...h, id: h._id })));
+      setHistory(data.map((h: any) => ({
+        ...h,
+        id: h._id,
+        created_at: h.createdAt || h.created_at
+      })));
     } catch (error) {
       console.error('Error fetching status history:', error);
     } finally {

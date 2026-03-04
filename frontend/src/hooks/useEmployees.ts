@@ -24,6 +24,8 @@ export const useEmployees = () => {
         ...e,
         id: e._id,
         user_id: e._id,
+        created_at: e.createdAt || e.created_at,
+        updated_at: e.updatedAt || e.updated_at,
         leads_count: e.leads_count || 0
       })));
     } catch (error: any) {
