@@ -1,10 +1,8 @@
-import { Database } from '@/integrations/supabase/types';
-
-export type LeadStatus = Database['public']['Enums']['lead_status'];
-export type LeadSource = Database['public']['Enums']['lead_source'];
+export type AppRole = 'admin' | 'employee';
+export type LeadStatus = 'nc1' | 'nc2' | 'nc3' | 'follow_up' | 'converted' | 'success' | 'rejected' | 'not_interested' | 'not_interested_paid' | 'different_domain';
+export type LeadSource = 'social_media' | 'own_source' | 'college' | 'referral' | 'job_portal' | 'website' | 'agents' | 'other';
 export type PaymentStage = 'registration_done' | 'initial_payment_done' | 'full_payment_done';
 export type InterestedDomain = 'it' | 'non_it' | 'banking';
-export type AppRole = Database['public']['Enums']['app_role'];
 
 export interface Lead {
   id: string;

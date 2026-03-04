@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CalendarIcon, Download, FileUser } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { attendanceService } from '@/api/attendanceService';
 import { Holiday } from '@/hooks/useHolidays';
 
 interface Employee {
@@ -46,16 +46,15 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
   };
 
   const getAttendanceForDateRange = async (employeeId: string, from: Date, to: Date) => {
-    const { data, error } = await supabase
-      .from('attendance')
-      .select('*')
-      .eq('user_id', employeeId)
-      .gte('date', format(from, 'yyyy-MM-dd'))
-      .lte('date', format(to, 'yyyy-MM-dd'))
-      .order('date', { ascending: true });
-
-    if (error) throw error;
-    return (data || []) as AttendanceRecord[];
+    try {
+      const fromStr = format(from, 'yyyy-MM-dd');
+      const toStr = format(to, 'yyyy-MM-dd');
+      const data = await attendanceService.getAttendanceForDateRange(employeeId, fromStr, toStr);
+      return (data || []) as AttendanceRecord[];
+    } catch (error) {
+      console.error('Error fetching attendance range:', error);
+      throw error;
+    }
   };
 
   const handleExport = async () => {
@@ -79,7 +78,7 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
 
       // Fetch attendance records for the date range
       const attendanceRecords = await getAttendanceForDateRange(selectedEmployee, fromDate, toDate);
-      
+
       // Create a map for quick lookup
       const attendanceMap = new Map<string, AttendanceRecord>();
       attendanceRecords.forEach(record => {
@@ -223,7 +222,7 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
 
       // Generate filename
       const fileName = `${employee.name.replace(/\s+/g, '_')}_Attendance_${format(fromDate, 'yyyyMMdd')}_to_${format(toDate, 'yyyyMMdd')}.xlsx`;
-      
+
       // Download
       await downloadWorkbook(wb, fileName);
 
@@ -309,8 +308,8 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
           {/* Export Button */}
           <div className="space-y-2">
             <label className="text-sm font-medium invisible">Action</label>
-            <Button 
-              onClick={handleExport} 
+            <Button
+              onClick={handleExport}
               disabled={exporting || !selectedEmployee || !fromDate || !toDate}
               className="w-full gap-2"
             >
