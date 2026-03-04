@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { employeeService } from '@/api/employeeService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { createWorkbook, setColumnWidths, addDataRows, downloadWorkbook } from '@/utils/excelExport';
@@ -42,21 +42,16 @@ interface CandidateEntry {
   comments: string | null;
 }
 
-interface Profile {
-  user_id: string;
-  name: string;
-}
-
 const DEPARTMENTS: Department[] = ['BDA', 'HR', 'Tech', 'Ops', 'Marketing', 'Finance', 'Other'];
 
 const AdminReports = () => {
   const { user } = useAuth();
   const [reports, setReports] = useState<EmployeeReport[]>([]);
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<EmployeeReport | null>(null);
   const [viewCandidates, setViewCandidates] = useState<CandidateEntry[]>([]);
-  
+
   // Filters
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
@@ -64,59 +59,33 @@ const AdminReports = () => {
 
   const fetchProfiles = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, name');
-
-      if (error) throw error;
+      const data = await employeeService.getEmployees();
       setProfiles(data || []);
     } catch (error: any) {
-      if (import.meta.env.DEV) {
-        console.error('[DEV] Error fetching profiles:', error);
-      }
+      console.error('Error fetching profiles:', error);
     }
   }, []);
 
   const fetchReports = useCallback(async () => {
-    if (!user || user.role !== 'admin') return;
-    
+    if (!user) return;
+
     setIsLoading(true);
     try {
-      let query = supabase
-        .from('employee_reports')
-        .select('*')
-        .order('report_date', { ascending: false })
-        .order('created_at', { ascending: false });
+      // Assuming employeeService has getReports method
+      const data = await (employeeService as any).getAllReports({
+        date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
+        department: selectedDepartment !== 'all' ? selectedDepartment : undefined,
+        userId: selectedEmployee !== 'all' ? selectedEmployee : undefined
+      });
 
-      // Apply date filter if selected
-      if (selectedDate) {
-        const dateStr = format(selectedDate, 'yyyy-MM-dd');
-        query = query.eq('report_date', dateStr);
-      }
-
-      if (selectedDepartment !== 'all') {
-        query = query.eq('department', selectedDepartment as Department);
-      }
-
-      if (selectedEmployee !== 'all') {
-        query = query.eq('user_id', selectedEmployee);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      
       // Enrich with employee names
-      const enrichedReports = (data || []).map(report => ({
+      const enrichedReports = (data || []).map((report: any) => ({
         ...report,
-        employee_name: profiles.find(p => p.user_id === report.user_id)?.name || 'Unknown',
+        employee_name: profiles.find(p => (p.user_id || p.id || p._id) === report.user_id)?.name || 'Unknown',
       })) as EmployeeReport[];
 
       setReports(enrichedReports);
     } catch (error: any) {
-      if (import.meta.env.DEV) {
-        console.error('[DEV] Error fetching reports:', error);
-      }
       toast.error('Failed to fetch reports');
     } finally {
       setIsLoading(false);
@@ -125,19 +94,9 @@ const AdminReports = () => {
 
   const fetchCandidateEntries = async (reportId: string, reportDate: string, userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('bda_candidate_entries')
-        .select('*')
-        .eq('report_date', reportDate)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
+      const data = await (employeeService as any).getCandidateEntries(userId, reportDate);
       return (data || []) as CandidateEntry[];
     } catch (error: any) {
-      if (import.meta.env.DEV) {
-        console.error('[DEV] Error fetching candidate entries:', error);
-      }
       return [];
     }
   };
@@ -219,7 +178,7 @@ const AdminReports = () => {
     }
 
     const wb = createWorkbook();
-    
+
     // Main reports sheet
     const ws1 = wb.addWorksheet('Reports');
     const reportHeaders = ['Date', 'Employee Name', 'Department', 'Morning Report', 'Afternoon Report', 'Candidates Screened (HR)', 'Submitted At', 'Last Updated'];
@@ -427,7 +386,7 @@ const AdminReports = () => {
                   <TableBody>
                     {reports.map((report) => {
                       const isBDAorHR = report.department === 'BDA' || report.department === 'HR';
-                      
+
                       return (
                         <TableRow key={report.id}>
                           <TableCell className="font-medium whitespace-nowrap">
@@ -435,8 +394,8 @@ const AdminReports = () => {
                           </TableCell>
                           <TableCell className="font-medium">{report.employee_name}</TableCell>
                           <TableCell>
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className={cn(
                                 isBDAorHR && "bg-primary/10 text-primary border-primary/20"
                               )}
@@ -455,8 +414,8 @@ const AdminReports = () => {
                             </p>
                           </TableCell>
                           <TableCell>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => handleViewReport(report)}
                             >
