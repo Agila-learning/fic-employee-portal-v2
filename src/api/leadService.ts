@@ -39,5 +39,21 @@ export const leadService = {
     logAccess: async (accessData: any) => {
         const response = await apiClient.post('/leads/audit', accessData);
         return response.data;
+    },
+
+    generateUniqueId: async () => {
+        const response = await apiClient.get('/leads/generate-id');
+        return response.data;
+    },
+
+    uploadFile: async (file: File, bucket: string, candidateId: string) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', bucket);
+        formData.append('candidateId', candidateId);
+        const response = await apiClient.post('/leads/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
     }
 };
