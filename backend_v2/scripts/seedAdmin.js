@@ -24,8 +24,8 @@ const seedAdmin = async () => {
 
         await admin.save();
         console.log('Admin user seeded successfully!');
-        console.log('Email: admin@fic.com');
-        console.log('Password: admin123');
+        console.log('Email: forgeindiahr22@gmail.com');
+        console.log('Password: Forgeindia@09');
         process.exit(0);
     } catch (error) {
         console.error('Error seeding admin:', error);
