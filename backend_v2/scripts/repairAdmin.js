@@ -25,8 +25,9 @@ const repairAdmin = async () => {
         const admin = new User({
             name: 'Forge India Admin',
             email: email,
-            password: password, // The pre-save hook in User.js will hash this
+            password: password,
             role: 'admin',
+            is_active: true,
         });
 
         await admin.save();
