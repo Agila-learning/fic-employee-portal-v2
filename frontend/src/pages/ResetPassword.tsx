@@ -49,7 +49,7 @@ const ResetPassword = () => {
     }
   };
 
-  // ... (rest of UI components remain similar, mostly replacing supabase related checks)
+  // UI components
 
   if (isChecking) {
     return (

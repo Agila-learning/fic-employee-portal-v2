@@ -1,10 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/api',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    baseURL: "/api",
+    withCredentials: false
 });
 
 // Add a request interceptor to include the JWT token in headers

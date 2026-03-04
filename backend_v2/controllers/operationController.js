@@ -1,6 +1,9 @@
 ﻿const Payslip = require('../models/Payslip');
 const LeaveRequest = require('../models/LeaveRequest');
+const Attendance = require('../models/Attendance');
+const Expense = require('../models/Expense');
 
+// Payslips
 const createPayslip = async (req, res) => {
     try {
         const payslip = await Payslip.create(req.body);
@@ -28,6 +31,7 @@ const getAllPayslips = async (req, res) => {
     }
 };
 
+// Leave Requests
 const createLeaveRequest = async (req, res) => {
     try {
         const request = await LeaveRequest.create({ ...req.body, user_id: req.user._id });
@@ -40,6 +44,15 @@ const createLeaveRequest = async (req, res) => {
 const getMyLeaveRequests = async (req, res) => {
     try {
         const requests = await LeaveRequest.find({ user_id: req.user._id });
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getAllLeaveRequests = async (req, res) => {
+    try {
+        const requests = await LeaveRequest.find({}).populate('user_id', 'name email');
         res.json(requests);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -63,4 +76,104 @@ const updateLeaveStatus = async (req, res) => {
     }
 };
 
-module.exports = { createPayslip, getMyPayslips, getAllPayslips, createLeaveRequest, getMyLeaveRequests, updateLeaveStatus };
+// Attendance
+const markAttendance = async (req, res) => {
+    try {
+        const { date, status, location, notes } = req.body;
+        const attendance = await Attendance.findOneAndUpdate(
+            { user_id: req.user._id, date },
+            { status, location, notes, check_in: req.body.check_in || Date.now() },
+            { upsert: true, new: true }
+        );
+        res.status(201).json(attendance);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const getMyAttendance = async (req, res) => {
+    try {
+        const attendance = await Attendance.find({ user_id: req.user._id });
+        res.json(attendance);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getAllAttendance = async (req, res) => {
+    try {
+        const attendance = await Attendance.find({}).populate('user_id', 'name email');
+        res.json(attendance);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const updateAttendance = async (req, res) => {
+    try {
+        const attendance = await Attendance.findById(req.params.id);
+        if (attendance) {
+            Object.assign(attendance, req.body);
+            const updated = await attendance.save();
+            res.json(updated);
+        } else {
+            res.status(404).json({ message: 'Attendance record not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// Expenses (Proxy/Internal)
+const createExpense = async (req, res) => {
+    try {
+        const expense = await Expense.create({ ...req.body, user_id: req.user._id });
+        res.status(201).json(expense);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const getMyExpenses = async (req, res) => {
+    try {
+        const expenses = await Expense.find({ user_id: req.user._id });
+        res.json(expenses);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getAllExpenses = async (req, res) => {
+    try {
+        const filter = {};
+        if (req.query.status) filter.status = req.query.status;
+        const expenses = await Expense.find(filter).populate('user_id', 'name email');
+        res.json(expenses);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const updateExpenseStatus = async (req, res) => {
+    try {
+        const expense = await Expense.findById(req.params.id);
+        if (expense) {
+            expense.status = req.body.status;
+            expense.reviewed_by = req.user._id;
+            expense.reviewed_at = Date.now();
+            const updated = await expense.save();
+            res.json(updated);
+        } else {
+            res.status(404).json({ message: 'Expense not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+module.exports = { 
+    createPayslip, getMyPayslips, getAllPayslips, 
+    createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus,
+    markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
+    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus
+};

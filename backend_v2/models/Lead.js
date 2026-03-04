@@ -15,6 +15,16 @@ const leadSchema = mongoose.Schema({
     course_interest: { type: String },
     assigned_to: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     created_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    comments: [{
+        text: String,
+        author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        created_at: { type: Date, default: Date.now }
+    }],
+    status_history: [{
+        status: String,
+        changed_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        changed_at: { type: Date, default: Date.now }
+    }]
 }, {
     timestamps: true,
 });
