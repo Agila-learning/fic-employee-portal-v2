@@ -405,7 +405,7 @@ const EmployeeDashboard = () => {
           onOpenChange={(open) => !open && setViewingLead(null)}
           lead={viewingLead}
           mode="view"
-          onSave={refetchLeads}
+          onSave={fetchLeads}
         />
       )}
     </DashboardLayout>
