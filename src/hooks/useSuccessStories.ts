@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { utilityService } from '@/api/utilityService';
 
 export interface SuccessStory {
   id: string;
@@ -25,13 +25,8 @@ export const useSuccessStories = () => {
   const fetchStories = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('success_stories')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setStories((data as unknown as SuccessStory[]) || []);
+      const data = await utilityService.getSuccessStories();
+      setStories(data.map((s: any) => ({ ...s, id: s._id })) || []);
     } catch (error: any) {
       toast.error('Failed to fetch success stories');
     } finally {
@@ -43,43 +38,24 @@ export const useSuccessStories = () => {
     if (user) fetchStories();
   }, [user]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel('success_stories_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'success_stories' }, () => {
-        fetchStories();
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, []);
-
   const uploadVideo = async (file: File): Promise<string | null> => {
-    const ext = file.name.split('.').pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage
-      .from('success-story-videos')
-      .upload(path, file, { contentType: file.type });
-    if (error) { toast.error('Failed to upload video'); return null; }
-    return path;
+    // Note: implementation depends on how you want to handle video storage in MERN
+    toast.error('Video upload migration pending');
+    return null;
   };
 
   const deleteVideoFile = async (videoPath: string) => {
-    await supabase.storage.from('success-story-videos').remove([videoPath]);
+    // Migration pending
   };
 
   const getVideoPublicUrl = (videoPath: string) => {
-    const { data } = supabase.storage.from('success-story-videos').getPublicUrl(videoPath);
-    return data.publicUrl;
+    return videoPath; // Placeholder
   };
 
   const addStory = async (story: Omit<SuccessStory, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
     if (!user) return;
     try {
-      const { error } = await supabase
-        .from('success_stories')
-        .insert({ ...story, created_by: user.id } as any);
-      if (error) throw error;
+      await utilityService.createSuccessStory(story);
       toast.success('Success story added!');
       fetchStories();
     } catch (error: any) {
@@ -88,33 +64,11 @@ export const useSuccessStories = () => {
   };
 
   const updateStory = async (id: string, updates: Partial<Omit<SuccessStory, 'id' | 'created_at' | 'created_by'>>) => {
-    try {
-      const { error } = await supabase
-        .from('success_stories')
-        .update({ ...updates, updated_at: new Date().toISOString() } as any)
-        .eq('id', id);
-      if (error) throw error;
-      toast.success('Success story updated!');
-      fetchStories();
-    } catch (error: any) {
-      toast.error('Failed to update success story');
-    }
+    toast('Update story not yet migrated');
   };
 
   const deleteStory = async (id: string) => {
-    const story = stories.find(s => s.id === id);
-    try {
-      if (story?.video_path) await deleteVideoFile(story.video_path);
-      const { error } = await supabase
-        .from('success_stories')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-      toast.success('Success story deleted!');
-      fetchStories();
-    } catch (error: any) {
-      toast.error('Failed to delete success story');
-    }
+    toast('Delete story not yet migrated');
   };
 
   return { stories, isLoading, addStory, updateStory, deleteStory, uploadVideo, deleteVideoFile, getVideoPublicUrl, refetch: fetchStories };

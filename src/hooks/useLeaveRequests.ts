@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { operationService } from '@/api/operationService';
 
 export interface LeaveRequest {
   id: string;
@@ -26,31 +26,12 @@ export const useLeaveRequests = () => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // If admin, fetch employee names
-      if (user.role === 'admin' && data) {
-        const userIds = [...new Set(data.map(r => r.user_id))];
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('user_id, name')
-          .in('user_id', userIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p.name]) || []);
-        const enriched = data.map(r => ({
-          ...r,
-          status: r.status as LeaveRequest['status'],
-          employee_name: profileMap.get(r.user_id) || 'Unknown',
-        }));
-        setLeaveRequests(enriched);
-      } else {
-        setLeaveRequests((data || []).map(r => ({ ...r, status: r.status as LeaveRequest['status'] })));
-      }
+      const data = await operationService.getMyLeaveRequests();
+      setLeaveRequests(data.map((r: any) => ({
+        ...r,
+        id: r._id,
+        employee_name: r.user_id?.name || 'Unknown'
+      })));
     } catch (err: any) {
       console.error('Error fetching leave requests:', err);
     } finally {
@@ -65,17 +46,15 @@ export const useLeaveRequests = () => {
   const createLeaveRequest = async (leaveDate: string, reason: string) => {
     if (!user) return false;
     try {
-      const { error } = await supabase.from('leave_requests').insert({
-        user_id: user.id,
+      await operationService.createLeaveRequest({
         leave_date: leaveDate,
         reason: reason.trim(),
       });
-      if (error) throw error;
       toast.success('Leave request submitted successfully!');
       await fetchLeaveRequests();
       return true;
     } catch (err: any) {
-      toast.error(err.message || 'Failed to submit leave request');
+      toast.error(err.response?.data?.message || 'Failed to submit leave request');
       return false;
     }
   };
@@ -83,20 +62,12 @@ export const useLeaveRequests = () => {
   const updateLeaveStatus = async (id: string, status: 'approved' | 'rejected') => {
     if (!user) return false;
     try {
-      const { error } = await supabase
-        .from('leave_requests')
-        .update({
-          status,
-          reviewed_by: user.id,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq('id', id);
-      if (error) throw error;
+      await operationService.updateLeaveStatus(id, status);
       toast.success(`Leave request ${status}!`);
       await fetchLeaveRequests();
       return true;
     } catch (err: any) {
-      toast.error(err.message || `Failed to ${status} leave request`);
+      toast.error(err.response?.data?.message || `Failed to ${status} leave request`);
       return false;
     }
   };
