@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLeads } from '@/hooks/useLeads';
+import { leadService } from '@/api/leadService';
+import { operationService } from '@/api/operationService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import FollowupNotifications from '@/components/leads/FollowupNotifications';
@@ -18,34 +19,55 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LeadStatusBadge from '@/components/leads/LeadStatusBadge';
-import { STATUS_OPTIONS, Lead, INTERESTED_DOMAIN_OPTIONS } from '@/types';
+import { STATUS_OPTIONS, Lead } from '@/types';
 import { cn } from '@/lib/utils';
 import { getRandomQuote } from '@/utils/motivationalQuotes';
+import { toast } from 'sonner';
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
-  const { leads, getLeadsByEmployee, refetchLeads } = useLeads();
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loadingLeads, setLoadingLeads] = useState(true);
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
   const [greeting, setGreeting] = useState('');
   const [quote, setQuote] = useState('');
 
-  const myLeads = user ? getLeadsByEmployee(user.id) : [];
+  const fetchLeads = useCallback(async () => {
+    if (!user) return;
+    setLoadingLeads(true);
+    try {
+      const data = await leadService.getLeads();
+      // Filter for current employee
+      const myLeads = (data || []).filter((l: any) => l.agent_id === user.id || l.user_id === user.id);
+      setLeads(myLeads);
+    } catch (error) {
+      toast.error('Failed to fetch leads');
+    } finally {
+      setLoadingLeads(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
+
+  const myLeads = leads;
   const totalLeads = myLeads.length;
   const convertedLeads = myLeads.filter(l => l.status === 'converted').length;
   const successLeads = myLeads.filter(l => l.status === 'success').length;
   const pendingLeads = myLeads.filter(l => ['nc1', 'nc2', 'nc3', 'follow_up'].includes(l.status)).length;
   const rejectedLeads = myLeads.filter(l => ['rejected', 'not_interested', 'not_interested_paid'].includes(l.status)).length;
-  
+
   // Payment stage counts
   const registrationDone = myLeads.filter(l => l.payment_stage === 'registration_done').length;
   const initialPaymentDone = myLeads.filter(l => l.payment_stage === 'initial_payment_done').length;
   const fullPaymentDone = myLeads.filter(l => l.payment_stage === 'full_payment_done').length;
-  
+
   // Domain-wise payment counts
   const itPaidCount = myLeads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'it').length;
   const nonItPaidCount = myLeads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'non_it').length;
   const bankingPaidCount = myLeads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'banking').length;
-  
+
   const conversionRate = totalLeads > 0 ? Math.round(((convertedLeads + successLeads) / totalLeads) * 100) : 0;
 
   const recentLeads = [...myLeads].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()).slice(0, 5);
@@ -53,9 +75,9 @@ const EmployeeDashboard = () => {
 
   // Get followup leads for notifications - exclude success and full_payment_done leads
   // Only show leads with follow_up status that are not success/full_payment_done
-  const followupLeads = myLeads.filter(l => 
-    l.followup_date && 
-    l.status === 'follow_up' && 
+  const followupLeads = myLeads.filter(l =>
+    l.followup_date &&
+    l.status === 'follow_up' &&
     l.payment_stage !== 'full_payment_done'
   );
 
@@ -65,7 +87,7 @@ const EmployeeDashboard = () => {
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 17) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
-    
+
     setQuote(getRandomQuote());
   }, []);
 
@@ -77,7 +99,7 @@ const EmployeeDashboard = () => {
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-40" />
           <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-amber-500/20 blur-3xl" />
           <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-blue-500/20 blur-3xl" />
-          
+
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-2 max-w-xl">
               <p className="text-amber-400 font-medium animate-float-in">{greeting}</p>
@@ -104,43 +126,43 @@ const EmployeeDashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-5">
-          <StatsCard 
-            title="Total Leads" 
-            value={totalLeads} 
-            icon={FileSpreadsheet} 
+          <StatsCard
+            title="Total Leads"
+            value={totalLeads}
+            icon={FileSpreadsheet}
             iconClassName="bg-gradient-to-br from-blue-500 to-blue-600"
             delay={0}
             link="/employee/leads"
           />
-          <StatsCard 
-            title="Converted" 
-            value={convertedLeads} 
-            icon={CheckCircle} 
+          <StatsCard
+            title="Converted"
+            value={convertedLeads}
+            icon={CheckCircle}
             iconClassName="bg-gradient-to-br from-amber-500 to-amber-600"
             delay={100}
             link="/employee/leads"
           />
-          <StatsCard 
-            title="Success" 
-            value={successLeads} 
-            icon={Trophy} 
-            trend={{ value: conversionRate, isPositive: true }} 
+          <StatsCard
+            title="Success"
+            value={successLeads}
+            icon={Trophy}
+            trend={{ value: conversionRate, isPositive: true }}
             iconClassName="bg-gradient-to-br from-green-500 to-green-600"
             delay={150}
             link="/employee/leads"
           />
-          <StatsCard 
-            title="Pending" 
-            value={pendingLeads} 
-            icon={Clock} 
+          <StatsCard
+            title="Pending"
+            value={pendingLeads}
+            icon={Clock}
             iconClassName="bg-gradient-to-br from-purple-500 to-purple-600"
             delay={200}
             link="/employee/leads"
           />
-          <StatsCard 
-            title="Closed (No)" 
-            value={rejectedLeads} 
-            icon={XCircle} 
+          <StatsCard
+            title="Closed (No)"
+            value={rejectedLeads}
+            icon={XCircle}
             iconClassName="bg-gradient-to-br from-red-500 to-red-600"
             delay={300}
             link="/employee/leads"
@@ -254,8 +276,8 @@ const EmployeeDashboard = () => {
             <CardContent className="px-4 sm:px-6">
               <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {followupLeads.slice(0, 6).map((lead, index) => (
-                  <div 
-                    key={lead.id} 
+                  <div
+                    key={lead.id}
                     className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-800 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                     onClick={() => setViewingLead(lead)}
                     style={{ animationDelay: `${index * 50}ms` }}
@@ -304,8 +326,8 @@ const EmployeeDashboard = () => {
                     </Link>
                   </div>
                 ) : recentLeads.map((lead, index) => (
-                  <div 
-                    key={lead.id} 
+                  <div
+                    key={lead.id}
                     className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 hover:bg-muted/50 transition-all duration-300 cursor-pointer group/lead"
                     onClick={() => setViewingLead(lead)}
                     style={{ animationDelay: `${index * 50}ms` }}
@@ -348,15 +370,15 @@ const EmployeeDashboard = () => {
                         </div>
                       </div>
                       <div className="h-2 sm:h-3 rounded-full bg-muted overflow-hidden">
-                        <div 
+                        <div
                           className={cn(
                             "h-full rounded-full transition-all duration-1000 ease-out",
                             "bg-gradient-to-r from-amber-500 to-amber-600"
                           )}
-                          style={{ 
+                          style={{
                             width: `${percentage}%`,
                             transitionDelay: `${index * 150}ms`
-                          }} 
+                          }}
                         />
                       </div>
                     </div>
