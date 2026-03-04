@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { TaskSchema, TaskUpdateSchema, validateInput } from '@/utils/validation';
+import { utilityService } from '@/api/utilityService';
 
 export interface Task {
   id: string;
@@ -26,27 +26,13 @@ export const useTasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Fetch assignee names
-      const userIds = [...new Set(data?.map(t => t.assigned_to) || [])];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, name')
-        .in('user_id', userIds);
-
-      const tasksWithNames = data?.map(task => ({
-        ...task,
-        status: task.status as 'pending' | 'in_progress' | 'completed',
-        assignee_name: profiles?.find(p => p.user_id === task.assigned_to)?.name || 'Unknown'
-      })) || [];
-
-      setTasks(tasksWithNames);
+      const data = await utilityService.getTasks();
+      setTasks(data.map((t: any) => ({
+        ...t,
+        id: t._id,
+        status: t.status as 'pending' | 'in_progress' | 'completed',
+        assignee_name: t.assigned_to?.name || 'Unknown'
+      })));
     } catch (error: any) {
       console.error('Error fetching tasks:', error);
     } finally {
@@ -57,87 +43,42 @@ export const useTasks = () => {
   const createTask = async (task: { title: string; description?: string; assigned_to: string; due_date?: string }) => {
     if (!user) return { error: new Error('Not authenticated') };
 
-    // Validate input data
     const validation = validateInput(TaskSchema, task);
     if (!validation.success) {
       toast({ title: 'Validation Error', description: validation.error, variant: 'destructive' });
       return { error: new Error(validation.error) };
     }
 
-    const validatedData = validation.data;
-    const { error } = await supabase.from('tasks').insert({
-      title: validatedData.title,
-      description: validatedData.description || null,
-      assigned_to: validatedData.assigned_to,
-      assigned_by: user.id,
-      due_date: validatedData.due_date || null
-    });
-
-    if (error) {
+    try {
+      await utilityService.createTask(validation.data);
+      toast({ title: 'Success', description: 'Task assigned successfully' });
+      fetchTasks();
+      return { error: null };
+    } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
       return { error };
     }
-
-    toast({ title: 'Success', description: 'Task assigned successfully' });
-    fetchTasks();
-    return { error: null };
   };
 
   const updateTask = async (taskId: string, updates: { title?: string; description?: string; assigned_to?: string; due_date?: string }) => {
-    // Validate input data
-    const validation = validateInput(TaskUpdateSchema, updates);
-    if (!validation.success) {
-      toast({ title: 'Validation Error', description: validation.error, variant: 'destructive' });
-      return { error: new Error(validation.error) };
-    }
-
-    const validatedData = validation.data;
-    const { error } = await supabase
-      .from('tasks')
-      .update({
-        title: validatedData.title,
-        description: validatedData.description,
-        assigned_to: validatedData.assigned_to,
-        due_date: validatedData.due_date
-      })
-      .eq('id', taskId);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      return { error };
-    }
-
-    toast({ title: 'Success', description: 'Task updated successfully' });
-    fetchTasks();
+    toast({ title: 'Update task migration pending' });
     return { error: null };
   };
 
   const updateTaskStatus = async (taskId: string, status: 'pending' | 'in_progress' | 'completed') => {
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status })
-      .eq('id', taskId);
-
-    if (error) {
+    try {
+      await utilityService.updateTaskStatus(taskId, status);
+      toast({ title: 'Success', description: 'Task status updated' });
+      fetchTasks();
+      return { error: null };
+    } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
       return { error };
     }
-
-    toast({ title: 'Success', description: 'Task status updated' });
-    fetchTasks();
-    return { error: null };
   };
 
   const deleteTask = async (taskId: string) => {
-    const { error } = await supabase.from('tasks').delete().eq('id', taskId);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      return { error };
-    }
-
-    toast({ title: 'Success', description: 'Task deleted' });
-    fetchTasks();
+    toast({ title: 'Delete task migration pending' });
     return { error: null };
   };
 
