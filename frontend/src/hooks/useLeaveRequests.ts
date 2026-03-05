@@ -32,6 +32,8 @@ export const useLeaveRequests = () => {
       setLeaveRequests(data.map((r: any) => ({
         ...r,
         id: r._id,
+        created_at: r.createdAt || r.created_at,
+        updated_at: r.updatedAt || r.updated_at,
         employee_name: r.user_id?.name || 'Unknown'
       })));
     } catch (err: any) {

@@ -64,13 +64,18 @@ export const useAttendance = () => {
         setAttendance(adminData.map((a: any) => ({
           ...a,
           id: a._id,
+          marked_at: a.check_in || a.createdAt || a.created_at || new Date().toISOString(),
           user_name: a.user_id?.name || 'Unknown'
         })));
       }
 
       // Fetch personal attendance
       const myData = await attendanceService.getMyAttendance();
-      const mappedMyAttendance = myData.map((a: any) => ({ ...a, id: a._id }));
+      const mappedMyAttendance = myData.map((a: any) => ({
+        ...a,
+        id: a._id,
+        marked_at: a.check_in || a.createdAt || a.created_at || new Date().toISOString()
+      }));
       setMyAttendance(mappedMyAttendance);
 
       // Calculate summary and find today's entry

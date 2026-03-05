@@ -5,12 +5,11 @@ const reportSchema = mongoose.Schema({
     report_date: { type: Date, required: true },
     department: {
         type: String,
-        enum: ['BDA', 'Academic', 'Operation', 'HR', 'IT', 'Marketing'],
         required: true
     },
-    work_summary: { type: String, required: true },
-    challenges: { type: String },
-    next_day_plan: { type: String },
+    morning_description: { type: String, required: true },
+    afternoon_description: { type: String, required: true },
+    candidates_screened: { type: Number, default: 0 },
 }, {
     timestamps: true,
 });

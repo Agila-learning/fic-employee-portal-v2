@@ -23,7 +23,11 @@ export const useAnnouncements = () => {
     try {
       setLoading(true);
       const data = await utilityService.getAnnouncements();
-      setAnnouncements(data.map((a: any) => ({ ...a, id: a._id })));
+      setAnnouncements(data.map((a: any) => ({
+        ...a,
+        id: a._id,
+        created_at: a.createdAt || a.created_at
+      })));
     } catch (error: any) {
       console.error('Error fetching announcements:', error);
     } finally {

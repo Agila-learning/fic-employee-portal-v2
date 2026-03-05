@@ -12,6 +12,7 @@ export interface SuccessStory {
   domain: string;
   motivation_words: string;
   video_url?: string | null;
+  video_path?: string | null;
   video_public_id?: string | null;
   created_by: string;
   created_at: string;

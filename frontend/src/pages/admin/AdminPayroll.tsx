@@ -257,8 +257,16 @@ const AdminPayroll = () => {
                   <Input type="number" value={form.pfEmployee} onChange={e => handleFieldChange('pfEmployee', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
                 </div>
                 <div className="space-y-2">
+                  <Label>PF (Employer)</Label>
+                  <Input type="number" value={form.pfEmployer} onChange={e => handleFieldChange('pfEmployer', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
                   <Label>ESI (Employee)</Label>
                   <Input type="number" value={form.esiEmployee} onChange={e => handleFieldChange('esiEmployee', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>ESI (Employer)</Label>
+                  <Input type="number" value={form.esiEmployer} onChange={e => handleFieldChange('esiEmployer', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
                 </div>
                 <div className="space-y-2">
                   <Label>Professional Tax</Label>
@@ -329,7 +337,7 @@ const AdminPayroll = () => {
                       <TableCell><Badge variant="secondary" className="bg-primary/5 text-primary hover:bg-primary/10 transition-colors border-none">{MONTHS[ps.month - 1]} {ps.year}</Badge></TableCell>
                       <TableCell className="font-semibold text-emerald-600">₹{Number(ps.net_salary).toLocaleString('en-IN')}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex justify-end gap-2">
                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setViewPayslip(ps)}><Eye className="h-4 w-4" /></Button>
                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(ps.id || ps._id)}><Trash2 className="h-4 w-4" /></Button>
                         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { employeeService } from '@/api/employeeService';
+import { reportService } from '@/api/reportService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ const EmployeeReports = () => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const data = await (employeeService as any).getMyReports();
+      const data = await reportService.getReports();
       setReports(data || []);
     } catch (error) {
       toast.error('Failed to fetch report history');
@@ -62,7 +62,7 @@ const EmployeeReports = () => {
 
     setSubmitting(true);
     try {
-      await (employeeService as any).createReport({
+      await reportService.createReport({
         report_date: format(reportDate, 'yyyy-MM-dd'),
         department,
         morning_description: morningDesc,

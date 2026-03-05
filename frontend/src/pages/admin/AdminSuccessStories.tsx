@@ -182,7 +182,7 @@ const AdminSuccessStories = () => {
                     </div>
                     <div className="relative pl-4 border-l-2 border-amber-400">
                       <Quote className="absolute -left-2.5 -top-1 h-5 w-5 text-amber-400 bg-card" />
-                      <p className="text-sm text-muted-foreground italic leading-relaxed">{story.motivation_words}</p>
+                      <p className="text-sm text-muted-foreground italic leading-relaxed whitespace-pre-wrap">{story.motivation_words}</p>
                     </div>
                   </CardContent>
                 </Card>

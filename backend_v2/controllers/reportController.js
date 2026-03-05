@@ -1,15 +1,15 @@
 ﻿const EmployeeReport = require('../models/EmployeeReport');
 
 const createReport = async (req, res) => {
-    const { report_date, department, work_summary, challenges, next_day_plan } = req.body;
+    const { report_date, department, morning_description, afternoon_description, candidates_screened } = req.body;
     try {
         const report = await EmployeeReport.create({
             user_id: req.user._id,
             report_date,
             department,
-            work_summary,
-            challenges,
-            next_day_plan
+            morning_description,
+            afternoon_description,
+            candidates_screened: candidates_screened || 0
         });
         res.status(201).json(report);
     } catch (error) {

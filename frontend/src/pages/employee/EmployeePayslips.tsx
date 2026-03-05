@@ -93,9 +93,9 @@ const EmployeePayslips = () => {
                     <TableRow key={ps._id || ps.id}>
                       <TableCell className="text-center font-medium text-muted-foreground">{idx + 1}</TableCell>
                       <TableCell><Badge variant="outline" className="bg-primary/5">{MONTHS[ps.month - 1]} {ps.year}</Badge></TableCell>
-                      <TableCell className="font-medium">₹{Number(ps.gross_salary).toLocaleString('en-IN')}</TableCell>
-                      <TableCell className="text-destructive">₹{Number(ps.total_deductions).toLocaleString('en-IN')}</TableCell>
-                      <TableCell className="font-bold text-emerald-600">₹{Number(ps.net_salary).toLocaleString('en-IN')}</TableCell>
+                      <TableCell className="font-medium">₹{Number(ps.gross_salary || 0).toLocaleString('en-IN')}</TableCell>
+                      <TableCell className="text-destructive">₹{Number(ps.total_deductions || 0).toLocaleString('en-IN')}</TableCell>
+                      <TableCell className="font-bold text-emerald-600">₹{Number(ps.net_salary || 0).toLocaleString('en-IN')}</TableCell>
                       <TableCell className="text-right">
                         <Button size="sm" variant="ghost" onClick={() => setViewPayslip(ps)} className="gap-2 hover:bg-primary/10 hover:text-primary transition-colors">
                           <Eye className="h-4 w-4" /> View & Download

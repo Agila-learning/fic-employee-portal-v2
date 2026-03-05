@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { employeeService } from '@/api/employeeService';
+import { reportService } from '@/api/reportService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { createWorkbook, setColumnWidths, addDataRows, downloadWorkbook } from '@/utils/excelExport';
@@ -71,12 +72,7 @@ const AdminReports = () => {
 
     setIsLoading(true);
     try {
-      // Assuming employeeService has getReports method
-      const data = await (employeeService as any).getAllReports({
-        date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined,
-        department: selectedDepartment !== 'all' ? selectedDepartment : undefined,
-        userId: selectedEmployee !== 'all' ? selectedEmployee : undefined
-      });
+      const data = await reportService.getReports();
 
       // Enrich with employee names
       const enrichedReports = (data || []).map((report: any) => ({
