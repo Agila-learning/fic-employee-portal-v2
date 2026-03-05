@@ -4,11 +4,28 @@ const Attendance = require('../models/Attendance');
 const Expense = require('../models/Expense');
 const Holiday = require('../models/Holiday');
 const Credit = require('../models/Credit');
+const User = require('../models/User');
 
 // Payslips
 const createPayslip = async (req, res) => {
     try {
-        const payslip = await Payslip.create(req.body);
+        const { user_id, employee_name, employee_id } = req.body;
+        let finalName = employee_name;
+        let finalEmpId = employee_id;
+
+        if (!finalName || !finalEmpId) {
+            const user = await User.findById(user_id);
+            if (user) {
+                finalName = finalName || user.name;
+                finalEmpId = finalEmpId || user.employee_id;
+            }
+        }
+
+        const payslip = await Payslip.create({
+            ...req.body,
+            employee_name: finalName,
+            employee_id: finalEmpId
+        });
         res.status(201).json(payslip);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -280,7 +297,11 @@ const createCredit = async (req, res) => {
     try {
         const { amount, credit_date, description, given_by, given_by_role, user_id } = req.body;
         // If admin is adding, it might be for a specific user
-        const targetUserId = (req.user.role === 'admin' && user_id) ? user_id : req.user._id;
+        const targetUserId = (req.user.role === 'admin' && user_id) ? user_id : (req.user ? req.user._id : null);
+
+        if (!targetUserId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
 
         const credit = await Credit.create({
             user_id: targetUserId,
