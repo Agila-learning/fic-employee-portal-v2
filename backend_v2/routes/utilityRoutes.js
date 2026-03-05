@@ -4,7 +4,7 @@ const {
     getHolidays, createHoliday,
     getSuccessStories, createSuccessStory, updateSuccessStory, deleteSuccessStory,
     getAnnouncements, createAnnouncement, updateAnnouncementStatus, deleteAnnouncement,
-    getTasks, createTask, updateTaskStatus
+    getTasks, createTask, updateTaskStatus, deleteTask
 } = require('../controllers/utilityController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
