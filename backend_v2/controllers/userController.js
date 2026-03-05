@@ -22,7 +22,7 @@ const registerUser = async (req, res) => {
             role: role || 'employee',
         };
 
-        if (employee_id) {
+        if (employee_id && employee_id.trim() !== '') {
             userData.employee_id = employee_id;
         }
 
