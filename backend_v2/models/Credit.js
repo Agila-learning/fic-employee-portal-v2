@@ -5,7 +5,8 @@ const creditSchema = mongoose.Schema({
     amount: { type: Number, required: true },
     credit_date: { type: Date, default: Date.now },
     description: { type: String },
-    given_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    given_by: { type: String }, // Can be a name or ID
+    given_by_role: { type: String },
 }, {
     timestamps: true,
 });

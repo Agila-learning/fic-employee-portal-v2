@@ -32,7 +32,17 @@ const getSuccessStories = async (req, res) => {
 
 const createSuccessStory = async (req, res) => {
     try {
-        const story = await SuccessStory.create({ ...req.body, created_by: req.user._id });
+        const { candidate_name, package, location, domain, motivation_words, video_url, video_path } = req.body;
+        const story = await SuccessStory.create({
+            candidate_name,
+            package,
+            location,
+            domain,
+            motivation_words,
+            video_url,
+            video_path,
+            created_by: req.user._id
+        });
         res.status(201).json(story);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -41,11 +51,18 @@ const createSuccessStory = async (req, res) => {
 
 const updateSuccessStory = async (req, res) => {
     try {
+        const { candidate_name, package, location, domain, motivation_words, video_url, video_path } = req.body;
         const story = await SuccessStory.findById(req.params.id);
         if (story) {
-            Object.assign(story, req.body);
-            const updated = await story.save();
-            res.json(updated);
+            story.candidate_name = candidate_name || story.candidate_name;
+            story.package = package || story.package;
+            story.location = location || story.location;
+            story.domain = domain || story.domain;
+            story.motivation_words = motivation_words || story.motivation_words;
+            story.video_url = video_url !== undefined ? video_url : story.video_url;
+            story.video_path = video_path !== undefined ? video_path : story.video_path;
+            const updatedStory = await story.save();
+            res.json(updatedStory);
         } else {
             res.status(404).json({ message: 'Success story not found' });
         }

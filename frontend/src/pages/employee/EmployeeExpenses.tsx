@@ -21,8 +21,18 @@ import { toast } from 'sonner';
 const CATEGORIES = [
   'Tea/Coffee', 'Snacks', 'Pooja Materials', 'Office Use Things',
   'Sanitary Products', 'Food', 'Transport', 'Travel',
-  'Office Supplies', 'Courier Charges', 'Petrol', 'Others'
+  'Office Supplies', 'Courier Charges', 'Petrol', 'Marketing', 'Lead Generation', 'Others'
 ];
+
+const safeParseDate = (dateStr: any) => {
+  if (!dateStr) return new Date();
+  if (dateStr instanceof Date) return dateStr;
+  try {
+    return parseISO(dateStr);
+  } catch (e) {
+    return new Date();
+  }
+};
 
 const EmployeeExpenses = () => {
   const { user } = useAuth();
@@ -227,7 +237,7 @@ const EmployeeExpenses = () => {
     ws3.addRow(credHeaders);
     applyHeaderStyle(ws3, 5, '1A5276');
     credits.forEach((c, i) => {
-      const row = ws3.addRow([format(parseISO(c.credit_date), 'dd-MMM-yyyy'), c.given_by, c.given_by_role, c.description || '-', Number(c.amount)]);
+      const row = ws3.addRow([c.credit_date ? format(safeParseDate(c.credit_date), 'dd-MMM-yyyy') : '—', c.given_by, c.given_by_role, c.description || '-', Number(c.amount)]);
       for (let col = 1; col <= 5; col++) {
         styleCell(row.getCell(col), {
           fillColor: i % 2 === 0 ? 'EBF5FB' : 'FFFFFF',
@@ -287,19 +297,16 @@ const EmployeeExpenses = () => {
                   </div>
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Category</label>
-                    <Select value={expCategory} onValueChange={setExpCategory}>
-                      <SelectTrigger className="border-border/50"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {expCategory === 'Others' && (
-                    <div className="space-y-1">
-                      <label className="text-sm font-medium">Specify Category</label>
-                      <Input placeholder="Enter category" value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50" />
+                    <div className="flex gap-2">
+                      <Select value={expCategory} onValueChange={setExpCategory}>
+                        <SelectTrigger className="border-border/50 w-[140px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Input placeholder="Manual entry..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 flex-1" />
                     </div>
-                  )}
+                  </div>
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Amount (₹)</label>
                     <Input type="number" placeholder="0.00" value={expAmount} onChange={e => setExpAmount(e.target.value)} className="border-border/50" />
@@ -348,8 +355,8 @@ const EmployeeExpenses = () => {
                       ) : expenses.map((e, index) => (
                         <TableRow key={e._id || e.id}>
                           <TableCell className="text-center font-medium text-muted-foreground">{index + 1}</TableCell>
-                          <TableCell className="font-medium whitespace-nowrap">{format(parseISO(e.expense_date), 'dd MMM yyyy')}</TableCell>
-                          <TableCell><Badge variant="outline" className="bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">{e.category}</Badge></TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">{e.expense_date ? format(safeParseDate(e.expense_date), 'dd MMM yyyy') : '—'}</TableCell>
+                          <TableCell><Badge variant="outline" className="bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-emerald-400 capitalize">{e.category}</Badge></TableCell>
                           <TableCell className="max-w-[200px] truncate">{e.description}</TableCell>
                           <TableCell>
                             {e.receipt_url ? (
@@ -442,8 +449,8 @@ const EmployeeExpenses = () => {
                       ) : credits.map((c, index) => (
                         <TableRow key={c._id || c.id}>
                           <TableCell className="text-center font-medium text-muted-foreground">{index + 1}</TableCell>
-                          <TableCell className="font-medium whitespace-nowrap">{format(parseISO(c.credit_date), 'dd MMM yyyy')}</TableCell>
-                          <TableCell className="font-medium">{c.given_by}</TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">{c.credit_date ? format(safeParseDate(c.credit_date), 'dd MMM yyyy') : '—'}</TableCell>
+                          <TableCell className="font-medium">{c.given_by || 'Company'}</TableCell>
                           <TableCell><Badge variant="outline" className="bg-blue-100/50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 capitalize">{c.given_by_role}</Badge></TableCell>
                           <TableCell className="max-w-[200px] truncate">{c.description || '-'}</TableCell>
                           <TableCell className="text-right font-bold text-emerald-600">₹{Number(c.amount).toLocaleString()}</TableCell>

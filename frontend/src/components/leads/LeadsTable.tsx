@@ -493,7 +493,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
                             {lead.created_by_name?.split(' ').map(n => n[0]).join('') || '?'}
                           </span>
                         </div>
-                        <span className="text-muted-foreground">{lead.created_by_name || 'Unknown'}</span>
+                        <span className="text-muted-foreground">{lead.created_by_name || (typeof lead.created_by === 'object' ? lead.created_by.name : 'Unknown')}</span>
                       </div>
                     </TableCell>
                   )}

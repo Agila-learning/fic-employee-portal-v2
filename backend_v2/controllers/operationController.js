@@ -260,7 +260,18 @@ const getAllCredits = async (req, res) => {
 
 const createCredit = async (req, res) => {
     try {
-        const credit = await Credit.create({ ...req.body, given_by: req.user._id });
+        const { amount, credit_date, description, given_by, given_by_role, user_id } = req.body;
+        // If admin is adding, it might be for a specific user
+        const targetUserId = (req.user.role === 'admin' && user_id) ? user_id : req.user._id;
+
+        const credit = await Credit.create({
+            user_id: targetUserId,
+            amount,
+            credit_date: credit_date || Date.now(),
+            description,
+            given_by: given_by || req.user.name,
+            given_by_role: given_by_role || req.user.role
+        });
         res.status(201).json(credit);
     } catch (error) {
         res.status(400).json({ message: error.message });

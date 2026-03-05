@@ -25,8 +25,18 @@ const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4
 const CATEGORIES = [
   'Tea/Coffee', 'Snacks', 'Pooja Materials', 'Office Use Things',
   'Sanitary Products', 'Food', 'Transport', 'Travel',
-  'Office Supplies', 'Courier Charges', 'Petrol', 'Others'
+  'Office Supplies', 'Courier Charges', 'Petrol', 'Marketing', 'Lead Generation', 'Others'
 ];
+
+const safeParseDate = (dateStr: any) => {
+  if (!dateStr) return new Date();
+  if (dateStr instanceof Date) return dateStr;
+  try {
+    return parseISO(dateStr);
+  } catch (e) {
+    return new Date();
+  }
+};
 
 const AdminExpenses = () => {
   const { user } = useAuth();
@@ -229,12 +239,15 @@ const AdminMyExpenses = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium">Category</label>
-                <Select value={expCategory} onValueChange={setExpCategory}>
-                  <SelectTrigger className="border-border/50 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={expCategory} onValueChange={setExpCategory}>
+                    <SelectTrigger className="border-border/50 text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input size="sm" placeholder="Manual entry..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -342,9 +355,9 @@ const AdminMyExpenses = () => {
                         {item.type}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs">{format(parseISO(item.expense_date || item.credit_date), 'dd MMM yyyy')}</TableCell>
+                    <TableCell className="text-xs">{item.expense_date || item.credit_date ? format(safeParseDate(item.expense_date || item.credit_date), 'dd MMM yyyy') : '—'}</TableCell>
                     <TableCell>
-                      <div className="text-xs font-medium">{item.category || item.given_by}</div>
+                      <div className="text-xs font-medium">{item.category || item.given_by || (item.type === 'credit' ? 'Company Credit' : 'Other')}</div>
                       <div className="text-[10px] text-muted-foreground truncate max-w-[150px]">{item.description}</div>
                     </TableCell>
                     <TableCell className={cn("text-right font-bold text-xs", item.type === 'debit' ? "text-destructive" : "text-emerald-600")}>
@@ -403,8 +416,36 @@ const EmployeeExpenseManagement = () => {
     }
   };
 
+  const exportEmployeeExpenses = async () => {
+    const wb = createWorkbook();
+    const ws = wb.addWorksheet('Employee Expenses');
+    const headers = ['Employee Name', 'Date', 'Category', 'Description', 'Amount', 'Status'];
+    setColumnWidths(ws, [20, 15, 15, 30, 12, 12]);
+    ws.addRow(headers);
+    applyHeaderStyle(ws, 6, '1F618D');
+
+    expenses.filter(e => e.user_id?._id !== user?.id).forEach(e => {
+      ws.addRow([
+        e.user_id?.name || 'Unknown',
+        format(safeParseDate(e.expense_date), 'dd-MM-yyyy'),
+        e.category,
+        e.description,
+        e.amount,
+        e.approval_status
+      ]);
+    });
+
+    await downloadWorkbook(wb, `Employee_Expenses_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+    toast.success('Report downloaded');
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button onClick={exportEmployeeExpenses} size="sm" variant="outline" className="gap-2">
+          <Download className="h-4 w-4" /> Export Employee Expenses
+        </Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> Pending Approvals</CardTitle></CardHeader>
@@ -412,7 +453,7 @@ const EmployeeExpenseManagement = () => {
             <Table>
               <TableHeader><TableRow><TableHead>Employee</TableHead><TableHead>Amount</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
               <TableBody>
-                {expenses.filter(e => e.status === 'pending').map(e => (
+                {expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
                   <TableRow key={e._id}>
                     <TableCell className="text-xs font-medium">{e.user_id?.name || 'Employee'}</TableCell>
                     <TableCell className="text-xs font-bold text-destructive">₹{e.amount}</TableCell>
@@ -433,8 +474,8 @@ const EmployeeExpenseManagement = () => {
             <Table>
               <TableHeader><TableRow><TableHead>Employee</TableHead><TableHead className="text-right">Net Balance</TableHead></TableRow></TableHeader>
               <TableBody>
-                {employeeList.map(emp => {
-                  const empExp = expenses.filter(e => e.user_id?._id === emp._id || e.user_id === emp._id).reduce((s, e) => s + Number(e.amount), 0);
+                {employeeList.filter(emp => emp._id !== user?.id).map(emp => {
+                  const empExp = expenses.filter(e => (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount), 0);
                   const empCred = credits.filter(c => c.user_id?._id === emp._id || c.user_id === emp._id).reduce((s, c) => s + Number(c.amount), 0);
                   return (
                     <TableRow key={emp._id}>
