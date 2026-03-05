@@ -7,12 +7,12 @@ import { z } from 'zod';
 import { sanitizeText, sanitizeEmail, sanitizePhone, stripHtml } from './sanitize';
 
 // Custom refinements
-const sanitizedString = (maxLength: number) => 
+const sanitizedString = (maxLength: number) =>
   z.string()
     .max(maxLength)
     .transform(val => sanitizeText(val.trim()));
 
-const sanitizedOptionalString = (maxLength: number) => 
+const sanitizedOptionalString = (maxLength: number) =>
   z.string()
     .max(maxLength)
     .transform(val => val ? sanitizeText(val.trim()) : '')
@@ -106,7 +106,7 @@ export const TaskSchema = z.object({
     .transform(val => val ? stripHtml(val.trim()) : null)
     .optional()
     .nullable(),
-  assigned_to: z.string().uuid('Invalid assignee ID'),
+  assigned_to: z.string().min(1, 'Invalid assignee ID'),
   due_date: z.string().optional().nullable(),
 });
 

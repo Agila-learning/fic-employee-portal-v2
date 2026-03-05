@@ -31,7 +31,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/reports', reportRoutes);
-app.use('/api/utilities', utilityRoutes);
+app.use('/api/utility', utilityRoutes);
 app.use('/api/operations', operationRoutes);
 
 app.get('/', (req, res) => {

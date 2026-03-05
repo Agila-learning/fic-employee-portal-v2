@@ -1,6 +1,11 @@
 ﻿const express = require('express');
 const router = express.Router();
-const { getHolidays, createHoliday, getSuccessStories, createSuccessStory, updateSuccessStory, deleteSuccessStory } = require('../controllers/utilityController');
+const {
+    getHolidays, createHoliday,
+    getSuccessStories, createSuccessStory, updateSuccessStory, deleteSuccessStory,
+    getAnnouncements, createAnnouncement,
+    getTasks, createTask, updateTaskStatus
+} = require('../controllers/utilityController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 router.route('/holidays')
@@ -14,5 +19,16 @@ router.route('/success-stories')
 router.route('/success-stories/:id')
     .put(protect, admin, updateSuccessStory)
     .delete(protect, admin, deleteSuccessStory);
+
+router.route('/announcements')
+    .get(protect, getAnnouncements)
+    .post(protect, admin, createAnnouncement);
+
+router.route('/tasks')
+    .get(protect, getTasks)
+    .post(protect, admin, createTask);
+
+router.route('/tasks/:id')
+    .put(protect, updateTaskStatus);
 
 module.exports = router;

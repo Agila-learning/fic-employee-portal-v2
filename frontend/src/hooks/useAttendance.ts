@@ -196,9 +196,24 @@ export const useAttendance = () => {
   };
 
   const adminMarkAttendance = async (empId: string, status: 'present' | 'absent', date: string, leaveReason?: string) => {
-    // Migration: use markAttendance endpoint with employee ID if supported, or a specialized admin endpoint
-    toast({ title: 'Admin manual marking migration pending' });
-    return { error: null };
+    if (!user || user.role !== 'admin') {
+      toast({ title: 'Error', description: 'Unauthorized', variant: 'destructive' });
+      return { error: new Error('Unauthorized') };
+    }
+    try {
+      await attendanceService.markAttendance({
+        user_id: empId,
+        status,
+        date,
+        notes: leaveReason
+      });
+      toast({ title: 'Success', description: `Attendance marked manually` });
+      fetchAttendance();
+      return { error: null };
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.response?.data?.message || 'Failed to sync manual attendance', variant: 'destructive' });
+      return { error };
+    }
   };
 
   const canMarkAttendance = () => {

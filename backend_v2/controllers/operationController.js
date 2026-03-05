@@ -79,9 +79,11 @@ const updateLeaveStatus = async (req, res) => {
 // Attendance
 const markAttendance = async (req, res) => {
     try {
-        const { date, status, location, notes } = req.body;
+        const { date, status, location, notes, user_id } = req.body;
+        const targetUserId = (req.user.role === 'admin' && user_id) ? user_id : req.user._id;
+
         const attendance = await Attendance.findOneAndUpdate(
-            { user_id: req.user._id, date },
+            { user_id: targetUserId, date },
             { status, location, notes, check_in: req.body.check_in || Date.now() },
             { upsert: true, new: true }
         );
@@ -171,8 +173,8 @@ const updateExpenseStatus = async (req, res) => {
     }
 };
 
-module.exports = { 
-    createPayslip, getMyPayslips, getAllPayslips, 
+module.exports = {
+    createPayslip, getMyPayslips, getAllPayslips,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus,
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
     createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus
