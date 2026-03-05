@@ -219,22 +219,81 @@ const AdminPayroll = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label>Basic Salary</Label>
-                <Input type="number" value={form.basicSalary} onChange={e => handleFieldChange('basicSalary', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+            <div className="space-y-4">
+              <h3 className="font-semibold text-primary">Earnings</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label>Basic Salary</Label>
+                  <Input type="number" value={form.basicSalary} onChange={e => handleFieldChange('basicSalary', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>HRA</Label>
+                  <Input type="number" value={form.hra} onChange={e => handleFieldChange('hra', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Conveyance</Label>
+                  <Input type="number" value={form.conveyanceAllowance} onChange={e => handleFieldChange('conveyanceAllowance', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Medical</Label>
+                  <Input type="number" value={form.medicalAllowance} onChange={e => handleFieldChange('medicalAllowance', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Special Allowance</Label>
+                  <Input type="number" value={form.specialAllowance} onChange={e => handleFieldChange('specialAllowance', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Other Earnings</Label>
+                  <Input type="number" value={form.otherEarnings} onChange={e => handleFieldChange('otherEarnings', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>HRA</Label>
-                <Input type="number" value={form.hra} onChange={e => handleFieldChange('hra', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-destructive">Deductions</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label>PF (Employee)</Label>
+                  <Input type="number" value={form.pfEmployee} onChange={e => handleFieldChange('pfEmployee', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>ESI (Employee)</Label>
+                  <Input type="number" value={form.esiEmployee} onChange={e => handleFieldChange('esiEmployee', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Professional Tax</Label>
+                  <Input type="number" value={form.professionalTax} onChange={e => handleFieldChange('professionalTax', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>TDS</Label>
+                  <Input type="number" value={form.tds} onChange={e => handleFieldChange('tds', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Other Deductions</Label>
+                  <Input type="number" value={form.otherDeductions} onChange={e => handleFieldChange('otherDeductions', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Conveyance</Label>
-                <Input type="number" value={form.conveyanceAllowance} onChange={e => handleFieldChange('conveyanceAllowance', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
-              </div>
-              <div className="space-y-2">
-                <Label>Medical</Label>
-                <Input type="number" value={form.medicalAllowance} onChange={e => handleFieldChange('medicalAllowance', e.target.value)} placeholder="₹" className="bg-background/50 border-border/50" />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-muted-foreground">Bank & Statutory Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label>Bank Name</Label>
+                  <Input value={form.bankName} onChange={e => handleFieldChange('bankName', e.target.value)} placeholder="e.g. HDFC Bank" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Account Number</Label>
+                  <Input value={form.bankAccountNumber} onChange={e => handleFieldChange('bankAccountNumber', e.target.value)} placeholder="Enter Account No" className="bg-background/50 border-border/50" />
+                </div>
+                <div className="space-y-2">
+                  <Label>PAN Number</Label>
+                  <Input value={form.panNumber} onChange={e => handleFieldChange('panNumber', e.target.value)} placeholder="Enter PAN" className="bg-background/50 border-border/50 uppercase" />
+                </div>
+                <div className="space-y-2">
+                  <Label>UAN Number</Label>
+                  <Input value={form.uanNumber} onChange={e => handleFieldChange('uanNumber', e.target.value)} placeholder="Enter UAN" className="bg-background/50 border-border/50" />
+                </div>
               </div>
             </div>
 
