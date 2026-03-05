@@ -42,6 +42,7 @@ export const useSuccessStories = () => {
 
   const uploadVideo = async (file: File): Promise<string | null> => {
     try {
+      // Buckets: success-stories, candidateId: media (or could use candidate name)
       const data = await leadService.uploadFile(file, 'success-stories', 'media');
       return data.url;
     } catch (error: any) {
@@ -51,11 +52,13 @@ export const useSuccessStories = () => {
   };
 
   const deleteVideoFile = async (videoPath: string) => {
-    // Migration pending
+    // For now, Cloudinary handles overwrites or we can add delete logic later
+    console.log('Delete requested for:', videoPath);
   };
 
   const getVideoPublicUrl = (videoPath: string) => {
-    return videoPath; // Placeholder
+    // If it's already a full URL (Cloudinary returns full URL), return it
+    return videoPath;
   };
 
   const addStory = async (story: Omit<SuccessStory, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {

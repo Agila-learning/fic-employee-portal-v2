@@ -76,5 +76,17 @@ export const useLeaveRequests = () => {
     }
   };
 
-  return { leaveRequests, isLoading, createLeaveRequest, updateLeaveStatus, refetch: fetchLeaveRequests };
+  const deleteLeaveRequest = async (id: string) => {
+    if (!user) return false;
+    try {
+      await operationService.deleteLeaveRequest(id);
+      await fetchLeaveRequests();
+      return true;
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to delete leave request');
+      return false;
+    }
+  };
+
+  return { leaveRequests, isLoading, createLeaveRequest, updateLeaveStatus, deleteLeaveRequest, refetch: fetchLeaveRequests };
 };

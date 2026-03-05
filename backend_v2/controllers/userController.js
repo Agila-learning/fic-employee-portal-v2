@@ -111,6 +111,7 @@ const getUsers = async (req, res) => {
 
 const updateUser = async (req, res) => {
     try {
+        console.log(`Updating user ${req.params.id} with:`, req.body);
         const user = await User.findById(req.params.id);
         if (user) {
             user.name = req.body.name || user.name;

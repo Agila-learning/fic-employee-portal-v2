@@ -56,13 +56,27 @@ export const useAnnouncements = () => {
   };
 
   const deleteAnnouncement = async (id: string) => {
-    toast({ title: 'Delete announcement migration pending' });
-    return { error: null };
+    try {
+      await utilityService.deleteAnnouncement(id);
+      toast({ title: 'Success', description: 'Announcement deleted' });
+      fetchAnnouncements();
+      return { error: null };
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return { error };
+    }
   };
 
   const toggleAnnouncementStatus = async (id: string, isActive: boolean) => {
-    toast({ title: 'Toggle status migration pending' });
-    return { error: null };
+    try {
+      await utilityService.updateAnnouncementStatus(id, isActive);
+      toast({ title: 'Success', description: `Announcement ${isActive ? 'activated' : 'deactivated'}` });
+      fetchAnnouncements();
+      return { error: null };
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return { error };
+    }
   };
 
   useEffect(() => {

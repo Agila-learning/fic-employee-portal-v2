@@ -418,7 +418,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-border/50 bg-card shadow-sm overflow-hidden hover:shadow-lg transition-all duration-500">
+      <div className="rounded-2xl border border-border/50 bg-card shadow-sm overflow-hidden hover:shadow-lg transition-all duration-500 overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-muted/50 to-muted/30 hover:bg-muted/50">

@@ -96,7 +96,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards with staggered animation */}
-        <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8">
           <StatsCard
             title="Total Employees"
             value={employees.length}
@@ -106,7 +106,7 @@ const AdminDashboard = () => {
             link="/admin/employees"
           />
           <StatsCard
-            title="Active Employees"
+            title="Active Team"
             value={activeEmployeeCount}
             icon={UserCheck}
             iconClassName="bg-gradient-to-br from-amber-500 to-amber-600"
@@ -122,81 +122,49 @@ const AdminDashboard = () => {
             link="/admin/leads"
           />
           <StatsCard
-            title="Success"
-            value={successLeads}
-            icon={Trophy}
-            iconClassName="bg-gradient-to-br from-green-500 to-green-600"
+            title="Registration"
+            value={registrationDone}
+            icon={CreditCard}
+            iconClassName="bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-indigo-500/20"
             delay={200}
-            link="/admin/leads?status=success"
+            link="/admin/leads?payment_stage=registration_done"
           />
           <StatsCard
-            title="Conversion Rate"
+            title="Initial Paid"
+            value={initialPaymentDone}
+            icon={CreditCard}
+            iconClassName="bg-gradient-to-br from-orange-500 to-orange-600 shadow-orange-500/20"
+            delay={250}
+            link="/admin/leads?payment_stage=initial_payment_done"
+          />
+          <StatsCard
+            title="Full Paid"
+            value={fullPaymentDone}
+            icon={CheckCircle}
+            iconClassName="bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/20"
+            delay={300}
+            link="/admin/leads?payment_stage=full_payment_done"
+          />
+          <StatsCard
+            title="Conversion"
             value={`${conversionRate}%`}
             icon={TrendingUp}
             trend={{ value: conversionRate, isPositive: conversionRate > 0 }}
             iconClassName="bg-gradient-to-br from-teal-500 to-teal-600"
-            delay={300}
+            delay={350}
             link="/admin/leads"
           />
           <div className="cursor-pointer" onClick={() => document.getElementById('top-performers-section')?.scrollIntoView({ behavior: 'smooth' })}>
             <StatsCard
-              title="Top Performers"
-              value={topPerformerCount}
+              title="Success Stories"
+              value={successLeads}
               icon={Star}
-              iconClassName="bg-gradient-to-br from-orange-500 to-orange-600"
-              delay={350}
+              iconClassName="bg-gradient-to-br from-rose-500 to-rose-600"
+              delay={400}
             />
           </div>
         </div>
 
-        {/* Payment Stage Stats */}
-        <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 sm:grid-cols-3 animate-fade-in">
-          <div onClick={() => navigate('/admin/leads?payment_stage=registration_done')}>
-            <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium truncate">Registration</p>
-                    <p className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-300">{registrationDone}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div onClick={() => navigate('/admin/leads?payment_stage=initial_payment_done')}>
-            <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 font-medium truncate">Initial Pay</p>
-                    <p className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-300">{initialPaymentDone}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div onClick={() => navigate('/admin/leads?payment_stage=full_payment_done')}>
-            <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 col-span-2 sm:col-span-1 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400 font-medium truncate">Full Pay</p>
-                    <p className="text-lg sm:text-xl font-bold text-green-700 dark:text-green-300">{fullPaymentDone}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
 
         {/* Domain-wise Payment Stats */}
         <Card className="border-border/50 bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-950/30 dark:to-slate-900/20 animate-fade-in">

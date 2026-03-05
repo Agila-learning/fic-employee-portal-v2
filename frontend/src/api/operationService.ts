@@ -48,6 +48,11 @@ export const operationService = {
         return response.data;
     },
 
+    deleteLeaveRequest: async (id: string) => {
+        const response = await apiClient.delete(`/operations/leave/${id}`);
+        return response.data;
+    },
+
     // Holidays
     getHolidays: async () => {
         const response = await apiClient.get('/operations/holidays');

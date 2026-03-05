@@ -1,8 +1,10 @@
 import { format } from 'date-fns';
-import { CalendarIcon, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { CalendarIcon, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const statusConfig = {
@@ -12,7 +14,17 @@ const statusConfig = {
 };
 
 const LeaveRequestsList = () => {
-  const { leaveRequests, isLoading } = useLeaveRequests();
+  const { leaveRequests, isLoading, deleteLeaveRequest } = useLeaveRequests();
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this leave request?')) return;
+    try {
+      await deleteLeaveRequest(id);
+      toast.success('Leave request deleted');
+    } catch (error) {
+      toast.error('Failed to delete leave request');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -44,7 +56,7 @@ const LeaveRequestsList = () => {
               const config = statusConfig[req.status];
               const StatusIcon = config.icon;
               return (
-                <div key={req.id} className="flex items-center gap-3 p-3 sm:p-4 hover:bg-muted/30 transition-colors">
+                <div key={req.id || req._id} className="flex items-center gap-3 p-3 sm:p-4 hover:bg-muted/30 transition-colors group">
                   <div className={cn('p-2 rounded-lg', config.className)}>
                     <StatusIcon className="h-4 w-4" />
                   </div>
@@ -55,6 +67,11 @@ const LeaveRequestsList = () => {
                   <Badge className={cn('text-xs shrink-0', config.className)}>
                     {config.label}
                   </Badge>
+                  {req.status === 'pending' && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(req.id || req._id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               );
             })}

@@ -6,7 +6,7 @@ const {
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
     createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus,
     getHolidays, createHoliday,
-    getMyCredits, getAllCredits, createCredit, deleteCredit
+    getMyCredits, getAllCredits, createCredit, deleteCredit, deleteLeaveRequest
 } = require('../controllers/operationController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -24,6 +24,7 @@ router.route('/leave')
     .get(protect, admin, getAllLeaveRequests);
 router.get('/leave/my', protect, getMyLeaveRequests);
 router.put('/leave/:id', protect, admin, updateLeaveStatus);
+router.delete('/leave/:id', protect, deleteLeaveRequest);
 
 // Attendance
 router.route('/attendance')

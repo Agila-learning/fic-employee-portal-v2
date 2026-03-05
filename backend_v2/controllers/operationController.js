@@ -101,6 +101,28 @@ const updateLeaveStatus = async (req, res) => {
     }
 };
 
+const deleteLeaveRequest = async (req, res) => {
+    try {
+        const request = await LeaveRequest.findById(req.params.id);
+        if (request) {
+            // Check if user is owner or admin
+            if (request.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+                return res.status(403).json({ message: 'Not authorized to delete this request' });
+            }
+            // Optional: Only allow deletion if pending
+            if (request.status !== 'pending' && req.user.role !== 'admin') {
+                return res.status(400).json({ message: 'Cannot delete processed leave request' });
+            }
+            await request.deleteOne();
+            res.json({ message: 'Leave request removed' });
+        } else {
+            res.status(404).json({ message: 'Leave request not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Attendance
 const markAttendance = async (req, res) => {
     try {
@@ -261,7 +283,7 @@ const deleteCredit = async (req, res) => {
 
 module.exports = {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
-    createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus,
+    createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus, deleteLeaveRequest,
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
     createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus,
     getHolidays, createHoliday,

@@ -24,6 +24,10 @@ router.route('/announcements')
     .get(protect, getAnnouncements)
     .post(protect, admin, createAnnouncement);
 
+router.route('/announcements/:id')
+    .put(protect, admin, updateAnnouncementStatus)
+    .delete(protect, admin, deleteAnnouncement);
+
 router.route('/tasks')
     .get(protect, getTasks)
     .post(protect, admin, createTask);

@@ -41,6 +41,16 @@ export const utilityService = {
         return response.data;
     },
 
+    updateAnnouncementStatus: async (id: string, isActive: boolean) => {
+        const response = await apiClient.put(`/utility/announcements/${id}`, { is_active: isActive });
+        return response.data;
+    },
+
+    deleteAnnouncement: async (id: string) => {
+        const response = await apiClient.delete(`/utility/announcements/${id}`);
+        return response.data;
+    },
+
     getTasks: async () => {
         const response = await apiClient.get('/utility/tasks');
         return response.data;

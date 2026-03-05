@@ -62,20 +62,23 @@ const EmployeeReports = () => {
 
     setSubmitting(true);
     try {
-      await reportService.createReport({
+      const payload = {
         report_date: format(reportDate, 'yyyy-MM-dd'),
         department,
         morning_description: morningDesc,
         afternoon_description: afternoonDesc,
-        candidates_screened: parseInt(candidatesScreened)
-      });
+        candidates_screened: department === 'BDA' ? (parseInt(candidatesScreened) || 0) : 0
+      };
+      console.log('Submitting report:', payload);
+      await reportService.createReport(payload);
       toast.success('Report submitted successfully');
       fetchReports();
       setMorningDesc('');
       setAfternoonDesc('');
       setCandidatesScreened('0');
-    } catch (error) {
-      toast.error('Failed to submit report');
+    } catch (error: any) {
+      console.error('Report submission error:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit report');
     } finally {
       setSubmitting(false);
     }

@@ -140,49 +140,56 @@ const AdminSuccessStories = () => {
         ) : stories.length === 0 ? (
           <Card><CardContent className="py-12 text-center text-muted-foreground">No success stories yet. Add one!</CardContent></Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {stories.map((story) => {
               const videoSrc = getDisplayVideoUrl(story);
               return (
-                <Card key={story.id} className="relative overflow-hidden border-border/50 hover:shadow-lg transition-shadow">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600" />
+                <Card key={story.id} className="relative overflow-hidden border-border/50 hover:shadow-lg transition-all duration-300 flex flex-col h-full group">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600 z-10" />
                   {videoSrc && (
-                    <div className="w-full aspect-video bg-muted">
+                    <div className="w-full aspect-video bg-muted shrink-0 overflow-hidden">
                       {isYoutubeLink(videoSrc) ? (
                         <iframe src={getYoutubeEmbedUrl(videoSrc)} className="w-full h-full" allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
                       ) : (
-                        <video src={videoSrc} controls className="w-full h-full object-cover" preload="metadata" />
+                        <video src={videoSrc} controls className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" preload="metadata" />
                       )}
                     </div>
                   )}
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 shrink-0">
                     <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg text-foreground">{story.candidate_name}</CardTitle>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(story)}>
+                      <CardTitle className="text-lg text-foreground font-bold truncate pr-2">{story.candidate_name}</CardTitle>
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => openEdit(story)}>
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteConfirm(story.id)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors" onClick={() => setDeleteConfirm(story.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex flex-wrap gap-2 text-sm">
-                      <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                  <CardContent className="space-y-4 flex-1 flex flex-col">
+                    <div className="flex flex-wrap gap-2 text-xs shrink-0">
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium">
                         <IndianRupee className="h-3 w-3" /> {story.package}
                       </span>
-                      <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium">
                         <MapPin className="h-3 w-3" /> {story.location}
                       </span>
-                      <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-medium">
                         <Briefcase className="h-3 w-3" /> {story.domain}
                       </span>
                     </div>
-                    <div className="relative pl-4 border-l-2 border-amber-400">
-                      <Quote className="absolute -left-2.5 -top-1 h-5 w-5 text-amber-400 bg-card" />
-                      <p className="text-sm text-muted-foreground italic leading-relaxed whitespace-pre-wrap">{story.motivation_words}</p>
+
+                    <div className="relative pl-6 border-l-2 border-amber-400/50 mt-2 flex-1 min-h-[80px]">
+                      <div className="absolute -left-3.5 -top-2.5 p-1 bg-card rounded-md border border-border/50 shadow-sm">
+                        <Quote className="h-3.5 w-3.5 text-amber-500 fill-amber-500/10" />
+                      </div>
+                      <div className="max-h-[120px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted">
+                        <p className="text-sm text-muted-foreground italic leading-relaxed whitespace-pre-wrap">
+                          {story.motivation_words || "No motivational words shared yet."}
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

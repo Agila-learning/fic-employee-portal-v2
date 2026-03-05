@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAttendance, Attendance } from '@/hooks/useAttendance';
@@ -68,7 +68,7 @@ const AdminAttendance = () => {
     const matchesSearch = a.user_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDate = !dateFilter || a.date === dateFilter;
     const matchesMonth = !monthFilter || a.date.startsWith(monthFilter);
-    
+
     // Status filter
     let matchesStatus = true;
     if (statusFilter === 'present') matchesStatus = a.status === 'present' && !a.half_day;
@@ -104,8 +104,8 @@ const AdminAttendance = () => {
     return (
       <span className={cn(
         'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium',
-        record.status === 'present' 
-          ? 'bg-success/20 text-success' 
+        record.status === 'present'
+          ? 'bg-success/20 text-success'
           : 'bg-destructive/20 text-destructive'
       )}>
         {record.status === 'present' ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
@@ -127,7 +127,7 @@ const AdminAttendance = () => {
   // Export to Excel with summary + detailed sheets with colors
   const exportToExcel = async () => {
     let dataToExport = filteredAttendance.length > 0 ? filteredAttendance : attendance;
-    
+
     // Apply export date range filter
     if (exportFromDate || exportToDate) {
       dataToExport = dataToExport.filter(a => {
@@ -279,7 +279,7 @@ const AdminAttendance = () => {
     addFilteredSheet('Half Day', dataToExport.filter(a => a.half_day === true).map(mapRecord), 'D4AC0D');
     addFilteredSheet('Absent', dataToExport.filter(a => a.status === 'absent').map(mapRecord), 'C0392B');
 
-    const periodLabel = exportFromDate && exportToDate 
+    const periodLabel = exportFromDate && exportToDate
       ? `${format(exportFromDate, 'yyyyMMdd')}_to_${format(exportToDate, 'yyyyMMdd')}`
       : periodFilter !== 'all' ? periodFilter : (monthFilter || dateFilter || today);
     const statusLabel = statusFilter !== 'all' ? `_${statusFilter}` : '';
@@ -298,7 +298,7 @@ const AdminAttendance = () => {
       return emp && emp.role !== 'admin';
     });
     const employeeStats: { [key: string]: { name: string; present: number; halfDay: number; absent: number } } = {};
-    
+
     monthRecords.forEach(record => {
       const name = record.user_name || 'Unknown';
       if (!employeeStats[record.user_id]) {
@@ -395,8 +395,8 @@ const AdminAttendance = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium invisible">Clear</label>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
                   onClick={() => { setExportFromDate(undefined); setExportToDate(undefined); }}
                   disabled={!exportFromDate && !exportToDate}
@@ -487,8 +487,9 @@ const AdminAttendance = () => {
             {monthlyStats.length === 0 ? (
               <p className="text-center text-muted-foreground py-4">No data for selected month</p>
             ) : (
-              <Table>
-                <TableHeader>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
                       <TableHead className="w-16">S.No</TableHead>
                       <TableHead>Employee</TableHead>
@@ -514,18 +515,19 @@ const AdminAttendance = () => {
                           <TableCell className="text-center">
                             <span className={cn(
                               'px-2 py-1 rounded-full text-xs font-medium',
-                              percentage >= 80 ? 'bg-success/20 text-success' : 
-                              percentage >= 60 ? 'bg-warning/20 text-warning' : 
-                              'bg-destructive/20 text-destructive'
+                              percentage >= 80 ? 'bg-success/20 text-success' :
+                                percentage >= 60 ? 'bg-warning/20 text-warning' :
+                                  'bg-destructive/20 text-destructive'
                             )}>
                               {percentage}%
                             </span>
                           </TableCell>
                         </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -592,41 +594,43 @@ const AdminAttendance = () => {
             ) : filteredAttendance.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">No attendance records found</div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Marked At</TableHead>
-                    <TableHead>Leave Reason</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAttendance.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell className="font-medium">{record.user_name}</TableCell>
-                      <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
-                      <TableCell>{getStatusBadge(record)}</TableCell>
-                      <TableCell>{new Date(record.marked_at).toLocaleTimeString()}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        {record.leave_reason || '-'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingAttendance(record)}
-                          className="h-8 w-8 hover:bg-primary/10"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Marked At</TableHead>
+                      <TableHead>Leave Reason</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAttendance.map((record) => (
+                      <TableRow key={record.id}>
+                        <TableCell className="font-medium">{record.user_name}</TableCell>
+                        <TableCell>{record.date ? format(parseISO(record.date), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell>{getStatusBadge(record)}</TableCell>
+                        <TableCell>{record.marked_at ? format(parseISO(record.marked_at), 'hh:mm a') : '-'}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">
+                          {record.leave_reason || '-'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingAttendance(record)}
+                            className="h-8 w-8 hover:bg-primary/10"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

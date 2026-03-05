@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +21,7 @@ const AdminAnnouncements = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.message) {
       toast({ title: 'Error', description: 'Please fill in all fields', variant: 'destructive' });
       return;
@@ -101,12 +102,12 @@ const AdminAnnouncements = () => {
             ) : (
               <div className="space-y-4">
                 {announcements.map((announcement) => (
-                  <div 
-                    key={announcement.id} 
+                  <div
+                    key={announcement.id}
                     className={cn(
                       "p-4 rounded-xl border transition-all duration-300",
-                      announcement.is_active 
-                        ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800" 
+                      announcement.is_active
+                        ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
                         : "bg-muted/30 border-border/50 opacity-60"
                     )}
                   >
@@ -120,7 +121,7 @@ const AdminAnnouncements = () => {
                         </div>
                         <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">{announcement.message}</p>
                         <p className="text-xs text-muted-foreground mt-3">
-                          Posted on {new Date(announcement.created_at).toLocaleDateString()}
+                          Posted on {announcement.created_at ? format(parseISO(announcement.created_at), 'dd MMM yyyy') : 'Recently'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">

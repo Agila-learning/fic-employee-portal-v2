@@ -123,9 +123,38 @@ const updateTaskStatus = async (req, res) => {
     }
 };
 
+const deleteAnnouncement = async (req, res) => {
+    try {
+        const announcement = await Announcement.findById(req.params.id);
+        if (announcement) {
+            await announcement.deleteOne();
+            res.json({ message: 'Announcement removed' });
+        } else {
+            res.status(404).json({ message: 'Announcement not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const updateAnnouncementStatus = async (req, res) => {
+    try {
+        const announcement = await Announcement.findById(req.params.id);
+        if (announcement) {
+            announcement.is_active = req.body.is_active !== undefined ? req.body.is_active : announcement.is_active;
+            const updated = await announcement.save();
+            res.json(updated);
+        } else {
+            res.status(404).json({ message: 'Announcement not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getHolidays, createHoliday,
     getSuccessStories, createSuccessStory, updateSuccessStory, deleteSuccessStory,
-    getAnnouncements, createAnnouncement,
+    getAnnouncements, createAnnouncement, updateAnnouncementStatus, deleteAnnouncement,
     getTasks, createTask, updateTaskStatus
 };

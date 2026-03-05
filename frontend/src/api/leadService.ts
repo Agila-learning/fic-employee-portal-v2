@@ -48,9 +48,9 @@ export const leadService = {
 
     uploadFile: async (file: File, bucket: string, candidateId: string) => {
         const formData = new FormData();
-        formData.append('file', file);
         formData.append('bucket', bucket);
         formData.append('candidateId', candidateId);
+        formData.append('file', file);
         const response = await apiClient.post('/leads/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });

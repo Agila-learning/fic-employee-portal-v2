@@ -333,7 +333,7 @@ const AdminPayroll = () => {
                 <TableBody>
                   {payslips.map(ps => (
                     <TableRow key={ps.id || ps._id} className="border-border/50 group">
-                      <TableCell className="font-medium">{ps.employee_name}</TableCell>
+                      <TableCell className="font-medium">{ps.employee_name || ps.user_id?.name || 'Unknown'}</TableCell>
                       <TableCell><Badge variant="secondary" className="bg-primary/5 text-primary hover:bg-primary/10 transition-colors border-none">{MONTHS[ps.month - 1]} {ps.year}</Badge></TableCell>
                       <TableCell className="font-semibold text-emerald-600">₹{Number(ps.net_salary).toLocaleString('en-IN')}</TableCell>
                       <TableCell className="text-right">

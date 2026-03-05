@@ -38,7 +38,7 @@ const PayslipTemplate = ({ payslip }: PayslipProps) => {
     { label: 'Medical Allowance', value: payslip.medical_allowance },
     { label: 'Special Allowance', value: payslip.special_allowance },
     { label: 'Other Earnings', value: payslip.other_earnings },
-  ].filter(e => Number(e.value) > 0);
+  ].filter(e => e.value !== undefined && e.value !== null && !isNaN(Number(e.value)) && Number(e.value) !== 0);
 
   const deductions = [
     { label: 'PF (Employee)', value: payslip.pf_employee },
@@ -48,7 +48,7 @@ const PayslipTemplate = ({ payslip }: PayslipProps) => {
     { label: 'Professional Tax', value: payslip.professional_tax },
     { label: 'TDS', value: payslip.tds },
     { label: 'Other Deductions', value: payslip.other_deductions },
-  ].filter(d => Number(d.value) > 0);
+  ].filter(d => d.value !== undefined && d.value !== null && !isNaN(Number(d.value)) && Number(d.value) !== 0);
 
   const fmt = (v: any) => `₹${Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
   const maxRows = Math.max(earnings.length, deductions.length);

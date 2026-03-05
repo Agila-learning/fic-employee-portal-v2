@@ -1,10 +1,12 @@
 ﻿const mongoose = require('mongoose');
 
 const expenseSchema = mongoose.Schema({
-    description: { type: String, required: true },
+    expense_date: { type: Date, required: true },
     amount: { type: Number, required: true },
+    description: { type: String, required: true },
     category: { type: String, required: true },
-    date: { type: Date, default: Date.now },
+    receipt_url: { type: String },
+    approval_status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, {
     timestamps: true,
