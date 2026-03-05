@@ -3,7 +3,7 @@ const router = express.Router();
 const {
     getHolidays, createHoliday,
     getSuccessStories, createSuccessStory, updateSuccessStory, deleteSuccessStory,
-    getAnnouncements, createAnnouncement,
+    getAnnouncements, createAnnouncement, updateAnnouncementStatus, deleteAnnouncement,
     getTasks, createTask, updateTaskStatus
 } = require('../controllers/utilityController');
 const { protect, admin } = require('../middleware/authMiddleware');
