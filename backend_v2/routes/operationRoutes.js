@@ -1,10 +1,12 @@
 ﻿const express = require('express');
 const router = express.Router();
-const { 
-    createPayslip, getMyPayslips, getAllPayslips, 
+const {
+    createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus,
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
-    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus
+    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus,
+    getHolidays, createHoliday,
+    getMyCredits, getAllCredits, createCredit, deleteCredit
 } = require('../controllers/operationController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -13,6 +15,8 @@ router.route('/payslips')
     .post(protect, admin, createPayslip)
     .get(protect, admin, getAllPayslips);
 router.get('/payslips/my', protect, getMyPayslips);
+router.get('/payslips/latest/:userId', protect, getLatestPayslip);
+router.delete('/payslips/:id', protect, admin, deletePayslip);
 
 // Leave
 router.route('/leave')
@@ -34,5 +38,17 @@ router.route('/expenses')
     .get(protect, admin, getAllExpenses);
 router.get('/expenses/my', protect, getMyExpenses);
 router.put('/expenses/:id/status', protect, admin, updateExpenseStatus);
+
+// Holidays
+router.route('/holidays')
+    .get(protect, getHolidays)
+    .post(protect, admin, createHoliday);
+
+// Credits
+router.route('/credits')
+    .get(protect, admin, getAllCredits)
+    .post(protect, admin, createCredit);
+router.get('/credits/my', protect, getMyCredits);
+router.delete('/credits/:id', protect, admin, deleteCredit);
 
 module.exports = router;
