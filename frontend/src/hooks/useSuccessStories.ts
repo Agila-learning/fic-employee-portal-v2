@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { utilityService } from '@/api/utilityService';
-import { leadService } from '@/api/leadService';
+import apiClient from '@/api/apiClient';
 
 export interface SuccessStory {
   id: string;
@@ -42,14 +42,36 @@ export const useSuccessStories = () => {
 
   const uploadVideo = async (file: File): Promise<string | null> => {
     try {
-      // Buckets: success-stories, candidateId: media (or could use candidate name)
-      const data = await leadService.uploadFile(file, 'success-stories', 'media');
-      return data.url;
+      // Step 1: Get a signed upload signature from our backend (small HTTPS call)
+      const sigResponse = await apiClient.post('/utility/cloudinary-signature', { folder: 'success-stories' });
+      const { signature, timestamp, folder, api_key, cloud_name } = sigResponse.data;
+
+      // Step 2: Upload directly to Cloudinary over HTTPS (bypasses Vercel 4.5MB proxy limit)
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('api_key', api_key);
+      formData.append('timestamp', timestamp.toString());
+      formData.append('signature', signature);
+      formData.append('folder', folder);
+      formData.append('resource_type', 'video');
+
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`,
+        { method: 'POST', body: formData }
+      );
+
+      if (!uploadResponse.ok) {
+        throw new Error('Cloudinary upload failed');
+      }
+
+      const uploadData = await uploadResponse.json();
+      return uploadData.secure_url;
     } catch (error: any) {
-      toast.error('Video upload failed');
+      toast.error('Video upload failed: ' + (error.message || 'Unknown error'));
       return null;
     }
   };
+
 
   const deleteVideoFile = async (videoPath: string) => {
     // For now, Cloudinary handles overwrites or we can add delete logic later

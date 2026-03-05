@@ -7,6 +7,7 @@ const {
     getTasks, createTask, updateTaskStatus, deleteTask
 } = require('../controllers/utilityController');
 const { protect, admin } = require('../middleware/authMiddleware');
+const { cloudinary } = require('../utils/cloudinary');
 
 router.route('/holidays')
     .get(protect, getHolidays)
@@ -35,5 +36,22 @@ router.route('/tasks')
 router.route('/tasks/:id')
     .put(protect, updateTaskStatus)
     .delete(protect, admin, deleteTask);
+
+// Direct upload signature for browser-to-Cloudinary uploads (bypasses Vercel 4.5MB proxy limit)
+router.post('/cloudinary-signature', protect, (req, res) => {
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const folder = req.body.folder || 'fic-portal';
+    const signature = cloudinary.utils.api_sign_request(
+        { timestamp, folder },
+        process.env.CLOUDINARY_API_SECRET
+    );
+    res.json({
+        signature,
+        timestamp,
+        folder,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    });
+});
 
 module.exports = router;
