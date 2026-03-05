@@ -17,7 +17,7 @@ const createPayslip = async (req, res) => {
 
 const getMyPayslips = async (req, res) => {
     try {
-        const payslips = await Payslip.find({ user_id: req.user._id });
+        const payslips = await Payslip.find({ user_id: req.user._id }).populate('user_id', 'name email');
         res.json(payslips);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -207,7 +207,7 @@ const updateExpenseStatus = async (req, res) => {
     try {
         const expense = await Expense.findById(req.params.id);
         if (expense) {
-            expense.status = req.body.status;
+            expense.approval_status = req.body.status;
             expense.reviewed_by = req.user._id;
             expense.reviewed_at = Date.now();
             const updated = await expense.save();

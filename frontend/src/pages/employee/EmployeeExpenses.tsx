@@ -154,7 +154,7 @@ const EmployeeExpenses = () => {
 
   const filterByRange = (items: any[], range: 'daily' | 'weekly' | 'monthly') => {
     return items.filter(item => {
-      const d = parseISO(item.expense_date || item.credit_date);
+      const d = safeParseDate(item.expense_date || item.credit_date);
       if (range === 'daily') return format(d, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
       if (range === 'weekly') return isWithinInterval(d, { start: weekStart, end: weekEnd });
       return isWithinInterval(d, { start: monthStart, end: monthEnd });

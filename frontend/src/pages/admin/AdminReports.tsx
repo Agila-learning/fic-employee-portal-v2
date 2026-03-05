@@ -74,11 +74,18 @@ const AdminReports = () => {
     try {
       const data = await reportService.getReports();
 
-      // Enrich with employee names
-      const enrichedReports = (data || []).map((report: any) => ({
-        ...report,
-        employee_name: profiles.find(p => (p.user_id || p.id || p._id) === report.user_id)?.name || 'Unknown',
-      })) as EmployeeReport[];
+      // Enrich with employee names and departments
+      const enrichedReports = (data || []).map((r: any) => {
+        const profile = profiles.find(p => {
+          const userId = r.user_id?._id || r.user_id;
+          return userId === p.user_id || userId === (p as any)._id;
+        });
+        return {
+          ...r,
+          employee_name: r.user_id?.name || profile?.name || 'Unknown',
+          department: r.department || (typeof r.user_id === 'object' ? r.user_id.department : profile?.department) || '-'
+        };
+      }) as EmployeeReport[];
 
       setReports(enrichedReports);
     } catch (error: any) {
@@ -341,7 +348,7 @@ const AdminReports = () => {
                   <SelectContent>
                     <SelectItem value="all">All Employees</SelectItem>
                     {profiles.map((profile) => (
-                      <SelectItem key={profile.user_id} value={profile.user_id}>
+                      <SelectItem key={profile.user_id || profile._id} value={profile.user_id || profile._id}>
                         {profile.name}
                       </SelectItem>
                     ))}

@@ -109,5 +109,16 @@ export const operationService = {
     deleteCredit: async (id: string) => {
         const response = await apiClient.delete(`/operations/credits/${id}`);
         return response.data;
+    },
+
+    // Attendance
+    getMyAttendance: async () => {
+        const response = await apiClient.get('/operations/attendance/my');
+        return response.data;
+    },
+
+    getAllAttendance: async () => {
+        const response = await apiClient.get('/operations/attendance');
+        return response.data;
     }
 };
