@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CalendarIcon, Download, RefreshCw, FileSpreadsheet, Users, Building2, User, Phone, MapPin, Briefcase, MessageSquare, Sun, Moon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -145,14 +145,14 @@ const AdminReports = () => {
 
     // Main reports sheet
     const mainExportData = reports.map(report => ({
-      'Date': format(new Date(report.report_date), 'dd/MM/yyyy'),
+      'Date': format(safeParseDate(report.report_date), 'dd/MM/yyyy'),
       'Employee Name': report.employee_name,
       'Department': report.department,
       'Morning Report': report.morning_description || '-',
       'Afternoon Report': report.afternoon_description || '-',
       'Candidates Screened (HR)': report.candidates_screened ?? '-',
-      'Submitted At': format(new Date(report.created_at), 'dd/MM/yyyy HH:mm'),
-      'Last Updated': format(new Date(report.updated_at), 'dd/MM/yyyy HH:mm'),
+      'Submitted At': format(safeParseDate(report.created_at), 'dd/MM/yyyy HH:mm'),
+      'Last Updated': format(safeParseDate(report.updated_at), 'dd/MM/yyyy HH:mm'),
     }));
 
     // Candidate entries sheet (for BDA/HR)
@@ -160,7 +160,7 @@ const AdminReports = () => {
     for (const { report, entries } of allCandidateEntries) {
       for (const entry of entries) {
         candidateExportData.push({
-          'Date': format(new Date(report.report_date), 'dd/MM/yyyy'),
+          'Date': format(safeParseDate(report.report_date), 'dd/MM/yyyy'),
           'Employee Name': report.employee_name,
           'Department': report.department,
           'Candidate Name': entry.candidate_name,
@@ -386,7 +386,7 @@ const AdminReports = () => {
                       return (
                         <TableRow key={report.id}>
                           <TableCell className="font-medium whitespace-nowrap">
-                            {format(new Date(report.report_date), 'dd MMM yyyy')}
+                            {format(safeParseDate(report.report_date), 'dd MMM yyyy')}
                           </TableCell>
                           <TableCell className="font-medium">{report.employee_name}</TableCell>
                           <TableCell>
@@ -451,7 +451,7 @@ const AdminReports = () => {
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                         <CalendarIcon className="h-3 w-3" /> Date
                       </p>
-                      <p className="font-medium">{format(new Date(selectedReport.report_date), 'dd MMM yyyy')}</p>
+                      <p className="font-medium">{format(safeParseDate(selectedReport.report_date), 'dd MMM yyyy')}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Department</p>

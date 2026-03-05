@@ -20,9 +20,10 @@ import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import LeadStatusBadge from '@/components/leads/LeadStatusBadge';
 import { STATUS_OPTIONS, Lead } from '@/types';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { getRandomQuote } from '@/utils/motivationalQuotes';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
@@ -295,7 +296,7 @@ const EmployeeDashboard = () => {
                       <p className="text-xs text-muted-foreground font-mono truncate">{lead.candidate_id}</p>
                     </div>
                     <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold bg-amber-100 dark:bg-amber-900/50 px-2 py-1 rounded-full shrink-0">
-                      {lead.followup_date && new Date(lead.followup_date).toLocaleDateString()}
+                      {lead.followup_date && format(safeParseDate(lead.followup_date), 'dd/MM/yyyy')}
                     </div>
                   </div>
                 ))}

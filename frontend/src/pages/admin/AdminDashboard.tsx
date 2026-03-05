@@ -10,9 +10,9 @@ import AdminLeaveRequests from '@/components/leave/AdminLeaveRequests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { STATUS_OPTIONS, STATUS_OPTIONS_ADMIN, Lead, INTERESTED_DOMAIN_OPTIONS } from '@/types';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { Link, useNavigate } from 'react-router-dom';
-import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
+import { startOfWeek, endOfWeek, isWithinInterval, parseISO, format } from 'date-fns';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -377,7 +377,7 @@ const AdminDashboard = () => {
                     {STATUS_OPTIONS.find(s => s.value === lead.status)?.label}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(lead.updated_at).toLocaleDateString()}
+                    {format(safeParseDate(lead.updated_at), 'dd/MM/yyyy')}
                   </div>
                 </div>
               ))}

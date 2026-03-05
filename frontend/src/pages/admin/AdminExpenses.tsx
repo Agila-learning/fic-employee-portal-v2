@@ -16,7 +16,7 @@ import { leadService } from '@/api/leadService';
 import { toast } from 'sonner';
 import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { CalendarIcon, Download, TrendingDown, TrendingUp, Wallet, Users, Clock, Plus, Trash2, IndianRupee, Upload, FileImage, BarChart3, ExternalLink, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { createWorkbook, setColumnWidths, applyHeaderStyle, downloadWorkbook, styleCell } from '@/utils/excelExport';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
@@ -27,16 +27,6 @@ const CATEGORIES = [
   'Sanitary Products', 'Food', 'Transport', 'Travel',
   'Office Supplies', 'Courier Charges', 'Petrol', 'Marketing', 'Lead Generation', 'Others'
 ];
-
-const safeParseDate = (dateStr: any) => {
-  if (!dateStr) return new Date();
-  if (dateStr instanceof Date) return dateStr;
-  try {
-    return parseISO(dateStr);
-  } catch (e) {
-    return new Date();
-  }
-};
 
 const AdminExpenses = () => {
   const { user } = useAuth();
