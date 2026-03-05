@@ -33,6 +33,7 @@ router.route('/tasks')
     .post(protect, admin, createTask);
 
 router.route('/tasks/:id')
-    .put(protect, updateTaskStatus);
+    .put(protect, updateTaskStatus)
+    .delete(protect, admin, deleteTask);
 
 module.exports = router;

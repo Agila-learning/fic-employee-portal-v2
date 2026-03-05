@@ -140,6 +140,20 @@ const updateTaskStatus = async (req, res) => {
     }
 };
 
+const deleteTask = async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (task) {
+            await task.deleteOne();
+            res.json({ message: 'Task removed' });
+        } else {
+            res.status(404).json({ message: 'Task not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const deleteAnnouncement = async (req, res) => {
     try {
         const announcement = await Announcement.findById(req.params.id);
@@ -173,5 +187,5 @@ module.exports = {
     getHolidays, createHoliday,
     getSuccessStories, createSuccessStory, updateSuccessStory, deleteSuccessStory,
     getAnnouncements, createAnnouncement, updateAnnouncementStatus, deleteAnnouncement,
-    getTasks, createTask, updateTaskStatus
+    getTasks, createTask, updateTaskStatus, deleteTask
 };

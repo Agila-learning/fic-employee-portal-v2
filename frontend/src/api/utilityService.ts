@@ -64,5 +64,17 @@ export const utilityService = {
     updateTaskStatus: async (taskId: string, status: string) => {
         const response = await apiClient.put(`/utility/tasks/${taskId}`, { status });
         return response.data;
+    },
+
+    updateTask: async (taskId: string, taskData: any) => {
+        // Reusing status update or a full update if we add and endpoint later
+        // For now, let's assume we might need a full update endpoint
+        const response = await apiClient.put(`/utility/tasks/${taskId}`, taskData);
+        return response.data;
+    },
+
+    deleteTask: async (taskId: string) => {
+        const response = await apiClient.delete(`/utility/tasks/${taskId}`);
+        return response.data;
     }
 };

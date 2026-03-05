@@ -61,8 +61,15 @@ export const useTasks = () => {
   };
 
   const updateTask = async (taskId: string, updates: { title?: string; description?: string; assigned_to?: string; due_date?: string }) => {
-    toast({ title: 'Update task migration pending' });
-    return { error: null };
+    try {
+      await utilityService.updateTask(taskId, updates);
+      toast({ title: 'Success', description: 'Task updated successfully' });
+      fetchTasks();
+      return { error: null };
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return { error };
+    }
   };
 
   const updateTaskStatus = async (taskId: string, status: 'pending' | 'in_progress' | 'completed') => {
@@ -78,8 +85,16 @@ export const useTasks = () => {
   };
 
   const deleteTask = async (taskId: string) => {
-    toast({ title: 'Delete task migration pending' });
-    return { error: null };
+    if (!window.confirm('Are you sure you want to delete this task?')) return { error: null };
+    try {
+      await utilityService.deleteTask(taskId);
+      toast({ title: 'Success', description: 'Task deleted successfully' });
+      fetchTasks();
+      return { error: null };
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return { error };
+    }
   };
 
   useEffect(() => {
