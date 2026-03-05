@@ -43,9 +43,9 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 };
 
 // Encrypt password using bcrypt
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
     if (!this.isModified('password')) {
-        return next();
+        return;
     }
 
     const salt = await bcrypt.genSalt(10);

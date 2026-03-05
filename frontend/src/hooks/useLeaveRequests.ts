@@ -26,7 +26,9 @@ export const useLeaveRequests = () => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const data = await operationService.getMyLeaveRequests();
+      const data = user.role === 'admin'
+        ? await operationService.getAllLeaveRequests()
+        : await operationService.getMyLeaveRequests();
       setLeaveRequests(data.map((r: any) => ({
         ...r,
         id: r._id,

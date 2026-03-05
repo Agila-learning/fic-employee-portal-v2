@@ -15,7 +15,9 @@ const createLead = async (req, res) => {
 
 const getLeads = async (req, res) => {
     try {
-        const filter = req.user.role === 'admin' ? {} : { assigned_to: req.user._id };
+        const filter = req.user.role === 'admin'
+            ? {}
+            : { $or: [{ assigned_to: req.user._id }, { created_by: req.user._id }] };
         const leads = await Lead.find(filter).populate('assigned_to', 'name email');
         res.json(leads);
     } catch (error) {

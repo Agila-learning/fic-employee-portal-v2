@@ -1,13 +1,13 @@
 ﻿const Expense = require('../models/Expense');
 
 const createExpense = async (req, res) => {
-    const { description, amount, category, date } = req.body;
+    const { description, amount, category, date, expense_date } = req.body;
     try {
         const expense = await Expense.create({
             description,
             amount,
             category,
-            date,
+            date: date || expense_date,
             user_id: req.user._id,
         });
         res.status(201).json(expense);
