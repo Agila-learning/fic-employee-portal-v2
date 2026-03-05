@@ -196,7 +196,7 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-            </Link>
+            </div>
           </div>
         )}
 

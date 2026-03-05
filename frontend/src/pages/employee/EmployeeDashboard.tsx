@@ -17,7 +17,7 @@ import LeaveRequestsList from '@/components/leave/LeaveRequestsList';
 import { FileSpreadsheet, CheckCircle, Clock, XCircle, Plus, Bell, ArrowRight, TrendingUp, Sparkles, Trophy, CreditCard, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import LeadStatusBadge from '@/components/leads/LeadStatusBadge';
 import { STATUS_OPTIONS, Lead } from '@/types';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loadingLeads, setLoadingLeads] = useState(true);
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
@@ -120,13 +121,13 @@ const EmployeeDashboard = () => {
               <AnnouncementNotification />
               <TaskRemindersNotification />
               <FollowupNotifications leads={myLeads} onViewLead={(lead) => setViewingLead(lead)} />
-              <Link to="/employee/add-lead" className="w-full sm:w-auto">
+              <div onClick={() => navigate('/employee/add-lead')} className="w-full sm:w-auto cursor-pointer">
                 <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 gap-2 shadow-lg shadow-amber-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-105 w-full sm:w-auto text-sm sm:text-base">
                   <Plus className="h-4 w-4" />
                   <span className="hidden xs:inline">Add New Lead</span>
                   <span className="xs:hidden">Add Lead</span>
                 </Button>
-              </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -179,7 +180,7 @@ const EmployeeDashboard = () => {
         {/* Payment Stage Stats */}
         {(registrationDone > 0 || initialPaymentDone > 0 || fullPaymentDone > 0) && (
           <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 sm:grid-cols-3 animate-fade-in">
-            <Link to="/employee/leads">
+            <div onClick={() => navigate('/employee/leads')}>
               <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -193,8 +194,8 @@ const EmployeeDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-            </Link>
-            <Link to="/employee/leads">
+            </div>
+            <div onClick={() => navigate('/employee/leads')}>
               <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -208,8 +209,8 @@ const EmployeeDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-            </Link>
-            <Link to="/employee/leads">
+            </div>
+            <div onClick={() => navigate('/employee/leads')}>
               <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 col-span-2 sm:col-span-1 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -223,7 +224,7 @@ const EmployeeDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-            </Link>
+            </div>
           </div>
         )}
 
@@ -312,12 +313,12 @@ const EmployeeDashboard = () => {
                 <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                 Recent Leads
               </CardTitle>
-              <Link to="/employee/leads">
+              <div onClick={() => navigate('/employee/leads')} className="cursor-pointer">
                 <Button variant="ghost" size="sm" className="gap-1 group/btn text-xs sm:text-sm h-7 sm:h-8">
                   View All
                   <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
-              </Link>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border/50">
@@ -325,12 +326,12 @@ const EmployeeDashboard = () => {
                   <div className="text-center py-8 sm:py-12 px-4">
                     <FileSpreadsheet className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50 mb-3" />
                     <p className="text-sm sm:text-base text-muted-foreground">No leads yet. Start by adding your first lead!</p>
-                    <Link to="/employee/add-lead" className="mt-4 inline-block">
+                    <div onClick={() => navigate('/employee/add-lead')} className="mt-4 inline-block cursor-pointer">
                       <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">
                         <Plus className="h-4 w-4" />
                         Add Lead
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 ) : recentLeads.map((lead, index) => (
                   <div
