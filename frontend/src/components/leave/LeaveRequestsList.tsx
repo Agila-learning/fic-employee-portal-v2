@@ -68,7 +68,7 @@ const LeaveRequestsList = () => {
                     {config.label}
                   </Badge>
                   {req.status === 'pending' && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(req.id || req._id)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive transition-colors" onClick={() => handleDelete(req.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}

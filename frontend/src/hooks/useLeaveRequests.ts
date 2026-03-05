@@ -5,6 +5,7 @@ import { operationService } from '@/api/operationService';
 
 export interface LeaveRequest {
   id: string;
+  _id?: string;
   user_id: string;
   leave_date: string;
   reason: string;

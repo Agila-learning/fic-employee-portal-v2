@@ -4,7 +4,7 @@ const {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus,
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
-    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus,
+    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, deleteExpense,
     getHolidays, createHoliday,
     getMyCredits, getAllCredits, createCredit, deleteCredit, deleteLeaveRequest
 } = require('../controllers/operationController');
@@ -39,6 +39,7 @@ router.route('/expenses')
     .get(protect, admin, getAllExpenses);
 router.get('/expenses/my', protect, getMyExpenses);
 router.put('/expenses/:id/status', protect, admin, updateExpenseStatus);
+router.delete('/expenses/:id', protect, deleteExpense);
 
 // Holidays
 router.route('/holidays')

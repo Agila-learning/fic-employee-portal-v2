@@ -117,6 +117,9 @@ const updateUser = async (req, res) => {
             user.name = req.body.name || user.name;
             user.email = req.body.email || user.email;
             user.role = req.body.role || user.role;
+            user.employee_id = req.body.employee_id !== undefined ? req.body.employee_id : user.employee_id;
+            user.is_active = req.body.is_active !== undefined ? req.body.is_active : user.is_active;
+
             if (req.body.password) {
                 user.password = req.body.password;
             }
@@ -126,6 +129,8 @@ const updateUser = async (req, res) => {
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,
+                employee_id: updatedUser.employee_id,
+                is_active: updatedUser.is_active,
             });
         } else {
             res.status(404).json({ message: 'User not found' });

@@ -32,10 +32,10 @@ const getSuccessStories = async (req, res) => {
 
 const createSuccessStory = async (req, res) => {
     try {
-        const { candidate_name, package, location, domain, motivation_words, video_url, video_path } = req.body;
+        const { candidate_name, package: package_val, location, domain, motivation_words, video_url, video_path } = req.body;
         const story = await SuccessStory.create({
             candidate_name,
-            package,
+            package: package_val,
             location,
             domain,
             motivation_words,
@@ -51,11 +51,11 @@ const createSuccessStory = async (req, res) => {
 
 const updateSuccessStory = async (req, res) => {
     try {
-        const { candidate_name, package, location, domain, motivation_words, video_url, video_path } = req.body;
+        const { candidate_name, package: package_val, location, domain, motivation_words, video_url, video_path } = req.body;
         const story = await SuccessStory.findById(req.params.id);
         if (story) {
             story.candidate_name = candidate_name || story.candidate_name;
-            story.package = package || story.package;
+            story.package = package_val !== undefined ? package_val : story.package;
             story.location = location || story.location;
             story.domain = domain || story.domain;
             story.motivation_words = motivation_words || story.motivation_words;

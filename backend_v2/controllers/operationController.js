@@ -220,6 +220,24 @@ const updateExpenseStatus = async (req, res) => {
     }
 };
 
+const deleteExpense = async (req, res) => {
+    try {
+        const expense = await Expense.findById(req.params.id);
+        if (expense) {
+            // Check if user is owner or admin
+            if (expense.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+                return res.status(403).json({ message: 'Not authorized to delete this expense' });
+            }
+            await expense.deleteOne();
+            res.json({ message: 'Expense removed' });
+        } else {
+            res.status(404).json({ message: 'Expense not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Holidays
 const getHolidays = async (req, res) => {
     try {
@@ -296,7 +314,7 @@ module.exports = {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus, deleteLeaveRequest,
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
-    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus,
+    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, deleteExpense,
     getHolidays, createHoliday,
     getMyCredits, getAllCredits, createCredit, deleteCredit
 };
