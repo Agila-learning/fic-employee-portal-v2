@@ -138,7 +138,11 @@ export const useLeads = () => {
     updateLead,
     deleteLead,
     bulkUpload,
-    getLeadsByEmployee: (empId: string) => leads.filter(l => l.assigned_to === empId),
+    // Include leads created_by OR assigned_to the employee
+    getLeadsByEmployee: (empId: string) => leads.filter(l =>
+      l.assigned_to === empId ||
+      (typeof l.created_by === 'string' ? l.created_by === empId : (l.created_by as any)?._id === empId)
+    ),
     refetchLeads: fetchLeads,
   };
 };

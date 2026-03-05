@@ -10,16 +10,10 @@ const User = require('../models/User');
 const createPayslip = async (req, res) => {
     try {
         const { user_id, employee_name, employee_id } = req.body;
-        let finalName = employee_name;
-        let finalEmpId = employee_id;
-
-        if (!finalName || !finalEmpId) {
-            const user = await User.findById(user_id);
-            if (user) {
-                finalName = finalName || user.name;
-                finalEmpId = finalEmpId || user.employee_id;
-            }
-        }
+        // Always look up user to get authoritative name & employee_id
+        const user = await User.findById(user_id);
+        const finalName = (employee_name && employee_name.trim()) || (user && user.name) || 'Unknown';
+        const finalEmpId = (employee_id && employee_id.trim()) || (user && user.employee_id) || '';
 
         const payslip = await Payslip.create({
             ...req.body,
@@ -34,7 +28,7 @@ const createPayslip = async (req, res) => {
 
 const getMyPayslips = async (req, res) => {
     try {
-        const payslips = await Payslip.find({ user_id: req.user._id }).populate('user_id', 'name email');
+        const payslips = await Payslip.find({ user_id: req.user._id }).populate('user_id', 'name email employee_id');
         res.json(payslips);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -43,12 +37,13 @@ const getMyPayslips = async (req, res) => {
 
 const getAllPayslips = async (req, res) => {
     try {
-        const payslips = await Payslip.find({}).populate('user_id', 'name email');
+        const payslips = await Payslip.find({}).populate('user_id', 'name email employee_id');
         res.json(payslips);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 const getLatestPayslip = async (req, res) => {
     try {

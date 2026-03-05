@@ -79,9 +79,10 @@ const PayslipTemplate = ({ payslip }: PayslipProps) => {
           <tbody>
             <tr>
               <td style={{ padding: '4px 8px', fontWeight: 'bold', width: '25%' }}>Employee Name</td>
-              <td style={{ padding: '4px 8px', width: '25%' }}>{payslip.employee_name || payslip.user_id?.name || '-'}</td>
+              <td style={{ padding: '4px 8px', width: '25%' }}>{payslip.employee_name || payslip.user_id?.name || 'Unknown'}</td>
               <td style={{ padding: '4px 8px', fontWeight: 'bold', width: '25%' }}>Employee ID</td>
-              <td style={{ padding: '4px 8px', width: '25%' }}>{payslip.employee_id || '-'}</td>
+              <td style={{ padding: '4px 8px', width: '25%' }}>{payslip.employee_id || payslip.user_id?.employee_id || '-'}</td>
+
             </tr>
             <tr style={{ background: '#f8f9fa' }}>
               <td style={{ padding: '4px 8px', fontWeight: 'bold' }}>Department</td>
