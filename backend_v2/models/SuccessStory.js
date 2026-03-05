@@ -6,6 +6,8 @@ const successStorySchema = mongoose.Schema({
     location: { type: String },
     domain: { type: String },
     motivation_story: { type: String },
+    video_url: { type: String },
+    video_public_id: { type: String },
     image_url: { type: String },
     created_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, {

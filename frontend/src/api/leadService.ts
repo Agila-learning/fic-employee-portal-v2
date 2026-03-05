@@ -60,5 +60,14 @@ export const leadService = {
     getSignedUrl: async (bucket: string, filePath: string) => {
         const response = await apiClient.get(`/leads/signed-url?bucket=${bucket}&path=${filePath}`);
         return response.data;
+    },
+
+    bulkUploadLeads: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post('/leads/bulk-upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
     }
 };

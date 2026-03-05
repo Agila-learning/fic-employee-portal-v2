@@ -70,7 +70,14 @@ const EmployeeDashboard = () => {
 
   const conversionRate = totalLeads > 0 ? Math.round(((convertedLeads + successLeads) / totalLeads) * 100) : 0;
 
-  const recentLeads = [...myLeads].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()).slice(0, 5);
+  const recentLeads = [...myLeads]
+    .filter(l => l.updated_at)
+    .sort((a, b) => {
+      const dateA = new Date(a.updated_at || 0).getTime();
+      const dateB = new Date(b.updated_at || 0).getTime();
+      return dateB - dateA;
+    })
+    .slice(0, 5);
   const statusDistribution = STATUS_OPTIONS.map(status => ({ ...status, count: myLeads.filter(l => l.status === status.value).length })).filter(s => s.count > 0);
 
   // Get followup leads for notifications - exclude success and full_payment_done leads

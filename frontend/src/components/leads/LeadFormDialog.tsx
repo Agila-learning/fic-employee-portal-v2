@@ -177,7 +177,7 @@ const LeadFormDialog = ({ open, onOpenChange, lead, mode, onSave }: LeadFormDial
       }
 
       const response = await leadService.uploadFile(prepared.file, bucket, formData.candidate_id);
-      return response.fileUrl;
+      return response.url;
     } catch (error: any) {
       if (import.meta.env.DEV) {
         console.error(`[DEV] Error uploading to ${bucket}:`, error);

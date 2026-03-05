@@ -109,23 +109,86 @@ const generateUniqueId = async (req, res) => {
 };
 
 const uploadFile = async (req, res) => {
-    res.json({ message: 'File upload endpoint (placeholder)' });
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        res.json({
+            url: req.file.path,
+            public_id: req.file.filename,
+            format: req.file.format
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const bulkUploadLeads = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const results = [];
+        const csv = require('csv-parser');
+        const stream = require('stream');
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(req.file.buffer);
+
+        bufferStream
+            .pipe(csv())
+            .on('data', (data) => {
+                // Generate a candidate ID if not provided in CSV
+                const candidate_id = data.candidate_id || 'FIC-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+                results.push({
+                    candidate_id,
+                    name: data.name || data.full_name || 'Unknown',
+                    email: data.email,
+                    phone: data.phone || '0000000000',
+                    qualification: data.qualification,
+                    past_experience: data.past_experience,
+                    current_ctc: data.current_ctc,
+                    expected_ctc: data.expected_ctc,
+                    status: data.status || 'nc1',
+                    source: data.source || 'social_media',
+                    notes: data.notes,
+                    interested_domain: data.interested_domain || 'it',
+                    created_by: req.user._id,
+                    assigned_to: data.assigned_to || null
+                });
+            })
+            .on('end', async () => {
+                try {
+                    const createdLeads = await Lead.insertMany(results);
+                    res.status(201).json({
+                        message: `${createdLeads.length} leads uploaded successfully`,
+                        count: createdLeads.length
+                    });
+                } catch (err) {
+                    res.status(400).json({ message: 'Error saving leads: ' + err.message });
+                }
+            });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
 
 const getSignedUrl = async (req, res) => {
-    res.json({ url: '#' });
+    // Cloudinary URLs are public by default in this config, or we can use private CDN
+    res.json({ url: req.query.path });
 };
 
-module.exports = { 
-    createLead, 
-    getLeads, 
-    updateLead, 
-    deleteLead, 
-    getComments, 
-    addComment, 
-    getStatusHistory, 
-    logAccess, 
-    generateUniqueId, 
-    uploadFile, 
-    getSignedUrl 
+module.exports = {
+    createLead,
+    getLeads,
+    updateLead,
+    deleteLead,
+    getComments,
+    addComment,
+    getStatusHistory,
+    logAccess,
+    generateUniqueId,
+    uploadFile,
+    getSignedUrl
 };

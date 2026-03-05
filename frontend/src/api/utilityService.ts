@@ -21,6 +21,16 @@ export const utilityService = {
         return response.data;
     },
 
+    updateSuccessStory: async (id: string, storyData: any) => {
+        const response = await apiClient.put(`/utility/success-stories/${id}`, storyData);
+        return response.data;
+    },
+
+    deleteSuccessStory: async (id: string) => {
+        const response = await apiClient.delete(`/utility/success-stories/${id}`);
+        return response.data;
+    },
+
     getAnnouncements: async () => {
         const response = await apiClient.get('/utility/announcements');
         return response.data;

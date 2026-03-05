@@ -28,7 +28,7 @@ import { Input } from '@/components/ui/input';
 import LeadStatusBadge from './LeadStatusBadge';
 import LeadFormDialog from './LeadFormDialog';
 import TypewriterPlaceholder from '@/components/ui/TypewriterPlaceholder';
-import { MoreHorizontal, Pencil, Trash2, Eye, Download, Filter, Search, CalendarDays, Users } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, Eye, Download, Filter, Search, CalendarDays, Users, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { startOfDay, startOfWeek, startOfMonth, isAfter, parseISO, format } from 'date-fns';
 
@@ -52,7 +52,7 @@ type DateFilterType = 'all' | 'today' | 'this_week' | 'this_month';
 
 const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStageFilter, defaultStatusFilter }: LeadsTableProps) => {
   const { employees } = useEmployees();
-  const { deleteLead } = useLeads();
+  const { deleteLead, bulkUpload, isLoading: leadsLoading } = useLeads();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>(defaultStatusFilter || 'all');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
@@ -80,15 +80,15 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
 
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
-      const matchesSearch = 
+      const matchesSearch =
         lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.candidate_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.phone.includes(searchTerm);
-      
+
       const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
       const matchesSource = sourceFilter === 'all' || lead.source === sourceFilter;
-      
+
       // Date filter for success leads - only apply when success date filter is selected
       let matchesSuccessDate = true;
       if (successDateFilter !== 'all') {
@@ -124,7 +124,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
 
       // Domain filter
       const matchesDomain = domainFilter === 'all' || lead.interested_domain === domainFilter;
-      
+
       // Payment stage filter
       const matchesPaymentStage = !defaultPaymentStageFilter || lead.payment_stage === defaultPaymentStageFilter;
 
@@ -137,7 +137,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
 
       // Employee filter (for admin)
       const matchesEmployee = employeeFilter === 'all' || lead.created_by === employeeFilter;
-      
+
       return matchesSearch && matchesStatus && matchesSource && matchesSuccessDate && matchesRejectedDate && matchesDomain && matchesDateFilter && matchesEmployee && matchesPaymentStage;
     });
   }, [leads, searchTerm, statusFilter, sourceFilter, successDateFilter, rejectedDateFilter, domainFilter, dateFilter, employeeFilter, defaultPaymentStageFilter]);
@@ -180,11 +180,23 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
     toast.success('Leads exported successfully');
   };
 
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const success = await bulkUpload(file);
+    if (success) {
+      onRefresh?.();
+      // Clear input
+      e.target.value = '';
+    }
+  };
+
   // Daily report export
   const exportDailyReport = () => {
     const today = format(new Date(), 'yyyy-MM-dd');
     const todayLeads = leads.filter(lead => format(parseISO(lead.created_at), 'yyyy-MM-dd') === today);
-    
+
     if (todayLeads.length === 0) {
       toast.error('No leads created today');
       return;
@@ -216,7 +228,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
   // Count success and rejected leads (excluding different_domain from rejected)
   const successCount = leads.filter(l => l.status === 'success').length;
   const rejectedCount = leads.filter(l => ['rejected', 'not_interested', 'not_interested_paid'].includes(l.status)).length;
-  
+
   // Domain-wise counts for paid leads (full_payment_done)
   const itPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'it').length;
   const nonItPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'non_it').length;
@@ -232,7 +244,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        
+
         {/* Filter Row */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2 flex-1">
@@ -275,6 +287,23 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
             <CalendarDays className="h-4 w-4" />
             Daily Report
           </Button>
+
+          {showAssignee && (
+            <div className="relative w-full sm:w-auto">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleBulkUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                id="bulk-upload-input"
+                disabled={leadsLoading}
+              />
+              <Button variant="outline" className="gap-2 hover:bg-amber-600 hover:text-white transition-all duration-300 hover:shadow-md w-full" disabled={leadsLoading}>
+                <Upload className="h-4 w-4" />
+                {leadsLoading ? 'Uploading...' : 'Bulk Upload'}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Date Filters and Domain Filter */}
@@ -419,8 +448,8 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
               </TableRow>
             ) : (
               filteredLeads.map((lead, index) => (
-                <TableRow 
-                  key={lead.id} 
+                <TableRow
+                  key={lead.id}
                   className="group hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all duration-300 cursor-pointer"
                   style={{ animationDelay: `${index * 30}ms` }}
                 >
@@ -484,7 +513,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
                           <Pencil className="h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDelete(lead.id)}
                           className="text-destructive focus:text-destructive gap-2 cursor-pointer"
                         >

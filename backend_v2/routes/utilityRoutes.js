@@ -11,4 +11,8 @@ router.route('/success-stories')
     .get(protect, getSuccessStories)
     .post(protect, admin, createSuccessStory);
 
+router.route('/success-stories/:id')
+    .put(protect, admin, updateSuccessStory)
+    .delete(protect, admin, deleteSuccessStory);
+
 module.exports = router;

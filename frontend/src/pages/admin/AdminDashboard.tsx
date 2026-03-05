@@ -27,12 +27,12 @@ const AdminDashboard = () => {
   const convertedLeads = leads.filter(l => l.status === 'converted').length;
   const successLeads = leads.filter(l => l.status === 'success').length;
   const pendingLeads = leads.filter(l => ['nc1', 'nc2', 'nc3', 'follow_up'].includes(l.status)).length;
-  
+
   // Payment stage counts
   const registrationDone = leads.filter(l => l.payment_stage === 'registration_done').length;
   const initialPaymentDone = leads.filter(l => l.payment_stage === 'initial_payment_done').length;
   const fullPaymentDone = leads.filter(l => l.payment_stage === 'full_payment_done').length;
-  
+
   // Domain-wise payment counts
   const itPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'it').length;
   const nonItPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'non_it').length;
@@ -64,10 +64,10 @@ const AdminDashboard = () => {
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
   const weeklyPerformance = activeEmployees.map(emp => {
-    const weeklySuccess = leads.filter(l => 
-      l.assigned_to === emp.user_id && 
+    const weeklySuccess = leads.filter(l =>
+      l.assigned_to === emp.user_id &&
       (l.status === 'converted' || l.status === 'success') &&
-      isWithinInterval(parseISO(l.updated_at), { start: weekStart, end: weekEnd })
+      l.updated_at && isWithinInterval(parseISO(l.updated_at), { start: weekStart, end: weekEnd })
     ).length;
     return { ...emp, weeklySuccess };
   }).filter(e => e.weeklySuccess > 0).sort((a, b) => b.weeklySuccess - a.weeklySuccess).slice(0, 5);
@@ -76,7 +76,12 @@ const AdminDashboard = () => {
 
   // Get recent leads
   const recentLeads = [...leads]
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .filter(l => l.updated_at)
+    .sort((a, b) => {
+      const dateA = new Date(a.updated_at || 0).getTime();
+      const dateB = new Date(b.updated_at || 0).getTime();
+      return dateB - dateA;
+    })
     .slice(0, 5);
 
   return (
@@ -92,52 +97,52 @@ const AdminDashboard = () => {
 
         {/* Stats Cards with staggered animation */}
         <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 lg:grid-cols-6">
-          <StatsCard 
-            title="Total Employees" 
-            value={employees.length} 
-            icon={Users} 
+          <StatsCard
+            title="Total Employees"
+            value={employees.length}
+            icon={Users}
             iconClassName="bg-gradient-to-br from-blue-500 to-blue-600"
             delay={0}
             link="/admin/employees"
           />
-          <StatsCard 
-            title="Active Employees" 
-            value={activeEmployeeCount} 
-            icon={UserCheck} 
+          <StatsCard
+            title="Active Employees"
+            value={activeEmployeeCount}
+            icon={UserCheck}
             iconClassName="bg-gradient-to-br from-amber-500 to-amber-600"
             delay={100}
             link="/admin/employees"
           />
-          <StatsCard 
-            title="Total Leads" 
-            value={totalLeads} 
-            icon={FileSpreadsheet} 
+          <StatsCard
+            title="Total Leads"
+            value={totalLeads}
+            icon={FileSpreadsheet}
             iconClassName="bg-gradient-to-br from-purple-500 to-purple-600"
             delay={150}
             link="/admin/leads"
           />
-          <StatsCard 
-            title="Success" 
-            value={successLeads} 
-            icon={Trophy} 
+          <StatsCard
+            title="Success"
+            value={successLeads}
+            icon={Trophy}
             iconClassName="bg-gradient-to-br from-green-500 to-green-600"
             delay={200}
             link="/admin/leads?status=success"
           />
-          <StatsCard 
-            title="Conversion Rate" 
-            value={`${conversionRate}%`} 
-            icon={TrendingUp} 
+          <StatsCard
+            title="Conversion Rate"
+            value={`${conversionRate}%`}
+            icon={TrendingUp}
             trend={{ value: conversionRate, isPositive: conversionRate > 0 }}
             iconClassName="bg-gradient-to-br from-teal-500 to-teal-600"
             delay={300}
             link="/admin/leads"
           />
           <div className="cursor-pointer" onClick={() => document.getElementById('top-performers-section')?.scrollIntoView({ behavior: 'smooth' })}>
-            <StatsCard 
-              title="Top Performers" 
-              value={topPerformerCount} 
-              icon={Star} 
+            <StatsCard
+              title="Top Performers"
+              value={topPerformerCount}
+              icon={Star}
               iconClassName="bg-gradient-to-br from-orange-500 to-orange-600"
               delay={350}
             />
@@ -147,51 +152,51 @@ const AdminDashboard = () => {
         {/* Payment Stage Stats */}
         {(registrationDone > 0 || initialPaymentDone > 0 || fullPaymentDone > 0) && (
           <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 sm:grid-cols-3 animate-fade-in">
-          <Link to="/admin/leads?payment_stage=registration_done">
-            <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+            <div onClick={() => navigate('/admin/leads?payment_stage=registration_done')}>
+              <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10 shrink-0">
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium truncate">Registration</p>
+                      <p className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-300">{registrationDone}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 font-medium truncate">Registration</p>
-                    <p className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-300">{registrationDone}</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div onClick={() => navigate('/admin/leads?payment_stage=initial_payment_done')}>
+              <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10 shrink-0">
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 font-medium truncate">Initial Pay</p>
+                      <p className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-300">{initialPaymentDone}</p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link to="/admin/leads?payment_stage=initial_payment_done">
-            <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-amber-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                </CardContent>
+              </Card>
+            </div>
+            <div onClick={() => navigate('/admin/leads?payment_stage=full_payment_done')}>
+              <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 col-span-2 sm:col-span-1 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 shrink-0">
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400 font-medium truncate">Full Pay</p>
+                      <p className="text-lg sm:text-xl font-bold text-green-700 dark:text-green-300">{fullPaymentDone}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 font-medium truncate">Initial Pay</p>
-                    <p className="text-lg sm:text-xl font-bold text-amber-700 dark:text-amber-300">{initialPaymentDone}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link to="/admin/leads?payment_stage=full_payment_done">
-            <Card className="border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 col-span-2 sm:col-span-1 cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 shrink-0">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400 font-medium truncate">Full Pay</p>
-                    <p className="text-lg sm:text-xl font-bold text-green-700 dark:text-green-300">{fullPaymentDone}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         )}
 
@@ -238,8 +243,8 @@ const AdminDashboard = () => {
                 {statusDistribution.map((status, index) => {
                   const percentage = totalLeads > 0 ? (status.count / totalLeads) * 100 : 0;
                   return (
-                    <div 
-                      key={status.value} 
+                    <div
+                      key={status.value}
                       className="group/item cursor-pointer"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
@@ -248,15 +253,15 @@ const AdminDashboard = () => {
                         <span className="text-sm text-muted-foreground font-mono">{status.count}</span>
                       </div>
                       <div className="h-3 rounded-full bg-muted overflow-hidden">
-                        <div 
+                        <div
                           className={cn(
                             "h-full rounded-full transition-all duration-1000 ease-out",
                             status.color || "bg-gradient-to-r from-primary to-primary/70"
                           )}
-                          style={{ 
+                          style={{
                             width: `${percentage}%`,
                             transitionDelay: `${index * 100}ms`
-                          }} 
+                          }}
                         />
                       </div>
                     </div>
@@ -274,12 +279,12 @@ const AdminDashboard = () => {
                   <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                   Top Performers (All Time)
                 </CardTitle>
-                <Link to="/admin/employees">
+                <div onClick={() => navigate('/admin/employees')}>
                   <Button variant="ghost" size="sm" className="gap-1 group/btn">
                     View All
                     <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                   </Button>
-                </Link>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-6">
@@ -287,17 +292,17 @@ const AdminDashboard = () => {
                 {employeePerformance.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No employee data yet</p>
                 ) : employeePerformance.map((emp, index) => (
-                  <div 
-                    key={emp.id} 
+                  <div
+                    key={emp.id}
                     className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] cursor-pointer group/emp"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className={cn(
                       "flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all duration-300",
                       index === 0 ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/30" :
-                      index === 1 ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700" :
-                      index === 2 ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white" :
-                      "bg-muted text-muted-foreground"
+                        index === 1 ? "bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700" :
+                          index === 2 ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white" :
+                            "bg-muted text-muted-foreground"
                     )}>
                       {index + 1}
                     </div>
@@ -334,16 +339,16 @@ const AdminDashboard = () => {
                 {weeklyPerformance.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No conversions this week yet</p>
                 ) : weeklyPerformance.map((emp, index) => (
-                  <div 
-                    key={emp.id} 
+                  <div
+                    key={emp.id}
                     className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] cursor-pointer group/emp"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className={cn(
                       "flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all duration-300",
                       index === 0 ? "bg-gradient-to-br from-green-400 to-green-600 text-white shadow-lg shadow-green-500/30" :
-                      index === 1 ? "bg-gradient-to-br from-emerald-300 to-emerald-400 text-emerald-800" :
-                      "bg-muted text-muted-foreground"
+                        index === 1 ? "bg-gradient-to-br from-emerald-300 to-emerald-400 text-emerald-800" :
+                          "bg-muted text-muted-foreground"
                     )}>
                       {index + 1}
                     </div>
@@ -375,12 +380,12 @@ const AdminDashboard = () => {
                 <Clock className="h-5 w-5 text-muted-foreground" />
                 Recent Activity
               </CardTitle>
-              <Link to="/admin/leads">
+              <div onClick={() => navigate('/admin/leads')}>
                 <Button variant="ghost" size="sm" className="gap-1 group/btn">
                   View All Leads
                   <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
-              </Link>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-6">
@@ -388,8 +393,8 @@ const AdminDashboard = () => {
               {recentLeads.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">No recent activity</p>
               ) : recentLeads.map((lead, index) => (
-                <div 
-                  key={lead.id} 
+                <div
+                  key={lead.id}
                   className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-300 cursor-pointer hover:scale-[1.01] group/lead"
                   onClick={() => setViewingLead(lead)}
                   style={{ animationDelay: `${index * 50}ms` }}

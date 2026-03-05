@@ -37,4 +37,36 @@ const createSuccessStory = async (req, res) => {
     }
 };
 
-module.exports = { getHolidays, createHoliday, getSuccessStories, createSuccessStory };
+const updateSuccessStory = async (req, res) => {
+    try {
+        const story = await SuccessStory.findById(req.params.id);
+        if (story) {
+            Object.assign(story, req.body);
+            const updated = await story.save();
+            res.json(updated);
+        } else {
+            res.status(404).json({ message: 'Success story not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const deleteSuccessStory = async (req, res) => {
+    try {
+        const story = await SuccessStory.findById(req.params.id);
+        if (story) {
+            await story.deleteOne();
+            res.json({ message: 'Success story removed' });
+        } else {
+            res.status(404).json({ message: 'Success story not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = {
+    getHolidays, createHoliday,
+    getSuccessStories, createSuccessStory, updateSuccessStory, deleteSuccessStory
+};

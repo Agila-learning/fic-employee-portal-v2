@@ -116,12 +116,28 @@ export const useLeads = () => {
     }
   };
 
+  const bulkUpload = async (file: File) => {
+    try {
+      setIsLoading(true);
+      const data = await leadService.bulkUploadLeads(file);
+      toast.success(data.message || 'Leads uploaded successfully');
+      await fetchLeads();
+      return true;
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to bulk upload leads');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     leads,
     isLoading,
     addLead,
     updateLead,
     deleteLead,
+    bulkUpload,
     getLeadsByEmployee: (empId: string) => leads.filter(l => l.assigned_to === empId),
     refetchLeads: fetchLeads,
   };
