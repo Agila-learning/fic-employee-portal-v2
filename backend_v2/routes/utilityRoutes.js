@@ -1,6 +1,6 @@
 ﻿const express = require('express');
 const router = express.Router();
-const { getHolidays, createHoliday, getSuccessStories, createSuccessStory } = require('../controllers/utilityController');
+const { getHolidays, createHoliday, getSuccessStories, createSuccessStory, updateSuccessStory, deleteSuccessStory } = require('../controllers/utilityController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 router.route('/holidays')

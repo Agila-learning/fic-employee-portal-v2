@@ -190,5 +190,6 @@ module.exports = {
     logAccess,
     generateUniqueId,
     uploadFile,
-    getSignedUrl
+    getSignedUrl,
+    bulkUploadLeads
 };
