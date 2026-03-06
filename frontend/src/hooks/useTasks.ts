@@ -31,10 +31,14 @@ export const useTasks = () => {
         ...t,
         id: t._id,
         status: t.status as 'pending' | 'in_progress' | 'completed',
-        assignee_name: t.assigned_to?.name || 'Unknown'
+        created_at: t.createdAt || t.created_at,
+        updated_at: t.updatedAt || t.updated_at,
+        due_date: t.due_date,
+        assignee_name: typeof t.assigned_to === 'object' ? t.assigned_to?.name || 'Unknown' : t.assignee_name || 'Unknown'
       })));
     } catch (error: any) {
       console.error('Error fetching tasks:', error);
+      toast({ title: 'Error', description: 'Failed to load tasks', variant: 'destructive' });
     } finally {
       setLoading(false);
     }

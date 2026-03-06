@@ -1,14 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { operationService } from '@/api/operationService';
+import { utilityService } from '@/api/utilityService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle, Clock, CalendarIcon, ListTodo, AlertCircle } from 'lucide-react';
+import { CheckCircle, CalendarIcon, ListTodo } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
+
+const safeFormatDate = (dateStr: string | null | undefined, fmt = 'dd MMM yyyy') => {
+  if (!dateStr) return 'No date';
+  try {
+    const d = parseISO(dateStr);
+    return isValid(d) ? format(d, fmt) : 'Invalid date';
+  } catch {
+    return 'Invalid date';
+  }
+};
 
 const EmployeeTasks = () => {
   const { user } = useAuth();
@@ -19,7 +29,7 @@ const EmployeeTasks = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const data = await (operationService as any).getMyTasks();
+      const data = await utilityService.getTasks();
       setTasks(data || []);
     } catch (error) {
       toast.error('Failed to fetch tasks');
@@ -34,13 +44,16 @@ const EmployeeTasks = () => {
 
   const handleCompleteTask = async (taskId: string) => {
     try {
-      await (operationService as any).updateTaskStatus(taskId, 'completed');
+      await utilityService.updateTaskStatus(taskId, 'completed');
       toast.success('Task marked as completed');
       fetchTasks();
     } catch (error) {
       toast.error('Failed to update task');
     }
   };
+
+  const pendingTasks = tasks.filter(t => t.status !== 'completed');
+  const completedTasks = tasks.filter(t => t.status === 'completed');
 
   return (
     <DashboardLayout requiredRole="employee">
@@ -53,10 +66,14 @@ const EmployeeTasks = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-6">
+          {/* Pending Tasks */}
           <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
             <CardHeader className="border-b border-border/50 bg-muted/20">
               <CardTitle className="text-lg flex items-center gap-2">
                 <ListTodo className="h-4 w-4" /> Pending Tasks
+                {pendingTasks.length > 0 && (
+                  <Badge variant="secondary" className="ml-auto">{pendingTasks.length}</Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -64,39 +81,40 @@ const EmployeeTasks = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/30">
-                      <TableHead>Task Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Deadline</TableHead>
-                      <TableHead>Priority</TableHead>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loading ? (
                       <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">Loading tasks...</TableCell></TableRow>
-                    ) : tasks.filter(t => t.status !== 'completed').length === 0 ? (
-                      <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">No pending tasks found</TableCell></TableRow>
-                    ) : tasks.filter(t => t.status !== 'completed').map((task) => (
+                    ) : pendingTasks.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">No pending tasks — you're all caught up! 🎉</TableCell></TableRow>
+                    ) : pendingTasks.map((task) => (
                       <TableRow key={task._id || task.id}>
-                        <TableCell className="font-medium">{task.title}</TableCell>
-                        <TableCell><Badge variant="outline">{task.category}</Badge></TableCell>
+                        <TableCell className="font-semibold">{task.title}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{task.description || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 text-xs">
                             <CalendarIcon className="h-3 w-3" />
-                            {task.deadline ? format(parseISO(task.deadline), 'dd MMM yyyy') : 'No deadline'}
+                            {safeFormatDate(task.due_date)}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={
-                            task.priority === 'high' ? 'bg-red-500' :
-                              task.priority === 'medium' ? 'bg-amber-500' :
-                                'bg-emerald-500'
-                          }>
-                            {task.priority}
+                          <Badge variant={task.status === 'in_progress' ? 'default' : 'outline'}>
+                            {task.status === 'in_progress' ? 'In Progress' : 'Pending'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button size="sm" variant="ghost" onClick={() => handleCompleteTask(task._id || task.id)} className="gap-2 hover:bg-emerald-100 hover:text-emerald-600 transition-colors">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleCompleteTask(task._id || task.id)}
+                            className="gap-2 hover:bg-emerald-100 hover:text-emerald-600 transition-colors"
+                          >
                             <CheckCircle className="h-4 w-4" /> Mark Complete
                           </Button>
                         </TableCell>
@@ -108,10 +126,14 @@ const EmployeeTasks = () => {
             </CardContent>
           </Card>
 
+          {/* Completed Tasks */}
           <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
             <CardHeader className="border-b border-border/50 bg-muted/20">
               <CardTitle className="text-lg flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" /> Completed Tasks
+                <CheckCircle className="h-4 w-4 text-emerald-600" /> Completed Tasks
+                {completedTasks.length > 0 && (
+                  <Badge variant="secondary" className="ml-auto bg-emerald-100 text-emerald-700">{completedTasks.length}</Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -119,21 +141,21 @@ const EmployeeTasks = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/30">
-                      <TableHead>Task Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Completed Date</TableHead>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Completed</TableHead>
                       <TableHead className="text-right">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tasks.filter(t => t.status === 'completed').length === 0 ? (
+                    {completedTasks.length === 0 ? (
                       <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No completed tasks yet</TableCell></TableRow>
-                    ) : tasks.filter(t => t.status === 'completed').map((task) => (
-                      <TableRow key={task._id || task.id} className="opacity-60">
+                    ) : completedTasks.map((task) => (
+                      <TableRow key={task._id || task.id} className="opacity-70">
                         <TableCell className="font-medium line-through">{task.title}</TableCell>
-                        <TableCell><Badge variant="secondary">{task.category}</Badge></TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{task.description || '-'}</TableCell>
                         <TableCell className="text-xs">
-                          {task.updated_at ? format(parseISO(task.updated_at), 'dd MMM yyyy') : '-'}
+                          {safeFormatDate(task.updatedAt || task.updated_at)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Badge variant="outline" className="text-emerald-600 bg-emerald-50 border-emerald-200">Completed</Badge>
