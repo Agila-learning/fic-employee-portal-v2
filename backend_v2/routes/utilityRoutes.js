@@ -7,7 +7,7 @@ const {
     getTasks, createTask, updateTaskStatus, deleteTask
 } = require('../controllers/utilityController');
 const { protect, admin } = require('../middleware/authMiddleware');
-const { cloudinary } = require('../utils/cloudinary');
+const { cloudinary, upload } = require('../utils/cloudinary');
 
 router.route('/holidays')
     .get(protect, getHolidays)
