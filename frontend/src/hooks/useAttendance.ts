@@ -18,6 +18,10 @@ export interface Attendance {
   date: string;
   status: 'present' | 'absent';
   marked_at: string;
+  check_in?: string;
+  check_out?: string;
+  duration?: string;       // e.g. "8h 30m"
+  duration_minutes?: number;
   leave_reason?: string | null;
   user_name?: string;
   half_day?: boolean;
@@ -183,6 +187,30 @@ export const useAttendance = () => {
     }
   };
 
+  const checkOut = async () => {
+    if (!user) return { error: new Error('Not authenticated') };
+    try {
+      const result = await attendanceService.checkOut();
+      // Immediately update todayAttendance with check_out + duration
+      setTodayAttendance(prev => prev ? {
+        ...prev,
+        check_out: result.check_out,
+        duration: result.duration,
+        duration_minutes: result.duration_minutes
+      } : prev);
+      toast({ title: '✅ Checked Out', description: `Duration: ${result.duration}` });
+      fetchAttendance();
+      return { error: null };
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to check out',
+        variant: 'destructive'
+      });
+      return { error };
+    }
+  };
+
   // Admin function to update attendance
   const updateAttendance = async (id: string, status: 'present' | 'absent', leaveReason?: string, isHalfDay?: boolean) => {
     if (!user || user.role !== 'admin') {
@@ -238,6 +266,7 @@ export const useAttendance = () => {
     loading,
     fetchAttendance,
     markAttendance,
+    checkOut,
     updateAttendance,
     adminMarkAttendance,
     canMarkAttendance

@@ -185,6 +185,41 @@ const updateAttendance = async (req, res) => {
     }
 };
 
+// Check out - updates today's attendance with check_out time and duration
+const checkOut = async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const attendance = await Attendance.findOne({ user_id: req.user._id, date: today });
+
+        if (!attendance) {
+            return res.status(404).json({ message: 'No attendance record found for today. Please check in first.' });
+        }
+        if (!attendance.check_in) {
+            return res.status(400).json({ message: 'No check-in time recorded for today.' });
+        }
+        if (attendance.check_out) {
+            return res.status(400).json({ message: 'Already checked out for today.' });
+        }
+
+        const checkOutTime = new Date();
+        const checkInTime = new Date(attendance.check_in);
+        const durationMs = checkOutTime - checkInTime;
+        const durationMins = Math.floor(durationMs / 60000);
+        const hours = Math.floor(durationMins / 60);
+        const mins = durationMins % 60;
+        const durationStr = `${hours}h ${mins}m`;
+
+        attendance.check_out = checkOutTime;
+        attendance.notes = attendance.notes || '';
+        // Store duration in notes or as a virtual - we'll add a duration field to the response
+        const updated = await attendance.save();
+
+        res.json({ ...updated.toObject(), duration: durationStr, duration_minutes: durationMins });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Expenses (Proxy/Internal)
 const createExpense = async (req, res) => {
     try {
@@ -329,7 +364,7 @@ const deleteCredit = async (req, res) => {
 module.exports = {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus, deleteLeaveRequest,
-    markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
+    markAttendance, getMyAttendance, getAllAttendance, updateAttendance, checkOut,
     createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, deleteExpense,
     getHolidays, createHoliday,
     getMyCredits, getAllCredits, createCredit, deleteCredit

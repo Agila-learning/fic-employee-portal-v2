@@ -43,7 +43,7 @@ const EmployeeAttendance = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Active Attendance Card */}
           <div className="lg:col-span-1">
-            <AttendanceCard onStatusChange={fetchAttendance} />
+            <AttendanceCard />
           </div>
 
           {/* Attendance History */}
@@ -74,9 +74,24 @@ const EmployeeAttendance = () => {
                       ) : attendanceHistory.map((record) => (
                         <TableRow key={record._id || record.id}>
                           <TableCell className="font-medium">{format(parseISO(record.date), 'dd MMM yyyy')}</TableCell>
-                          <TableCell className="text-emerald-600 font-medium">{record.check_in || '--:--'}</TableCell>
-                          <TableCell className="text-amber-600 font-medium">{record.check_out || '--:--'}</TableCell>
-                          <TableCell>{record.duration || '-'}</TableCell>
+                          <TableCell className="text-emerald-600 font-medium">
+                            {record.check_in
+                              ? format(new Date(record.check_in), 'hh:mm a')
+                              : '--:--'}
+                          </TableCell>
+                          <TableCell className="text-amber-600 font-medium">
+                            {record.check_out
+                              ? format(new Date(record.check_out), 'hh:mm a')
+                              : '--:--'}
+                          </TableCell>
+                          <TableCell>
+                            {record.duration || (record.check_in && record.check_out
+                              ? (() => {
+                                const mins = Math.floor((new Date(record.check_out).getTime() - new Date(record.check_in).getTime()) / 60000);
+                                return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+                              })()
+                              : '-')}
+                          </TableCell>
                           <TableCell>
                             <Badge variant={record.status === 'present' ? 'default' : 'outline'} className={record.status === 'present' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}>
                               {record.status}

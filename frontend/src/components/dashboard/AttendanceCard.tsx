@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useHolidays } from '@/hooks/useHolidays';
-import { CheckCircle, XCircle, Clock, CalendarCheck, Calendar, TrendingUp, Sun, PartyPopper } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, CalendarCheck, Calendar, TrendingUp, Sun, PartyPopper, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -22,7 +22,7 @@ import FaceCapture from '@/components/attendance/FaceCapture';
 import { WorkLocation, getLocationDisplayName } from '@/utils/geolocation';
 
 const AttendanceCard = () => {
-  const { todayAttendance, markAttendance, attendanceSummary, myAttendance, loading } = useAttendance();
+  const { todayAttendance, markAttendance, checkOut, attendanceSummary, myAttendance, loading } = useAttendance();
   const { holidays, isSunday, isHoliday, getDateStatus } = useHolidays();
   const [marking, setMarking] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
@@ -85,7 +85,7 @@ const AttendanceCard = () => {
   const minutesRemaining = cutoffMinutes - currentMinutes;
   const hoursLeft = Math.floor(minutesRemaining / 60);
   const minsLeft = minutesRemaining % 60;
-  const timeRemaining = isBeforeCutoff 
+  const timeRemaining = isBeforeCutoff
     ? `${hoursLeft}h ${minsLeft}m remaining`
     : 'Time exceeded';
 
@@ -109,6 +109,12 @@ const AttendanceCard = () => {
     setMarking(false);
     setShowLeaveDialog(false);
     setLeaveReason('');
+  };
+
+  const handleCheckOut = async () => {
+    setMarking(true);
+    await checkOut();
+    setMarking(false);
   };
 
   if (loading) {
@@ -181,31 +187,49 @@ const AttendanceCard = () => {
                 "flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full shrink-0",
                 todayAttendance.half_day
                   ? "bg-warning/20 text-warning"
-                  : todayAttendance.status === 'present' 
-                    ? "bg-success/20 text-success" 
+                  : todayAttendance.status === 'present'
+                    ? "bg-success/20 text-success"
                     : "bg-destructive/20 text-destructive"
               )}>
-                {todayAttendance.half_day 
+                {todayAttendance.half_day
                   ? <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
-                  : todayAttendance.status === 'present' 
-                    ? <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" /> 
+                  : todayAttendance.status === 'present'
+                    ? <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                     : <XCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                 }
               </div>
               <div className="min-w-0">
                 <p className="font-semibold capitalize text-sm sm:text-base">
-                  {todayAttendance.half_day 
-                    ? 'Half Day' 
-                    : todayAttendance.status === 'present' 
-                      ? 'Present' 
+                  {todayAttendance.half_day
+                    ? 'Half Day'
+                    : todayAttendance.status === 'present'
+                      ? 'Present'
                       : 'On Leave'}
                 </p>
                 <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                   {todayAttendance.work_location && (
                     <span className="mr-1">📍 {getLocationDisplayName(todayAttendance.work_location)} •</span>
                   )}
-                  Marked at {new Date(todayAttendance.marked_at).toLocaleTimeString()}
+                  Checked in at {new Date(todayAttendance.marked_at).toLocaleTimeString()}
                 </p>
+                {todayAttendance.check_out ? (
+                  <p className="text-[10px] sm:text-xs text-emerald-600 font-medium mt-0.5">
+                    ✓ Checked out • Duration: {todayAttendance.duration || 'Calculating...'}
+                  </p>
+                ) : todayAttendance.status === 'present' ? (
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={marking}
+                      onClick={handleCheckOut}
+                      className="h-7 gap-1.5 text-[10px] sm:text-xs border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <LogOut className="h-3 w-3" />
+                      {marking ? 'Checking out...' : 'Check Out'}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : isBeforeCutoff ? (
@@ -215,7 +239,7 @@ const AttendanceCard = () => {
                 <span className="truncate">{timeRemaining}</span>
               </div>
               <div className="flex gap-2">
-                <Button 
+                <Button
                   onClick={() => setShowMarkDialog(true)}
                   disabled={marking}
                   size="sm"
@@ -224,7 +248,7 @@ const AttendanceCard = () => {
                   <CheckCircle className="h-3 w-3" />
                   Present
                 </Button>
-                <Button 
+                <Button
                   onClick={() => setShowLeaveDialog(true)}
                   disabled={marking}
                   variant="outline"
@@ -293,19 +317,19 @@ const AttendanceCard = () => {
             </div>
 
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setShowMarkDialog(false);
                   setSelectedLocation(null);
                   setIsHalfDay(false);
                   setCapturedFaceImage(null);
-                }} 
+                }}
                 className="flex-1"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleMarkPresent}
                 disabled={marking || !selectedLocation || !capturedFaceImage}
                 className={cn(
@@ -329,13 +353,13 @@ const AttendanceCard = () => {
               My Attendance Summary
             </DialogTitle>
           </DialogHeader>
-          
+
           <Tabs defaultValue="stats" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="stats">Statistics</TabsTrigger>
               <TabsTrigger value="calendar">Calendar View</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="stats" className="space-y-4 mt-4">
               {/* Current Month Stats */}
               <div className="space-y-2">
@@ -417,17 +441,17 @@ const AttendanceCard = () => {
                     </span>
                   </div>
                   <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-gradient-to-r from-success to-success/80 rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${Math.round((attendanceSummary.totalPresent / (attendanceSummary.totalPresent + attendanceSummary.totalAbsent)) * 100)}%` 
+                      style={{
+                        width: `${Math.round((attendanceSummary.totalPresent / (attendanceSummary.totalPresent + attendanceSummary.totalAbsent)) * 100)}%`
                       }}
                     />
                   </div>
                 </div>
               )}
             </TabsContent>
-            
+
             <TabsContent value="calendar" className="mt-4">
               {/* Legend */}
               <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
@@ -452,7 +476,7 @@ const AttendanceCard = () => {
                   <span className="text-xs text-muted-foreground">Holiday</span>
                 </div>
               </div>
-              
+
               {/* Calendar */}
               <div className="flex justify-center">
                 <CalendarComponent
@@ -477,7 +501,7 @@ const AttendanceCard = () => {
                   disabled={(date) => date > new Date()}
                 />
               </div>
-              
+
               {/* Selected Month Stats */}
               <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center">
                 <p className="text-xs text-muted-foreground">
@@ -522,14 +546,14 @@ const AttendanceCard = () => {
               />
             </div>
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowLeaveDialog(false)} 
+              <Button
+                variant="outline"
+                onClick={() => setShowLeaveDialog(false)}
                 className="flex-1"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleMarkAbsent}
                 disabled={marking || !leaveReason.trim()}
                 className="flex-1 bg-destructive hover:bg-destructive/90"

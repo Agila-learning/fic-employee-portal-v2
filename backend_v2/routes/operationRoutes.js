@@ -3,7 +3,7 @@ const router = express.Router();
 const {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus,
-    markAttendance, getMyAttendance, getAllAttendance, updateAttendance,
+    markAttendance, getMyAttendance, getAllAttendance, updateAttendance, checkOut,
     createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, deleteExpense,
     getHolidays, createHoliday,
     getMyCredits, getAllCredits, createCredit, deleteCredit, deleteLeaveRequest
@@ -31,6 +31,7 @@ router.route('/attendance')
     .post(protect, markAttendance)
     .get(protect, admin, getAllAttendance);
 router.get('/attendance/my', protect, getMyAttendance);
+router.patch('/attendance/checkout', protect, checkOut);
 router.put('/attendance/:id', protect, admin, updateAttendance);
 
 // Expenses

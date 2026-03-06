@@ -16,6 +16,11 @@ export const attendanceService = {
         return response.data;
     },
 
+    checkOut: async () => {
+        const response = await apiClient.patch('/operations/attendance/checkout');
+        return response.data;
+    },
+
     updateAttendance: async (id: string, statusData: any) => {
         const response = await apiClient.put(`/operations/attendance/${id}`, statusData);
         return response.data;
@@ -28,3 +33,4 @@ export const attendanceService = {
         return response.data;
     }
 };
+
