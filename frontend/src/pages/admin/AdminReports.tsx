@@ -11,7 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarIcon, Download, RefreshCw, FileSpreadsheet, Users, Building2, User, Phone, MapPin, Briefcase, MessageSquare, Sun, Moon } from 'lucide-react';
+import { CalendarIcon, Download, RefreshCw, FileSpreadsheet, Users, Building2, User, Phone, MapPin, Briefcase, MessageSquare, Sun, Moon, Trash2 } from 'lucide-react';
 import { cn, safeParseDate } from '@/lib/utils';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
@@ -113,6 +113,17 @@ const AdminReports = () => {
       fetchReports();
     }
   }, [fetchReports, profiles]);
+
+  const handleDeleteReport = async (id: string) => {
+    if (!window.confirm('Delete this report? This cannot be undone.')) return;
+    try {
+      await reportService.deleteReport(id);
+      toast.success('Report deleted');
+      fetchReports();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete report');
+    }
+  };
 
   const handleViewReport = async (report: EmployeeReport) => {
     setSelectedReport(report);
@@ -383,7 +394,7 @@ const AdminReports = () => {
                       <TableHead>Department</TableHead>
                       <TableHead>Morning Report</TableHead>
                       <TableHead>Afternoon Report</TableHead>
-                      <TableHead>Details</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -417,13 +428,23 @@ const AdminReports = () => {
                             </p>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewReport(report)}
-                            >
-                              View Details
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewReport(report)}
+                              >
+                                View Details
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDeleteReport(report.id || (report as any)._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

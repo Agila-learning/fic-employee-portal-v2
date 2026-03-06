@@ -9,5 +9,10 @@ export const reportService = {
     createReport: async (reportData: any) => {
         const response = await apiClient.post('/reports', reportData);
         return response.data;
+    },
+
+    deleteReport: async (id: string) => {
+        const response = await apiClient.delete(`/reports/${id}`);
+        return response.data;
     }
 };

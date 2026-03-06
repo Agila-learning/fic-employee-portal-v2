@@ -1,10 +1,11 @@
 import { format } from 'date-fns';
-import { CalendarIcon, Clock, CheckCircle, XCircle, UserCircle } from 'lucide-react';
+import { CalendarIcon, Clock, CheckCircle, XCircle, UserCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const statusConfig = {
   pending: { icon: Clock, label: 'Pending', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
@@ -13,7 +14,13 @@ const statusConfig = {
 };
 
 const AdminLeaveRequests = () => {
-  const { leaveRequests, isLoading, updateLeaveStatus } = useLeaveRequests();
+  const { leaveRequests, isLoading, updateLeaveStatus, deleteLeaveRequest } = useLeaveRequests();
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Delete this leave request?')) return;
+    const ok = await deleteLeaveRequest(id);
+    if (ok) toast.success('Leave request deleted');
+  };
 
   const pendingRequests = leaveRequests.filter(r => r.status === 'pending');
   const processedRequests = leaveRequests.filter(r => r.status !== 'pending');
@@ -83,6 +90,14 @@ const AdminLeaveRequests = () => {
                         <XCircle className="h-4 w-4" />
                         <span className="hidden sm:inline">Reject</span>
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-gray-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => handleDelete(req.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -120,6 +135,14 @@ const AdminLeaveRequests = () => {
                     <Badge className={cn('text-xs shrink-0', config.className)}>
                       {config.label}
                     </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                      onClick={() => handleDelete(req.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 );
               })}
