@@ -42,38 +42,30 @@ export const useSuccessStories = () => {
 
   const uploadVideo = async (file: File): Promise<string | null> => {
     try {
-      // Step 1: Get a signed upload signature from our backend (small HTTPS call)
-      const sigResponse = await apiClient.post('/utility/cloudinary-signature', { folder: 'success-stories' });
-      const { signature, timestamp, folder, api_key, cloud_name } = sigResponse.data;
-
-      // Step 2: Upload directly to Cloudinary over HTTPS (bypasses Vercel 4.5MB proxy limit)
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('api_key', api_key);
-      formData.append('timestamp', timestamp.toString());
-      formData.append('signature', signature);
-      formData.append('folder', folder);
-      formData.append('resource_type', 'video');
+      formData.append('bucket', 'success-stories');
 
-      const uploadResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`,
-        { method: 'POST', body: formData }
-      );
-
-      if (!uploadResponse.ok) {
-        throw new Error('Cloudinary upload failed');
-      }
-
-      const uploadData = await uploadResponse.json();
-      return uploadData.secure_url;
+      const response = await apiClient.post('/utility/upload-video', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        // Show upload progress for large files
+        onUploadProgress: (progressEvent) => {
+          const pct = progressEvent.total
+            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            : 0;
+          if (pct < 100) console.log(`Upload progress: ${pct}%`);
+        }
+      });
+      return response.data.url;
     } catch (error: any) {
-      toast.error('Video upload failed: ' + (error.message || 'Unknown error'));
+      const msg = error.response?.data?.message || error.message || 'Upload failed';
+      toast.error('Video upload failed: ' + msg);
       return null;
     }
   };
 
-
   const deleteVideoFile = async (videoPath: string) => {
+
     // For now, Cloudinary handles overwrites or we can add delete logic later
     console.log('Delete requested for:', videoPath);
   };

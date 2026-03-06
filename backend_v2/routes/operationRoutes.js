@@ -53,4 +53,35 @@ router.route('/credits')
 router.get('/credits/my', protect, getMyCredits);
 router.delete('/credits/:id', protect, admin, deleteCredit);
 
+// Admin: migrate existing payslips with missing employee_name/employee_id
+router.post('/payslips/migrate-names', protect, admin, async (req, res) => {
+    try {
+        const Payslip = require('../models/Payslip');
+        const User = require('../models/User');
+        const payslips = await Payslip.find({
+            $or: [
+                { employee_name: { $exists: false } },
+                { employee_name: '' },
+                { employee_name: null }
+            ]
+        });
+        let fixed = 0;
+        for (const ps of payslips) {
+            if (ps.user_id) {
+                const user = await User.findById(ps.user_id);
+                if (user) {
+                    ps.employee_name = user.name;
+                    if (!ps.employee_id) ps.employee_id = user.employee_id || '';
+                    await ps.save();
+                    fixed++;
+                }
+            }
+        }
+        res.json({ message: `Fixed ${fixed} of ${payslips.length} payslips` });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
+

@@ -37,7 +37,22 @@ router.route('/tasks/:id')
     .put(protect, updateTaskStatus)
     .delete(protect, admin, deleteTask);
 
-// Direct upload signature for browser-to-Cloudinary uploads (bypasses Vercel 4.5MB proxy limit)
+// Direct video upload for success stories via Cloudinary multer (same as /leads/upload)
+router.post('/upload-video', protect, admin, upload.single('file'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        res.json({
+            url: req.file.path,
+            public_id: req.file.filename,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Cloudinary signature for direct browser uploads (for future use when EC2 has HTTPS)
 router.post('/cloudinary-signature', protect, (req, res) => {
     const timestamp = Math.round(new Date().getTime() / 1000);
     const folder = req.body.folder || 'fic-portal';
