@@ -210,8 +210,8 @@ const checkOut = async (req, res) => {
         const durationStr = `${hours}h ${mins}m`;
 
         attendance.check_out = checkOutTime;
-        attendance.notes = attendance.notes || '';
-        // Store duration in notes or as a virtual - we'll add a duration field to the response
+        attendance.duration_minutes = durationMins;
+        if (req.body.work_location) attendance.location = (attendance.location || '') + '|checkout:' + req.body.work_location;
         const updated = await attendance.save();
 
         res.json({ ...updated.toObject(), duration: durationStr, duration_minutes: durationMins });

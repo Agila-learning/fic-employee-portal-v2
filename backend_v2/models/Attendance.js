@@ -5,6 +5,7 @@ const attendanceSchema = mongoose.Schema({
     date: { type: String, required: true }, // Format: YYYY-MM-DD
     check_in: { type: Date },
     check_out: { type: Date },
+    duration_minutes: { type: Number }, // Stored on checkout
     status: {
         type: String,
         enum: ['present', 'absent', 'half-day', 'on-leave'],

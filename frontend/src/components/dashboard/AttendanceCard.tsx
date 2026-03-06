@@ -221,7 +221,7 @@ const AttendanceCard = () => {
                 </p>
                 {todayAttendance.check_out ? (
                   <p className="text-[10px] sm:text-xs text-emerald-600 font-medium mt-0.5">
-                    ✓ Checked out • Duration: {todayAttendance.duration || 'Calculating...'}
+                    ✓ Checked out • Duration: {todayAttendance.duration || (todayAttendance.duration_minutes !== undefined ? `${Math.floor(todayAttendance.duration_minutes / 60)}h ${todayAttendance.duration_minutes % 60}m` : (todayAttendance.check_in && todayAttendance.check_out ? (() => { const m = Math.floor((new Date(todayAttendance.check_out).getTime() - new Date(todayAttendance.check_in).getTime()) / 60000); return `${Math.floor(m / 60)}h ${m % 60}m`; })() : 'Calculating...'))}
                   </p>
                 ) : todayAttendance.status === 'present' ? (
                   <div className="mt-2">

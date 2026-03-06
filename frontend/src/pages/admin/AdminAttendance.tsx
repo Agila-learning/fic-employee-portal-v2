@@ -600,6 +600,9 @@ const AdminAttendance = () => {
                     <TableRow>
                       <TableHead>Employee</TableHead>
                       <TableHead>Date</TableHead>
+                      <TableHead>Check In</TableHead>
+                      <TableHead>Check Out</TableHead>
+                      <TableHead>Duration</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Marked At</TableHead>
                       <TableHead>Leave Reason</TableHead>
@@ -611,6 +614,22 @@ const AdminAttendance = () => {
                       <TableRow key={record.id}>
                         <TableCell className="font-medium">{record.user_name}</TableCell>
                         <TableCell>{record.date ? format(parseISO(record.date), 'dd/MM/yyyy') : '-'}</TableCell>
+                        <TableCell className="text-emerald-600 font-medium">
+                          {record.check_in ? format(new Date(record.check_in), 'hh:mm a') : '--:--'}
+                        </TableCell>
+                        <TableCell className="text-amber-600 font-medium">
+                          {record.check_out ? format(new Date(record.check_out), 'hh:mm a') : '--:--'}
+                        </TableCell>
+                        <TableCell>
+                          {record.duration_minutes !== undefined ? (
+                            `${Math.floor(record.duration_minutes / 60)}h ${record.duration_minutes % 60}m`
+                          ) : (record.check_in && record.check_out
+                            ? (() => {
+                              const mins = Math.floor((new Date(record.check_out).getTime() - new Date(record.check_in).getTime()) / 60000);
+                              return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+                            })()
+                            : '-')}
+                        </TableCell>
                         <TableCell>{getStatusBadge(record)}</TableCell>
                         <TableCell>{record.marked_at ? format(parseISO(record.marked_at), 'hh:mm a') : '-'}</TableCell>
                         <TableCell className="max-w-[200px] truncate">
