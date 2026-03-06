@@ -42,23 +42,39 @@ export const useSuccessStories = () => {
 
   const uploadVideo = async (file: File): Promise<string | null> => {
     try {
+      // Step 1: Get a signed upload token from our backend (tiny JSON, no Vercel size limit)
+      const sigResponse = await apiClient.post('/utility/cloudinary-signature', {
+        folder: 'success-stories'
+      });
+      const { signature, timestamp, folder, api_key, cloud_name } = sigResponse.data;
+
+      if (!cloud_name || !signature) {
+        throw new Error('Upload service not configured. Please contact admin.');
+      }
+
+      // Step 2: Upload DIRECTLY from browser to Cloudinary (bypasses Vercel proxy entirely)
+      // This avoids Vercel's 4.5MB/30s proxy limits for large video files
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('bucket', 'success-stories');
+      formData.append('api_key', api_key);
+      formData.append('timestamp', timestamp.toString());
+      formData.append('signature', signature);
+      formData.append('folder', folder);
 
-      const response = await apiClient.post('/utility/upload-video', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        // Show upload progress for large files
-        onUploadProgress: (progressEvent) => {
-          const pct = progressEvent.total
-            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            : 0;
-          if (pct < 100) console.log(`Upload progress: ${pct}%`);
-        }
-      });
-      return response.data.url;
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`,
+        { method: 'POST', body: formData }
+      );
+
+      if (!uploadResponse.ok) {
+        const errData = await uploadResponse.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `Upload failed (${uploadResponse.status})`);
+      }
+
+      const uploadData = await uploadResponse.json();
+      return uploadData.secure_url;
     } catch (error: any) {
-      const msg = error.response?.data?.message || error.message || 'Upload failed';
+      const msg = error.message || 'Upload failed';
       toast.error('Video upload failed: ' + msg);
       return null;
     }
