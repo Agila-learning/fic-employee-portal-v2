@@ -8,6 +8,11 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Warn at startup if Cloudinary is not configured - file uploads will fail
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    console.error('⚠️  WARNING: Cloudinary env vars missing (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET). File uploads will fail!');
+}
+
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {
@@ -26,4 +31,14 @@ const upload = multer({
     limits: { fileSize: 100 * 1024 * 1024 } // 100MB
 });
 
-module.exports = { cloudinary, upload };
+// Middleware to check Cloudinary is configured before allowing uploads
+const requireCloudinary = (req, res, next) => {
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        return res.status(500).json({
+            message: 'File upload service not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables on the server.'
+        });
+    }
+    next();
+};
+
+module.exports = { cloudinary, upload, requireCloudinary };

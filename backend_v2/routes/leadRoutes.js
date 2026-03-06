@@ -15,7 +15,7 @@ const {
     bulkUploadLeads
 } = require('../controllers/leadController');
 const { protect, admin } = require('../middleware/authMiddleware');
-const { upload } = require('../utils/cloudinary');
+const { upload, requireCloudinary } = require('../utils/cloudinary');
 const multer = require('multer');
 const memoryStorage = multer.memoryStorage();
 const memoryUpload = multer({ storage: memoryStorage });
@@ -26,7 +26,7 @@ router.route('/')
 
 router.get('/generate-id', protect, generateUniqueId);
 router.post('/audit', protect, logAccess);
-router.post('/upload', protect, upload.single('file'), uploadFile);
+router.post('/upload', protect, requireCloudinary, upload.single('file'), uploadFile);
 router.post('/bulk-upload', protect, admin, memoryUpload.single('file'), bulkUploadLeads);
 router.get('/signed-url', protect, getSignedUrl);
 

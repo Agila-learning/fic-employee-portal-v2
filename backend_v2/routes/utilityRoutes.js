@@ -7,7 +7,7 @@ const {
     getTasks, createTask, updateTaskStatus, deleteTask
 } = require('../controllers/utilityController');
 const { protect, admin } = require('../middleware/authMiddleware');
-const { cloudinary, upload } = require('../utils/cloudinary');
+const { cloudinary, upload, requireCloudinary } = require('../utils/cloudinary');
 
 router.route('/holidays')
     .get(protect, getHolidays)
@@ -38,7 +38,7 @@ router.route('/tasks/:id')
     .delete(protect, admin, deleteTask);
 
 // Direct video upload for success stories via Cloudinary multer (same as /leads/upload)
-router.post('/upload-video', protect, admin, upload.single('file'), (req, res) => {
+router.post('/upload-video', protect, admin, requireCloudinary, upload.single('file'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
