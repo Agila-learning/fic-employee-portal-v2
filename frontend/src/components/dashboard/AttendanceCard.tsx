@@ -27,10 +27,12 @@ const AttendanceCard = () => {
   const [marking, setMarking] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [showMarkDialog, setShowMarkDialog] = useState(false);
+  const [showCheckOutDialog, setShowCheckOutDialog] = useState(false);
   const [leaveReason, setLeaveReason] = useState('');
   const [showSummary, setShowSummary] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
   const [selectedLocation, setSelectedLocation] = useState<WorkLocation | null>(null);
+  const [checkoutLocation, setCheckoutLocation] = useState<WorkLocation | null>(null);
   const [isHalfDay, setIsHalfDay] = useState(false);
   const [capturedFaceImage, setCapturedFaceImage] = useState<string | null>(null);
 
@@ -112,9 +114,14 @@ const AttendanceCard = () => {
   };
 
   const handleCheckOut = async () => {
+    if (!checkoutLocation) return;
     setMarking(true);
-    await checkOut();
+    const result = await checkOut(checkoutLocation);
     setMarking(false);
+    if (!result?.error) {
+      setShowCheckOutDialog(false);
+      setCheckoutLocation(null);
+    }
   };
 
   if (loading) {
@@ -222,11 +229,11 @@ const AttendanceCard = () => {
                       size="sm"
                       variant="outline"
                       disabled={marking}
-                      onClick={handleCheckOut}
+                      onClick={() => setShowCheckOutDialog(true)}
                       className="h-7 gap-1.5 text-[10px] sm:text-xs border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <LogOut className="h-3 w-3" />
-                      {marking ? 'Checking out...' : 'Check Out'}
+                      Check Out
                     </Button>
                   </div>
                 ) : null}
@@ -559,6 +566,42 @@ const AttendanceCard = () => {
                 className="flex-1 bg-destructive hover:bg-destructive/90"
               >
                 {marking ? 'Marking...' : 'Confirm Leave'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Check Out Dialog */}
+      <Dialog open={showCheckOutDialog} onOpenChange={(open) => { setShowCheckOutDialog(open); if (!open) setCheckoutLocation(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LogOut className="h-5 w-5 text-red-500" />
+              Check Out
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Select your current work location to confirm check-out.</p>
+            <LocationSelector
+              value={checkoutLocation}
+              onChange={setCheckoutLocation}
+              disabled={marking}
+            />
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => { setShowCheckOutDialog(false); setCheckoutLocation(null); }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCheckOut}
+                disabled={marking || !checkoutLocation}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                {marking ? 'Verifying...' : 'Confirm Check Out'}
               </Button>
             </div>
           </div>

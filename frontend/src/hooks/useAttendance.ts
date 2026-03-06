@@ -187,10 +187,37 @@ export const useAttendance = () => {
     }
   };
 
-  const checkOut = async () => {
+  const checkOut = async (workLocation?: WorkLocation) => {
     if (!user) return { error: new Error('Not authenticated') };
+
+    // GPS verification — same logic as check-in
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+    let locationVerified = false;
+
+    if (workLocation) {
+      const selectedLocation = OFFICE_LOCATIONS[workLocation];
+      if (selectedLocation.requiresGPS) {
+        toast({ title: 'Checking Location', description: 'Verifying your location for checkout...' });
+        const locationResult = await getCurrentLocation();
+        if (!locationResult.success) {
+          toast({ title: 'Location Required', description: locationResult.error || 'Location access denied', variant: 'destructive' });
+          return { error: new Error(locationResult.error || 'Location access required'), locationError: true };
+        }
+        if (!isWithinLocation(locationResult.latitude!, locationResult.longitude!, selectedLocation)) {
+          toast({ title: 'Location Mismatch', description: 'You are not within the selected office location.', variant: 'destructive' });
+          return { error: new Error('Outside office premises'), locationError: true };
+        }
+        latitude = locationResult.latitude;
+        longitude = locationResult.longitude;
+        locationVerified = true;
+      } else {
+        locationVerified = true;
+      }
+    }
+
     try {
-      const result = await attendanceService.checkOut();
+      const result = await attendanceService.checkOut({ work_location: workLocation, latitude, longitude, location_verified: locationVerified });
       // Immediately update todayAttendance with check_out + duration
       setTodayAttendance(prev => prev ? {
         ...prev,

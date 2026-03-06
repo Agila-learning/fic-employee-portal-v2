@@ -16,8 +16,8 @@ export const attendanceService = {
         return response.data;
     },
 
-    checkOut: async () => {
-        const response = await apiClient.patch('/operations/attendance/checkout');
+    checkOut: async (locationData?: { work_location?: string; latitude?: number; longitude?: number; location_verified?: boolean }) => {
+        const response = await apiClient.patch('/operations/attendance/checkout', locationData || {});
         return response.data;
     },
 
