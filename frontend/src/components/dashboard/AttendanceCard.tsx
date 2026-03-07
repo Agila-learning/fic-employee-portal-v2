@@ -217,7 +217,10 @@ const AttendanceCard = () => {
                   {todayAttendance.work_location && (
                     <span className="mr-1">📍 {getLocationDisplayName(todayAttendance.work_location)} •</span>
                   )}
-                  Checked in at {new Date(todayAttendance.marked_at).toLocaleTimeString()}
+                  Checked in at {todayAttendance.marked_at ? (() => {
+                    try { return new Date(todayAttendance.marked_at).toLocaleTimeString(); }
+                    catch (e) { return 'Unknown'; }
+                  })() : 'Unknown'}
                 </p>
                 {todayAttendance.check_out ? (
                   <p className="text-[10px] sm:text-xs text-emerald-600 font-medium mt-0.5">

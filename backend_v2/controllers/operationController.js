@@ -138,12 +138,24 @@ const deleteLeaveRequest = async (req, res) => {
 // Attendance
 const markAttendance = async (req, res) => {
     try {
-        const { date, status, location, notes, user_id } = req.body;
+        const { date, status, location, notes, user_id, half_day, latitude, longitude, location_verified, work_location, face_photo } = req.body;
         const targetUserId = (req.user.role === 'admin' && user_id) ? user_id : req.user._id;
+        const targetDate = date || new Date().toISOString().split('T')[0];
 
         const attendance = await Attendance.findOneAndUpdate(
-            { user_id: targetUserId, date },
-            { status, location, notes, check_in: req.body.check_in || Date.now() },
+            { user_id: targetUserId, date: targetDate },
+            {
+                status,
+                location,
+                notes,
+                check_in: req.body.check_in || Date.now(),
+                half_day,
+                latitude,
+                longitude,
+                location_verified,
+                work_location,
+                face_photo
+            },
             { upsert: true, returnDocument: 'after' }
         );
         res.status(201).json(attendance);

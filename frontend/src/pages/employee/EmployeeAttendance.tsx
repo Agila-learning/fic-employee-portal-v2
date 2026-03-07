@@ -73,7 +73,9 @@ const EmployeeAttendance = () => {
                         <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">No attendance records found</TableCell></TableRow>
                       ) : attendanceHistory.map((record) => (
                         <TableRow key={record._id || record.id}>
-                          <TableCell className="font-medium">{format(parseISO(record.date), 'dd MMM yyyy')}</TableCell>
+                          <TableCell className="font-medium">
+                            {record.date ? format(parseISO(record.date), 'dd MMM yyyy') : 'No Date'}
+                          </TableCell>
                           <TableCell className="text-emerald-600 font-medium">
                             {record.check_in
                               ? format(new Date(record.check_in), 'hh:mm a')

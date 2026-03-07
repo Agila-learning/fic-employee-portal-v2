@@ -11,6 +11,12 @@ const attendanceSchema = mongoose.Schema({
         enum: ['present', 'absent', 'half-day', 'on-leave'],
         default: 'present'
     },
+    half_day: { type: Boolean, default: false },
+    latitude: { type: Number },
+    longitude: { type: Number },
+    location_verified: { type: Boolean, default: false },
+    work_location: { type: String },
+    face_photo: { type: String }, // Store as URL or reference
     location: { type: String },
     notes: { type: String }
 }, {

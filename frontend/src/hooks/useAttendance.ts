@@ -168,6 +168,7 @@ export const useAttendance = () => {
 
     try {
       await attendanceService.markAttendance({
+        date: new Date().toISOString().split('T')[0],
         status,
         leave_reason: status === 'absent' ? leaveReason : null,
         latitude,
