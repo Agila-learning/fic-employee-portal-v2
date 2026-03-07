@@ -66,13 +66,20 @@ const AttendanceCard = () => {
     });
 
     myAttendance.forEach((record) => {
-      const date = parseISO(record.date);
-      if (record.half_day) {
-        halfDay.push(date);
-      } else if (record.status === 'present') {
-        present.push(date);
-      } else if (record.status === 'absent') {
-        absent.push(date);
+      if (!record || !record.date) return;
+      try {
+        const date = parseISO(record.date);
+        if (isNaN(date.getTime())) return;
+
+        if (record.half_day) {
+          halfDay.push(date);
+        } else if (record.status === 'present') {
+          present.push(date);
+        } else if (record.status === 'absent') {
+          absent.push(date);
+        }
+      } catch (err) {
+        console.error('Invalid date in attendance record:', record.date);
       }
     });
     return { presentDates: present, absentDates: absent, halfDayDates: halfDay, sundayDates: sundays, holidayDates: holidayList };

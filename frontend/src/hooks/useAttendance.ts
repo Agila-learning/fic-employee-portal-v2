@@ -115,6 +115,8 @@ export const useAttendance = () => {
 
     } catch (error: any) {
       if (import.meta.env.DEV) console.error('Error fetching attendance:', error);
+      // Ensure we don't keep stale data on error
+      setTodayAttendance(null);
     } finally {
       setLoading(false);
     }

@@ -21,8 +21,17 @@ app.use(morgan('dev'));
 // DB Connection
 const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/fic_employee_portal';
 mongoose.connect(mongoURI)
-    .then(() => console.log('MongoDB Connected'))
-    .catch((err) => console.log('MongoDB Connection Error:', err));
+    .then(() => {
+        console.log('MongoDB Connected Successfully');
+        const PORT = process.env.PORT || 5000;
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.error('CRITICAL: MongoDB Connection Error:', err.message);
+        process.exit(1); // Exit if DB connection fails in production
+    });
 
 // Routes
 const userRoutes = require('./routes/userRoutes');
@@ -52,7 +61,5 @@ app.use((err, req, res, next) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// No separate listen() here, moved into DB connection handler above
+
