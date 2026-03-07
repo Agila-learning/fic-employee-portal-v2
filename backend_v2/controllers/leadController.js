@@ -46,8 +46,16 @@ const deleteLead = async (req, res) => {
     try {
         const lead = await Lead.findById(req.params.id);
         if (lead) {
-            await lead.deleteOne();
-            res.json({ message: 'Lead removed' });
+            // Permission check: Admin or Creator or Assignee
+            const isCreator = lead.created_by && lead.created_by.toString() === req.user._id.toString();
+            const isAssignee = lead.assigned_to && lead.assigned_to.toString() === req.user._id.toString();
+
+            if (req.user.role === 'admin' || isCreator || isAssignee) {
+                await lead.deleteOne();
+                res.json({ message: 'Lead removed' });
+            } else {
+                res.status(401).json({ message: 'Not authorized to delete this lead' });
+            }
         } else {
             res.status(404).json({ message: 'Lead not found' });
         }

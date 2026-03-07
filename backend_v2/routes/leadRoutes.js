@@ -32,7 +32,7 @@ router.get('/signed-url', protect, getSignedUrl);
 
 router.route('/:id')
     .put(protect, updateLead)
-    .delete(protect, admin, deleteLead);
+    .delete(protect, deleteLead);
 
 router.route('/:id/comments')
     .get(protect, getComments)

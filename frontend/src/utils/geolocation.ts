@@ -25,25 +25,25 @@ const KRISHNAGIRI_GEO_POINTS: GeoPoint[] = [
   {
     latitude: 12.527334,
     longitude: 78.214152,
-    radiusMeters: 1000,
+    radiusMeters: 1500,
     address: 'No 10-I KNT Manickam Road, New bus stand, Krishnagiri-635001',
   },
   {
     latitude: 12.5273,
     longitude: 78.2130,
-    radiusMeters: 1000,
+    radiusMeters: 1500,
     address: 'RK Towers, Opposite HP Petrol Bunk, Wahab Nagar, Krishnagiri',
   },
   {
     latitude: 12.5235,
     longitude: 78.2155,
-    radiusMeters: 500,
+    radiusMeters: 1000,
     address: '158 A, Phase 1/1073, Rayakottai Rd, Wahab Nagar, Krishnagiri',
   },
   {
     latitude: 12.5267,
     longitude: 78.2027,
-    radiusMeters: 300,
+    radiusMeters: 500,
     address: 'G6G3+M3V Wahab Nagar, Krishnagiri (Extended Area)',
   },
 ];
@@ -53,7 +53,7 @@ const TIRUPATTUR_GEO_POINTS: GeoPoint[] = [
   {
     latitude: 12.4967,
     longitude: 78.5730,
-    radiusMeters: 1000,
+    radiusMeters: 1500,
     address: 'No.83, TS No. 87/2, Opposite to Reliance Petrol Bunk, Vaniyambadi Main Road, Tirupattur',
   },
 ];
@@ -65,7 +65,7 @@ export const OFFICE_LOCATIONS: Record<WorkLocation, OfficeLocation> = {
     name: 'Krishnagiri Office',
     latitude: 12.527334,
     longitude: 78.214152,
-    radiusMeters: 1000,
+    radiusMeters: 1500,
     address: 'Krishnagiri (3 locations)',
     requiresGPS: true,
     geoPoints: KRISHNAGIRI_GEO_POINTS,
@@ -75,7 +75,7 @@ export const OFFICE_LOCATIONS: Record<WorkLocation, OfficeLocation> = {
     name: 'Tirupattur Office',
     latitude: 12.4967,
     longitude: 78.5730,
-    radiusMeters: 1000,
+    radiusMeters: 1500,
     address: 'Opposite Reliance Petrol Bunk, Vaniyambadi Main Road',
     requiresGPS: true,
     geoPoints: TIRUPATTUR_GEO_POINTS,
@@ -140,8 +140,12 @@ export const calculateDistance = (
     Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
     Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
 
-  return R * c;
+  // Debug distance calculation
+  console.log(`[Haversine] Distance calculated: ${Math.round(distance)}m`);
+
+  return distance;
 };
 
 /**
@@ -149,14 +153,14 @@ export const calculateDistance = (
  * For locations with multiple geo-points (like Krishnagiri), checks if within ANY of the points
  */
 export const isWithinLocation = (
-  latitude: number, 
-  longitude: number, 
+  latitude: number,
+  longitude: number,
   location: OfficeLocation
 ): boolean => {
   if (!location.requiresGPS) return true;
-  
+
   console.log(`[GPS Debug] User location: ${latitude}, ${longitude}`);
-  
+
   // If location has multiple geo-points, check against all of them
   if (location.geoPoints && location.geoPoints.length > 0) {
     for (const point of location.geoPoints) {
@@ -167,7 +171,7 @@ export const isWithinLocation = (
         point.longitude
       );
       console.log(`[GPS Debug] Distance from ${point.address}: ${Math.round(distance)}m (allowed: ${point.radiusMeters}m)`);
-      
+
       if (distance <= point.radiusMeters) {
         console.log(`[GPS Debug] ✓ Within range of: ${point.address}`);
         return true;
@@ -176,7 +180,7 @@ export const isWithinLocation = (
     console.log(`[GPS Debug] ✗ Not within range of any ${location.name} locations`);
     return false;
   }
-  
+
   // Fallback for single-point locations
   const distance = calculateDistance(
     latitude,
@@ -201,8 +205,8 @@ export const isWithinOfficePremises = (latitude: number, longitude: number): boo
  * For multi-point locations like Krishnagiri, returns distance to closest point
  */
 export const getMinDistanceFromLocation = (
-  latitude: number, 
-  longitude: number, 
+  latitude: number,
+  longitude: number,
   location: OfficeLocation
 ): { distance: number; closestPoint: string; allowedRadius: number } => {
   // If location has multiple geo-points, find the closest one
@@ -210,7 +214,7 @@ export const getMinDistanceFromLocation = (
     let minDistance = Infinity;
     let closestPoint = location.address;
     let allowedRadius = location.radiusMeters;
-    
+
     for (const point of location.geoPoints) {
       const distance = calculateDistance(latitude, longitude, point.latitude, point.longitude);
       if (distance < minDistance) {
@@ -219,10 +223,10 @@ export const getMinDistanceFromLocation = (
         allowedRadius = point.radiusMeters;
       }
     }
-    
+
     return { distance: minDistance, closestPoint, allowedRadius };
   }
-  
+
   // Single-point location
   const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
   return { distance, closestPoint: location.address, allowedRadius: location.radiusMeters };
@@ -232,8 +236,8 @@ export const getMinDistanceFromLocation = (
  * Get the distance from a specific office in meters
  */
 export const getDistanceFromLocation = (
-  latitude: number, 
-  longitude: number, 
+  latitude: number,
+  longitude: number,
   location: OfficeLocation
 ): number => {
   return calculateDistance(
@@ -268,7 +272,7 @@ export const getCurrentLocation = (): Promise<LocationResult> => {
       (position) => {
         const { latitude, longitude } = position.coords;
         const isWithinOffice = isWithinOfficePremises(latitude, longitude);
-        
+
         resolve({
           success: true,
           latitude,
