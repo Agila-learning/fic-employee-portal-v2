@@ -1,10 +1,10 @@
-﻿const Payslip = require('../models/Payslip');
-const LeaveRequest = require('../models/LeaveRequest');
-const Attendance = require('../models/Attendance');
-const Expense = require('../models/Expense');
-const Holiday = require('../models/Holiday');
-const Credit = require('../models/Credit');
-const User = require('../models/User');
+﻿const Payslip = require('../models/Payslip.js');
+const LeaveRequest = require('../models/LeaveRequest.js');
+const Attendance = require('../models/Attendance.js');
+const Expense = require('../models/Expense.js');
+const Holiday = require('../models/Holiday.js');
+const Credit = require('../models/Credit.js');
+const User = require('../models/User.js');
 
 // Payslips
 const createPayslip = async (req, res) => {
