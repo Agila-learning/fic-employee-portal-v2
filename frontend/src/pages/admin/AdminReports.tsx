@@ -80,10 +80,13 @@ const AdminReports = () => {
           const userId = r.user_id?._id || r.user_id;
           return userId === p.user_id || userId === (p as any)._id;
         });
+        const rawDept = r.department || (typeof r.user_id === 'object' ? r.user_id.department : profile?.department) || '-';
+        const matchedDept = DEPARTMENTS.find(d => d.toLowerCase() === rawDept.toLowerCase());
+
         return {
           ...r,
           employee_name: r.user_id?.name || profile?.name || 'Unknown',
-          department: r.department || (typeof r.user_id === 'object' ? r.user_id.department : profile?.department) || '-'
+          department: matchedDept || rawDept
         };
       }) as EmployeeReport[];
 

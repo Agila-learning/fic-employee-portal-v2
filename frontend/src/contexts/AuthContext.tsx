@@ -28,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: userData.name,
             email: userData.email,
             role: userData.role,
+            department: userData.department,
           });
         } catch (error) {
           console.error('Auth verification failed:', error);
@@ -50,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: data.name,
         email: data.email,
         role: data.role,
+        department: data.department,
       });
       return { success: true };
     } catch (error: any) {
@@ -69,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: data.name,
         email: data.email,
         role: data.role,
+        department: data.department,
       });
       return { success: true };
     } catch (error: any) {

@@ -73,6 +73,7 @@ export interface User {
   name: string;
   email: string;
   role: AppRole;
+  department?: string;
   employee_id?: string | null;
   is_active?: boolean | null;
 }

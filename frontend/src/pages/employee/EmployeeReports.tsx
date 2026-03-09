@@ -47,9 +47,14 @@ const EmployeeReports = () => {
   useEffect(() => {
     if (user) {
       fetchReports();
-      // Automatically set department if available in profile
-      if ((user as any).department && DEPARTMENTS.includes((user as any).department)) {
-        setDepartment((user as any).department);
+      // Automatically set department if available in profile (case-insensitive)
+      if (user.department) {
+        const matchedDept = DEPARTMENTS.find(
+          d => d.toLowerCase() === user.department?.toLowerCase()
+        );
+        if (matchedDept) {
+          setDepartment(matchedDept);
+        }
       }
     }
   }, [user, fetchReports]);

@@ -7,7 +7,7 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password, role, employee_id } = req.body;
+        const { name, email, password, role, employee_id, department } = req.body;
 
         const userExists = await User.findOne({ email });
 
@@ -20,6 +20,7 @@ const registerUser = async (req, res) => {
             email,
             password,
             role: role || 'employee',
+            department: department || 'Other',
         };
 
         if (employee_id && employee_id.trim() !== '') {
@@ -34,6 +35,7 @@ const registerUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                department: user.department,
                 token: generateToken(user._id),
             });
         } else {
@@ -56,6 +58,7 @@ const loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                department: user.department,
                 token: generateToken(user._id),
             });
         } else {
@@ -75,6 +78,7 @@ const getUserProfile = async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            department: user.department,
         });
     } else {
         res.status(404).json({ message: 'User not found' });
@@ -118,6 +122,7 @@ const updateUser = async (req, res) => {
             user.email = req.body.email || user.email;
             user.role = req.body.role || user.role;
             user.employee_id = req.body.employee_id !== undefined ? req.body.employee_id : user.employee_id;
+            user.department = req.body.department !== undefined ? req.body.department : user.department;
             user.is_active = req.body.is_active !== undefined ? req.body.is_active : user.is_active;
 
             if (req.body.password) {
@@ -129,6 +134,7 @@ const updateUser = async (req, res) => {
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,
+                department: updatedUser.department,
                 employee_id: updatedUser.employee_id,
                 is_active: updatedUser.is_active,
             });
