@@ -254,7 +254,7 @@ const getMyExpenses = async (req, res) => {
 const getAllExpenses = async (req, res) => {
     try {
         const filter = {};
-        if (req.query.status) filter.status = req.query.status;
+        if (req.query.status) filter.approval_status = req.query.status;
         const expenses = await Expense.find(filter).populate('user_id', 'name email');
         res.json(expenses);
     } catch (error) {

@@ -48,9 +48,8 @@ router.route('/holidays')
     .post(protect, admin, createHoliday);
 
 // Credits
-router.route('/credits')
     .get(protect, admin, getAllCredits)
-    .post(protect, admin, createCredit);
+    .post(protect, createCredit);
 router.get('/credits/my', protect, getMyCredits);
 router.delete('/credits/:id', protect, admin, deleteCredit);
 

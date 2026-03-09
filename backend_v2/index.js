@@ -36,14 +36,14 @@ mongoose.connect(mongoURI)
 // Routes
 const userRoutes = require('./routes/userRoutes');
 const leadRoutes = require('./routes/leadRoutes');
-const expenseRoutes = require('./routes/expenseRoutes');
+// const expenseRoutes = require('./routes/expenseRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const utilityRoutes = require('./routes/utilityRoutes');
 const operationRoutes = require('./routes/operationRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/leads', leadRoutes);
-app.use('/api/expenses', expenseRoutes);
+// app.use('/api/expenses', expenseRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/utility', utilityRoutes);
 app.use('/api/operations', operationRoutes);

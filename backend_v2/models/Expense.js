@@ -8,6 +8,8 @@ const expenseSchema = mongoose.Schema({
     receipt_url: { type: String },
     approval_status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    reviewed_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    reviewed_at: { type: Date },
 }, {
     timestamps: true,
 });

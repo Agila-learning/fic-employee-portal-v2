@@ -1,31 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { expenseService } from '@/api/expenseService';
+import { operationService } from '@/api/operationService';
+import { leadService } from '@/api/leadService';
 
 export interface Expense {
+  _id: string;
   id: string;
-  user_id: string;
+  user_id: any;
   expense_date: string;
   amount: number;
   description: string;
   category: string;
   receipt_url: string | null;
   approval_status: string;
-  approved_by: string | null;
-  approved_at: string | null;
-  created_at: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  createdAt: string;
 }
 
 export interface ExpenseCredit {
+  _id: string;
   id: string;
-  user_id: string;
+  user_id: any;
   credit_date: string;
   amount: number;
   given_by: string;
   given_by_role: string;
   description: string | null;
-  created_at: string;
+  createdAt: string;
 }
 
 export const useExpenses = () => {
@@ -36,9 +39,10 @@ export const useExpenses = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchExpenses = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      const data = await expenseService.getExpenses();
+      const data = await operationService.getMyExpenses();
       setExpenses(data.map((e: any) => ({ ...e, id: e._id })));
     } catch (error: any) {
       toast({ title: 'Error fetching expenses', description: error.message, variant: 'destructive' });
@@ -48,19 +52,33 @@ export const useExpenses = () => {
   };
 
   const fetchCredits = async () => {
+    if (!user) return;
     try {
-      const data = await expenseService.getCredits();
+      const data = await operationService.getMyCredits();
       setCredits(data.map((c: any) => ({ ...c, id: c._id })));
     } catch (error: any) {
       toast({ title: 'Error fetching credits', description: error.message, variant: 'destructive' });
     }
   };
 
-  const addExpense = async (expense: { expense_date: string; amount: number; description: string; category: string; receipt_url?: string }) => {
+  const fetchAllExpenses = async () => {
+    setLoading(true);
+    try {
+      const data = await operationService.getAllExpenses({});
+      return data.map((e: any) => ({ ...e, id: e._id }));
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addExpense = async (expense: { expense_date: string; amount: number; description: string; category: string; receipt_url?: string; approval_status?: string }) => {
     if (!user) return;
     try {
-      await expenseService.createExpense(expense);
-      toast({ title: 'Expense submitted for approval' });
+      await operationService.createExpense(expense);
+      toast({ title: 'Expense recorded' });
       fetchExpenses();
     } catch (error: any) {
       toast({ title: 'Error adding expense', description: error.message, variant: 'destructive' });
@@ -68,19 +86,29 @@ export const useExpenses = () => {
   };
 
   const deleteExpense = async (id: string) => {
-    // Note: delete method not yet in expenseService, adding it for consistency
-    toast({ title: 'Delete functionality not yet fully migrated' });
+    try {
+      await operationService.deleteExpense(id);
+      toast({ title: 'Expense deleted' });
+      fetchExpenses();
+    } catch (error: any) {
+      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+    }
   };
 
   const updateExpenseStatus = async (id: string, status: 'approved' | 'rejected') => {
-    // Note: status update method not yet in expenseService
-    toast({ title: 'Status update not yet fully migrated' });
+    try {
+      await operationService.updateExpenseStatus(id, status);
+      toast({ title: `Expense ${status}` });
+      fetchExpenses();
+    } catch (error: any) {
+      toast({ title: 'Status update failed', description: error.message, variant: 'destructive' });
+    }
   };
 
   const addCredit = async (credit: { credit_date: string; amount: number; given_by: string; given_by_role: string; description?: string }) => {
     if (!user) return;
     try {
-      await expenseService.addCredit(credit);
+      await operationService.createCredit(credit);
       toast({ title: 'Credit added successfully' });
       fetchCredits();
     } catch (error: any) {
@@ -89,25 +117,34 @@ export const useExpenses = () => {
   };
 
   const deleteCredit = async (id: string) => {
-    toast({ title: 'Delete credit not yet migrated' });
+    try {
+      await operationService.deleteCredit(id);
+      toast({ title: 'Credit record removed' });
+      fetchCredits();
+    } catch (error: any) {
+      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+    }
   };
 
   const uploadReceipt = async (file: File): Promise<string | null> => {
     if (!user) return null;
     try {
-      const formData = new FormData();
-      formData.append('receipt', file);
-      const data = await expenseService.uploadReceipt(formData);
-      return data.url;
+      // Use leadService for uploads as it's common
+      const res = await leadService.uploadFile(file, 'expense-receipts', user.id);
+      return res.path;
     } catch (error: any) {
-      toast({ title: 'Error uploading receipt', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error uploading', description: error.message, variant: 'destructive' });
       return null;
     }
   };
 
   const getReceiptUrl = async (path: string): Promise<string | null> => {
-    // In MERN stack, we might just return a static path or a signed URL endpoint
-    return path;
+    try {
+      const data = await leadService.getSignedUrl('expense-receipts', path);
+      return data.signedUrl || null;
+    } catch (error) {
+      return null;
+    }
   };
 
   useEffect(() => {
