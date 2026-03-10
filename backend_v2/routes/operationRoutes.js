@@ -4,9 +4,9 @@ const {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus,
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance, checkOut,
-    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, deleteExpense,
+    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, updateExpense, deleteExpense,
     getHolidays, createHoliday,
-    getMyCredits, getAllCredits, createCredit, deleteCredit, deleteLeaveRequest
+    getMyCredits, getAllCredits, createCredit, updateCredit, deleteCredit, deleteLeaveRequest
 } = require('../controllers/operationController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -39,6 +39,7 @@ router.route('/expenses')
     .post(protect, createExpense)
     .get(protect, admin, getAllExpenses);
 router.get('/expenses/my', protect, getMyExpenses);
+router.put('/expenses/:id', protect, updateExpense);
 router.put('/expenses/:id/status', protect, admin, updateExpenseStatus);
 router.delete('/expenses/:id', protect, deleteExpense);
 
@@ -52,6 +53,7 @@ router.route('/credits')
     .get(protect, admin, getAllCredits)
     .post(protect, createCredit);
 router.get('/credits/my', protect, getMyCredits);
+router.put('/credits/:id', protect, admin, updateCredit);
 router.delete('/credits/:id', protect, admin, deleteCredit);
 
 // Admin: migrate existing payslips with missing employee_name/employee_id

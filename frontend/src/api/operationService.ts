@@ -85,6 +85,11 @@ export const operationService = {
         return response.data;
     },
 
+    updateExpense: async (id: string, expenseData: any) => {
+        const response = await apiClient.put(`/operations/expenses/${id}`, expenseData);
+        return response.data;
+    },
+
     deleteExpense: async (id: string) => {
         const response = await apiClient.delete(`/operations/expenses/${id}`);
         return response.data;
@@ -103,6 +108,11 @@ export const operationService = {
 
     createCredit: async (creditData: any) => {
         const response = await apiClient.post('/operations/credits', creditData);
+        return response.data;
+    },
+
+    updateCredit: async (id: string, creditData: any) => {
+        const response = await apiClient.put(`/operations/credits/${id}`, creditData);
         return response.data;
     },
 

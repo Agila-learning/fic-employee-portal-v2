@@ -392,6 +392,7 @@ const AdminReports = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">S.No</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Employee</TableHead>
                       <TableHead>Department</TableHead>
@@ -401,11 +402,12 @@ const AdminReports = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {reports.map((report) => {
+                    {reports.map((report, index) => {
                       const isBDAorHR = report.department === 'BDA' || report.department === 'HR';
 
                       return (
                         <TableRow key={report.id}>
+                          <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                           <TableCell className="font-medium whitespace-nowrap">
                             {format(safeParseDate(report.report_date), 'dd MMM yyyy')}
                           </TableCell>

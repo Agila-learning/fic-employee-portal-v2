@@ -191,10 +191,11 @@ const EmployeeReports = () => {
                   </div>
                 ) : (
                   <div className="p-4 space-y-4">
-                    {reports.map((report) => (
+                    {reports.map((report, index) => (
                       <div key={report._id || report.id} className="p-4 rounded-xl border border-border/50 bg-background/50 hover:shadow-md transition-all">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="font-mono bg-muted text-muted-foreground w-6 h-6 p-0 flex items-center justify-center rounded-full leading-none shrink-0">{index + 1}</Badge>
                             <Badge variant="outline" className="bg-primary/5">{format(parseISO(report.report_date), 'dd MMM yyyy')}</Badge>
                             <Badge>{report.department}</Badge>
                           </div>

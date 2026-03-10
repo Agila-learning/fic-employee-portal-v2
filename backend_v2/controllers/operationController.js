@@ -279,6 +279,24 @@ const updateExpenseStatus = async (req, res) => {
     }
 };
 
+const updateExpense = async (req, res) => {
+    try {
+        const expense = await Expense.findById(req.params.id);
+        if (expense) {
+            if (expense.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+                return res.status(403).json({ message: 'Not authorized to update this expense' });
+            }
+            Object.assign(expense, req.body);
+            const updated = await expense.save();
+            res.json(updated);
+        } else {
+            res.status(404).json({ message: 'Expense not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 const deleteExpense = async (req, res) => {
     try {
         const expense = await Expense.findById(req.params.id);
@@ -359,6 +377,24 @@ const createCredit = async (req, res) => {
     }
 };
 
+const updateCredit = async (req, res) => {
+    try {
+        const credit = await Credit.findById(req.params.id);
+        if (credit) {
+            if (credit.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+                return res.status(403).json({ message: 'Not authorized to update this credit' });
+            }
+            Object.assign(credit, req.body);
+            const updated = await credit.save();
+            res.json(updated);
+        } else {
+            res.status(404).json({ message: 'Credit not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 const deleteCredit = async (req, res) => {
     try {
         const credit = await Credit.findById(req.params.id);
@@ -377,7 +413,7 @@ module.exports = {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus, deleteLeaveRequest,
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance, checkOut,
-    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, deleteExpense,
+    createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, updateExpense, deleteExpense,
     getHolidays, createHoliday,
-    getMyCredits, getAllCredits, createCredit, deleteCredit
+    getMyCredits, getAllCredits, createCredit, updateCredit, deleteCredit
 };

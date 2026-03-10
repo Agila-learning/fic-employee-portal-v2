@@ -15,7 +15,7 @@ import { employeeService } from '@/api/employeeService';
 import { leadService } from '@/api/leadService';
 import { toast } from 'sonner';
 import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
-import { CalendarIcon, Download, TrendingDown, TrendingUp, Wallet, Users, Clock, Plus, Trash2, IndianRupee, Upload, FileImage, BarChart3, ExternalLink, Loader2 } from 'lucide-react';
+import { CalendarIcon, Download, TrendingDown, TrendingUp, Wallet, Users, Clock, Plus, Trash2, IndianRupee, Upload, FileImage, BarChart3, ExternalLink, Loader2, Pencil, X } from 'lucide-react';
 import { cn, safeParseDate } from '@/lib/utils';
 import { createWorkbook, setColumnWidths, applyHeaderStyle, downloadWorkbook, styleCell } from '@/utils/excelExport';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -85,6 +85,9 @@ const AdminMyExpenses = () => {
   const [credRole, setCredRole] = useState('');
   const [credDesc, setCredDesc] = useState('');
 
+  const [editExpenseId, setEditExpenseId] = useState<string | null>(null);
+  const [editCreditId, setEditCreditId] = useState<string | null>(null);
+
   const fetchData = async () => {
     if (!user) return;
     setLoading(true);
@@ -117,13 +120,21 @@ const AdminMyExpenses = () => {
       }
     }
     const finalCategory = expCategory === 'Others' ? (customCategory || 'Others') : expCategory;
+    const payload = {
+      expense_date: format(expDate, 'yyyy-MM-dd'), amount: parseFloat(expAmount),
+      description: expDesc, category: finalCategory, receipt_url: receiptPath || undefined, approval_status: 'approved',
+      paid_to: expPaidTo || null,
+    };
     try {
-      await operationService.createExpense({
-        expense_date: format(expDate, 'yyyy-MM-dd'), amount: parseFloat(expAmount),
-        description: expDesc, category: finalCategory, receipt_url: receiptPath, approval_status: 'approved',
-        paid_to: expPaidTo || null,
-      });
-      toast.success('Expense added');
+      if (editExpenseId) {
+        if (!receiptPath) delete payload.receipt_url; // Don't overwrite if not uploading new
+        await operationService.updateExpense(editExpenseId, payload);
+        toast.success('Expense updated');
+        setEditExpenseId(null);
+      } else {
+        await operationService.createExpense(payload);
+        toast.success('Expense added');
+      }
       fetchData();
       setExpAmount(''); setExpDesc(''); setExpPaidTo(''); setReceiptFile(null); setCustomCategory('');
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -146,12 +157,19 @@ const AdminMyExpenses = () => {
 
   const handleAddCredit = async () => {
     if (!credAmount || !credGivenBy || !user) return;
+    const payload = {
+      credit_date: format(credDate, 'yyyy-MM-dd'), amount: parseFloat(credAmount),
+      given_by: credGivenBy, given_by_role: credRole, description: credDesc || null,
+    };
     try {
-      await operationService.createCredit({
-        credit_date: format(credDate, 'yyyy-MM-dd'), amount: parseFloat(credAmount),
-        given_by: credGivenBy, given_by_role: credRole, description: credDesc || null,
-      });
-      toast.success('Credit added');
+      if (editCreditId) {
+        await operationService.updateCredit(editCreditId, payload);
+        toast.success('Credit updated');
+        setEditCreditId(null);
+      } else {
+        await operationService.createCredit(payload);
+        toast.success('Credit added');
+      }
       fetchData();
       setCredAmount(''); setCredGivenBy(''); setCredRole(''); setCredDesc('');
     } catch (error) {
@@ -175,6 +193,32 @@ const AdminMyExpenses = () => {
       if (data?.signedUrl) window.open(data.signedUrl, '_blank');
     } catch (error) {
       toast.error('Failed to get receipt URL');
+    }
+  };
+
+  const handleEditClick = (item: any) => {
+    if (item.type === 'debit') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setEditExpenseId(item._id);
+      setExpDate(new Date(item.expense_date));
+      setExpAmount(item.amount.toString());
+      setExpDesc(item.description || '');
+      setExpPaidTo(item.paid_to || '');
+      if (CATEGORIES.includes(item.category)) {
+        setExpCategory(item.category);
+        setCustomCategory('');
+      } else {
+        setExpCategory('Others');
+        setCustomCategory(item.category || '');
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setEditCreditId(item._id);
+      setCredDate(new Date(item.credit_date));
+      setCredAmount(item.amount.toString());
+      setCredGivenBy(item.given_by || '');
+      setCredRole(item.given_by_role || '');
+      setCredDesc(item.description || '');
     }
   };
 
@@ -205,12 +249,16 @@ const AdminMyExpenses = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Debit Section */}
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-3 border-b border-border/10">
+          <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2 text-destructive">
-              <TrendingDown className="h-5 w-5" /> Add Debit (Expense)
+              <TrendingDown className="h-5 w-5" /> {editExpenseId ? 'Edit Debit (Expense)' : 'Add Debit (Expense)'}
             </CardTitle>
+            {editExpenseId && (
+              <Button variant="ghost" size="sm" onClick={() => { setEditExpenseId(null); setExpAmount(''); setExpDesc(''); }} className="h-8">
+                <X className="h-4 w-4 mr-1" /> Cancel
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -262,18 +310,23 @@ const AdminMyExpenses = () => {
                 </Button>
               </div>
               <Button onClick={handleAddExpense} size="sm" className="bg-destructive hover:bg-destructive/90 text-white gap-2 text-xs" disabled={!expAmount || !expDesc || uploading}>
-                {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} Add Debit
+                {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : (editExpenseId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />)}
+                {editExpenseId ? 'Update Debit' : 'Add Debit'}
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Credit Section */}
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-3 border-b border-border/10">
+          <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2 text-emerald-600">
-              <TrendingUp className="h-5 w-5" /> Add Credit
+              <TrendingUp className="h-5 w-5" /> {editCreditId ? 'Edit Credit' : 'Add Credit'}
             </CardTitle>
+            {editCreditId && (
+              <Button variant="ghost" size="sm" onClick={() => { setEditCreditId(null); setCredAmount(''); setCredGivenBy(''); }} className="h-8">
+                <X className="h-4 w-4 mr-1" /> Cancel
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -311,7 +364,8 @@ const AdminMyExpenses = () => {
             </div>
             <div className="pt-2 text-right">
               <Button onClick={handleAddCredit} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs" disabled={!credAmount || !credGivenBy}>
-                <Plus className="h-3 w-3" /> Add Credit
+                {editCreditId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                {editCreditId ? 'Update Credit' : 'Add Credit'}
               </Button>
             </div>
           </CardContent>
@@ -354,9 +408,14 @@ const AdminMyExpenses = () => {
                       {item.type === 'debit' ? '-' : '+'}₹{Number(item.amount).toLocaleString()}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => item.type === 'debit' ? handleDeleteExpense(item._id) : handleDeleteCredit(item._id)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <div className="flex items-center gap-1 justify-end">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-primary hover:bg-primary/10" onClick={() => handleEditClick(item)}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-red-500 hover:bg-red-50" onClick={() => item.type === 'debit' ? handleDeleteExpense(item._id) : handleDeleteCredit(item._id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
