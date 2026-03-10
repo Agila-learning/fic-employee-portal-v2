@@ -203,11 +203,29 @@ const EmployeeReports = () => {
                         <div className="space-y-2">
                           <div>
                             <p className="text-xs font-semibold uppercase text-muted-foreground">Morning</p>
-                            <p className="text-sm line-clamp-2">{report.morning_description}</p>
+                            {!report.morning_description ? (
+                              <p className="text-sm text-muted-foreground">-</p>
+                            ) : (
+                              <ol className="list-decimal pl-4 text-sm space-y-1 mt-1">
+                                {report.morning_description.split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line: string, i: number) => {
+                                  const cleanedLine = line.trim().replace(/^\d+[\.\)\-\s]+/, '');
+                                  return cleanedLine ? <li key={i}>{cleanedLine}</li> : null;
+                                })}
+                              </ol>
+                            )}
                           </div>
                           <div>
                             <p className="text-xs font-semibold uppercase text-muted-foreground">Afternoon</p>
-                            <p className="text-sm line-clamp-2">{report.afternoon_description}</p>
+                            {!report.afternoon_description ? (
+                              <p className="text-sm text-muted-foreground">-</p>
+                            ) : (
+                              <ol className="list-decimal pl-4 text-sm space-y-1 mt-1">
+                                {report.afternoon_description.split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line: string, i: number) => {
+                                  const cleanedLine = line.trim().replace(/^\d+[\.\)\-\s]+/, '');
+                                  return cleanedLine ? <li key={i}>{cleanedLine}</li> : null;
+                                })}
+                              </ol>
+                            )}
                           </div>
                         </div>
                       </div>

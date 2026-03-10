@@ -21,7 +21,7 @@ const AdminDashboard = () => {
   const { leads, refetchLeads } = useLeads();
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
 
-  const activeEmployees = employees.filter(e => e.is_active);
+  const activeEmployees = employees.filter(e => e.is_active !== false);
   const activeEmployeeCount = activeEmployees.length;
   const totalLeads = leads.length;
   const convertedLeads = leads.filter(l => l.status === 'converted').length;
@@ -38,35 +38,69 @@ const AdminDashboard = () => {
   const nonItPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'non_it').length;
   const bankingPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'banking').length;
 
-  // Helper to compare assigned_to (could be ObjectId string or populated object) vs user_id
-  const matchEmployee = (leadAssignedTo: any, empUserId: string) => {
-    if (!leadAssignedTo) return false;
-    if (typeof leadAssignedTo === 'string') return leadAssignedTo === empUserId;
-    if (typeof leadAssignedTo === 'object') {
-      return leadAssignedTo._id === empUserId || leadAssignedTo.id === empUserId || String(leadAssignedTo) === empUserId;
+  // Helper to compare lead owner fields (assigned_to or created_by) vs user_id
+  const matchEmployee = (field: any, empUserId: string) => {
+    if (!field || !empUserId) return false;
+
+    // If it's a string, simple comparison
+    if (typeof field === 'string') return field === empUserId;
+
+    // If it's a populated object
+    if (typeof field === 'object') {
+      const fieldId = field._id || field.id || field.user_id || field.toString();
+      // Handle the case where fieldId itself might still be an object (or [object Object])
+      if (fieldId && typeof fieldId === 'string' && fieldId !== '[object Object]') {
+        return fieldId === empUserId;
+      }
+      // If we still didn't get a good string, try to stringify the object
+      try {
+        return String(field._id || field) === empUserId;
+      } catch (e) {
+        return false;
+      }
     }
     return false;
   };
 
+  // Helper to check lead status (case-insensitive)
+  const isStatus = (status: string, targetValues: string[]) => {
+    if (!status) return false;
+    const lowerStatus = status.toLowerCase();
+    return targetValues.map(v => v.toLowerCase()).includes(lowerStatus);
+  };
+
   // Calculate conversion rate based on employee success conversions only
   const totalEmployeeSuccess = employees.reduce((acc, emp) => {
-    return acc + leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) && l.status === 'success').length;
+    return acc + leads.filter(l =>
+      (matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)) &&
+      isStatus(l.status, ['success'])
+    ).length;
   }, 0);
   const totalEmployeeLeads = employees.reduce((acc, emp) => {
-    return acc + leads.filter(l => matchEmployee(l.assigned_to, emp.user_id)).length;
+    return acc + leads.filter(l =>
+      matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)
+    ).length;
   }, 0);
   const conversionRate = totalEmployeeLeads > 0 ? Math.round((totalEmployeeSuccess / totalEmployeeLeads) * 100) : 0;
 
   const statusDistribution = STATUS_OPTIONS_ADMIN.map(status => ({
     ...status,
-    count: leads.filter(l => l.status === status.value).length
+    count: leads.filter(l => isStatus(l.status, [status.value])).length
   })).sort((a, b) => b.count - a.count);
 
   const employeePerformance = activeEmployees.map(emp => ({
     ...emp,
-    successCount: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) && l.status === 'success').length,
-    converted: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) && (l.status === 'converted' || l.status === 'success')).length,
-    total: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id)).length
+    successCount: leads.filter(l =>
+      (matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)) &&
+      isStatus(l.status, ['success'])
+    ).length,
+    converted: leads.filter(l =>
+      (matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)) &&
+      isStatus(l.status, ['converted', 'success'])
+    ).length,
+    total: leads.filter(l =>
+      matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)
+    ).length
   }))
     .sort((a, b) => b.converted === a.converted ? b.total - a.total : b.converted - a.converted)
     .slice(0, 5);
@@ -78,11 +112,11 @@ const AdminDashboard = () => {
   const weekLabel = `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
   const weeklyPerformance = activeEmployees.map(emp => {
     const weeklyLeads = leads.filter(l =>
-      matchEmployee(l.assigned_to, emp.user_id) &&
-      (l.status === 'converted' || l.status === 'success') &&
+      (matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)) &&
+      isStatus(l.status, ['converted', 'success']) &&
       l.updated_at && isWithinInterval(parseISO(l.updated_at), { start: weekStart, end: weekEnd })
     );
-    return { ...emp, weeklySuccess: weeklyLeads.length, total: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id)).length };
+    return { ...emp, weeklySuccess: weeklyLeads.length, total: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)).length };
   })
     .filter(e => e.weeklySuccess > 0)
     .sort((a, b) => b.weeklySuccess === a.weeklySuccess ? b.total - a.total : b.weeklySuccess - a.weeklySuccess)
