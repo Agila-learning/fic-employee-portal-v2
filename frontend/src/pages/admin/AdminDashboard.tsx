@@ -38,20 +38,6 @@ const AdminDashboard = () => {
   const nonItPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'non_it').length;
   const bankingPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'banking').length;
 
-  // Calculate conversion rate based on employee success conversions only
-  const totalEmployeeSuccess = employees.reduce((acc, emp) => {
-    return acc + leads.filter(l => l.assigned_to === emp.user_id && l.status === 'success').length;
-  }, 0);
-  const totalEmployeeLeads = employees.reduce((acc, emp) => {
-    return acc + leads.filter(l => l.assigned_to === emp.user_id).length;
-  }, 0);
-  const conversionRate = totalEmployeeLeads > 0 ? Math.round((totalEmployeeSuccess / totalEmployeeLeads) * 100) : 0;
-
-  const statusDistribution = STATUS_OPTIONS_ADMIN.map(status => ({
-    ...status,
-    count: leads.filter(l => l.status === status.value).length
-  })).sort((a, b) => b.count - a.count);
-
   // Helper to compare assigned_to (could be ObjectId string or populated object) vs user_id
   const matchEmployee = (leadAssignedTo: any, empUserId: string) => {
     if (!leadAssignedTo) return false;
@@ -62,12 +48,28 @@ const AdminDashboard = () => {
     return false;
   };
 
+  // Calculate conversion rate based on employee success conversions only
+  const totalEmployeeSuccess = employees.reduce((acc, emp) => {
+    return acc + leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) && l.status === 'success').length;
+  }, 0);
+  const totalEmployeeLeads = employees.reduce((acc, emp) => {
+    return acc + leads.filter(l => matchEmployee(l.assigned_to, emp.user_id)).length;
+  }, 0);
+  const conversionRate = totalEmployeeLeads > 0 ? Math.round((totalEmployeeSuccess / totalEmployeeLeads) * 100) : 0;
+
+  const statusDistribution = STATUS_OPTIONS_ADMIN.map(status => ({
+    ...status,
+    count: leads.filter(l => l.status === status.value).length
+  })).sort((a, b) => b.count - a.count);
+
   const employeePerformance = activeEmployees.map(emp => ({
     ...emp,
     successCount: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) && l.status === 'success').length,
     converted: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) && (l.status === 'converted' || l.status === 'success')).length,
     total: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id)).length
-  })).sort((a, b) => b.converted - a.converted).slice(0, 5);
+  }))
+    .sort((a, b) => b.converted === a.converted ? b.total - a.total : b.converted - a.converted)
+    .slice(0, 5);
 
   // Weekly top performers
   const now = new Date();
@@ -80,8 +82,11 @@ const AdminDashboard = () => {
       (l.status === 'converted' || l.status === 'success') &&
       l.updated_at && isWithinInterval(parseISO(l.updated_at), { start: weekStart, end: weekEnd })
     );
-    return { ...emp, weeklySuccess: weeklyLeads.length };
-  }).filter(e => e.weeklySuccess > 0).sort((a, b) => b.weeklySuccess - a.weeklySuccess).slice(0, 5);
+    return { ...emp, weeklySuccess: weeklyLeads.length, total: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id)).length };
+  })
+    .filter(e => e.weeklySuccess > 0)
+    .sort((a, b) => b.weeklySuccess === a.weeklySuccess ? b.total - a.total : b.weeklySuccess - a.weeklySuccess)
+    .slice(0, 5);
 
   const topPerformerCount = employeePerformance.filter(e => e.converted > 0).length;
 
