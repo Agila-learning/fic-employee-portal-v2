@@ -284,23 +284,23 @@ const AdminMyExpenses = () => {
                       {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                  <Input size="sm" placeholder="Manual entry..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
+                  <Input placeholder="Manual entry..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
                 </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-medium">Amount (₹)</label>
-                <Input size="sm" type="number" placeholder="0.00" value={expAmount} onChange={e => setExpAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
+                <Input type="number" placeholder="0.00" value={expAmount} onChange={e => setExpAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium">Paid To</label>
-                <Input size="sm" placeholder="e.g. Amazon" value={expPaidTo} onChange={e => setExpPaidTo(e.target.value)} className="border-border/50 h-8 text-xs" />
+                <Input placeholder="e.g. Amazon" value={expPaidTo} onChange={e => setExpPaidTo(e.target.value)} className="border-border/50 h-8 text-xs" />
               </div>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium">Description</label>
-              <Input size="sm" placeholder="Details..." value={expDesc} onChange={e => setExpDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+              <Input placeholder="Details..." value={expDesc} onChange={e => setExpDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
             </div>
             <div className="flex items-center gap-3 pt-2">
               <div className="flex-1">
@@ -345,22 +345,22 @@ const AdminMyExpenses = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium">Amount (₹)</label>
-                <Input size="sm" type="number" placeholder="0.00" value={credAmount} onChange={e => setCredAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
+                <Input type="number" placeholder="0.00" value={credAmount} onChange={e => setCredAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-medium">Given By</label>
-                <Input size="sm" placeholder="Internal/CEO" value={credGivenBy} onChange={e => setCredGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
+                <Input placeholder="Internal/CEO" value={credGivenBy} onChange={e => setCredGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium">Role</label>
-                <Input size="sm" placeholder="Title" value={credRole} onChange={e => setCredRole(e.target.value)} className="border-border/50 h-8 text-xs" />
+                <Input placeholder="Title" value={credRole} onChange={e => setCredRole(e.target.value)} className="border-border/50 h-8 text-xs" />
               </div>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium">Description</label>
-              <Input size="sm" placeholder="Optional notes..." value={credDesc} onChange={e => setCredDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+              <Input placeholder="Optional notes..." value={credDesc} onChange={e => setCredDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
             </div>
             <div className="pt-2 text-right">
               <Button onClick={handleAddCredit} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs" disabled={!credAmount || !credGivenBy}>
@@ -435,6 +435,18 @@ const EmployeeExpenseManagement = () => {
   const [loading, setLoading] = useState(true);
   const [employeeList, setEmployeeList] = useState<any[]>([]);
 
+  // Edit dialog state
+  const [editItem, setEditItem] = useState<any | null>(null);
+  const [editDate, setEditDate] = useState<Date>(new Date());
+  const [editAmount, setEditAmount] = useState('');
+  const [editCategory, setEditCategory] = useState('Tea/Coffee');
+  const [editCustomCategory, setEditCustomCategory] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editStatus, setEditStatus] = useState<string>('pending');
+  const [editGivenBy, setEditGivenBy] = useState('');
+  const [editRole, setEditRole] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
   const fetchAll = async () => {
     setLoading(true);
     try {
@@ -465,6 +477,81 @@ const EmployeeExpenseManagement = () => {
     }
   };
 
+  const openEditDialog = (item: any) => {
+    setEditItem(item);
+    if (item.type === 'expense') {
+      setEditDate(new Date(item.expense_date));
+      setEditAmount(String(item.amount));
+      setEditDesc(item.description || '');
+      setEditStatus(item.approval_status || 'pending');
+      setEditGivenBy('');
+      setEditRole('');
+      if (CATEGORIES.includes(item.category)) {
+        setEditCategory(item.category);
+        setEditCustomCategory('');
+      } else {
+        setEditCategory('Others');
+        setEditCustomCategory(item.category || '');
+      }
+    } else {
+      setEditDate(new Date(item.credit_date));
+      setEditAmount(String(item.amount));
+      setEditDesc(item.description || '');
+      setEditGivenBy(item.given_by || '');
+      setEditRole(item.given_by_role || '');
+      setEditCategory('');
+      setEditCustomCategory('');
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editItem) return;
+    setEditSaving(true);
+    try {
+      if (editItem.type === 'expense') {
+        const finalCategory = editCategory === 'Others' ? (editCustomCategory || 'Others') : editCategory;
+        await operationService.updateExpense(editItem._id, {
+          expense_date: format(editDate, 'yyyy-MM-dd'),
+          amount: parseFloat(editAmount),
+          description: editDesc,
+          category: finalCategory,
+          approval_status: editStatus,
+        });
+        toast.success('Expense updated');
+      } else {
+        await operationService.updateCredit(editItem._id, {
+          credit_date: format(editDate, 'yyyy-MM-dd'),
+          amount: parseFloat(editAmount),
+          description: editDesc,
+          given_by: editGivenBy,
+          given_by_role: editRole,
+        });
+        toast.success('Credit updated');
+      }
+      setEditItem(null);
+      fetchAll();
+    } catch (error) {
+      toast.error('Update failed');
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const handleDeleteEmployee = async (item: any) => {
+    if (!window.confirm(`Delete this ${item.type}? This cannot be undone.`)) return;
+    try {
+      if (item.type === 'expense') {
+        await operationService.deleteExpense(item._id);
+      } else {
+        await operationService.deleteCredit(item._id);
+      }
+      toast.success('Deleted');
+      fetchAll();
+    } catch (error) {
+      toast.error('Delete failed');
+    }
+  };
+
   const exportEmployeeExpenses = async () => {
     const wb = createWorkbook();
     const ws = wb.addWorksheet('Employee Expenses');
@@ -488,6 +575,12 @@ const EmployeeExpenseManagement = () => {
     toast.success('Report downloaded');
   };
 
+  // Merged, sorted list of ALL employee transactions (excluding admin's own)
+  const allTransactions = [
+    ...expenses.filter(e => e.user_id?._id !== user?.id).map(e => ({ ...e, type: 'expense' })),
+    ...credits.filter(c => c.user_id?._id !== user?.id).map(c => ({ ...c, type: 'credit' })),
+  ].sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime());
+
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
@@ -495,6 +588,7 @@ const EmployeeExpenseManagement = () => {
           <Download className="h-4 w-4" /> Export Employee Expenses
         </Button>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> Pending Approvals</CardTitle></CardHeader>
@@ -502,7 +596,9 @@ const EmployeeExpenseManagement = () => {
             <Table>
               <TableHeader><TableRow><TableHead>Employee</TableHead><TableHead>Amount</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
               <TableBody>
-                {expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
+                {expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
+                  <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-sm">No pending approvals</TableCell></TableRow>
+                ) : expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
                   <TableRow key={e._id}>
                     <TableCell className="text-xs font-medium">{e.user_id?.name || 'Employee'}</TableCell>
                     <TableCell className="text-xs font-bold text-destructive">₹{e.amount}</TableCell>
@@ -540,6 +636,193 @@ const EmployeeExpenseManagement = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* All Employee Transactions with Edit & Delete */}
+      <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="bg-muted/30 flex flex-row items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-primary" />
+            All Employee Transactions
+          </CardTitle>
+          <span className="text-xs text-muted-foreground">{allTransactions.length} entries</span>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
+          ) : allTransactions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">No employee transactions found</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/20">
+                    <TableHead className="w-8">S.No</TableHead>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-20 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allTransactions.map((item, index) => (
+                    <TableRow key={item._id}>
+                      <TableCell className="text-xs text-muted-foreground">{index + 1}</TableCell>
+                      <TableCell className="text-xs font-medium">{item.user_id?.name || 'Employee'}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={cn("text-[10px] uppercase", item.type === 'expense' ? "text-destructive border-destructive" : "text-emerald-600 border-emerald-600")}>
+                          {item.type === 'expense' ? 'Debit' : 'Credit'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">
+                        {format(safeParseDate(item.expense_date || item.credit_date), 'dd MMM yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-xs font-medium">{item.category || item.given_by || (item.type === 'credit' ? 'Company Credit' : 'Other')}</div>
+                        <div className="text-[10px] text-muted-foreground truncate max-w-[140px]">{item.description || '—'}</div>
+                      </TableCell>
+                      <TableCell className={cn("text-right font-bold text-xs", item.type === 'expense' ? "text-destructive" : "text-emerald-600")}>
+                        {item.type === 'expense' ? '-' : '+'}₹{Number(item.amount).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        {item.type === 'expense' ? (
+                          <Badge variant="outline" className={cn("text-[10px]",
+                            item.approval_status === 'approved' ? 'text-emerald-600 border-emerald-600' :
+                              item.approval_status === 'rejected' ? 'text-destructive border-destructive' :
+                                'text-amber-600 border-amber-600'
+                          )}>
+                            {item.approval_status || 'pending'}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-600">Credit</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 justify-end">
+                          <Button
+                            variant="ghost" size="icon"
+                            className="h-7 w-7 hover:text-primary hover:bg-primary/10"
+                            onClick={() => openEditDialog(item)}
+                            title="Edit"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost" size="icon"
+                            className="h-7 w-7 hover:text-red-500 hover:bg-red-50"
+                            onClick={() => handleDeleteEmployee(item)}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Edit Dialog */}
+      {editItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card rounded-xl shadow-2xl border border-border/50 w-full max-w-md mx-4 animate-fade-in">
+            <div className="flex items-center justify-between p-5 border-b border-border/40">
+              <h3 className="font-semibold text-base flex items-center gap-2">
+                <Pencil className="h-4 w-4 text-primary" />
+                Edit {editItem.type === 'expense' ? 'Expense (Debit)' : 'Credit'} — {editItem.user_id?.name}
+              </h3>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditItem(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-5 space-y-4">
+              {/* Date */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
+                      <CalendarIcon className="mr-2 h-3 w-3" /> {format(editDate, 'PPP')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={editDate} onSelect={(d) => d && setEditDate(d)} className="p-3" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Amount */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Amount (₹)</label>
+                <Input type="number" placeholder="0.00" value={editAmount} onChange={e => setEditAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
+              </div>
+
+              {/* Category (for expense) or Given By / Role (for credit) */}
+              {editItem.type === 'expense' ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Category</label>
+                  <div className="flex gap-2">
+                    <Select value={editCategory} onValueChange={setEditCategory}>
+                      <SelectTrigger className="border-border/50 text-xs w-[140px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {editCategory === 'Others' && (
+                      <Input placeholder="Manual entry..." value={editCustomCategory} onChange={e => setEditCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Given By</label>
+                    <Input placeholder="Name" value={editGivenBy} onChange={e => setEditGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Role</label>
+                    <Input placeholder="Title" value={editRole} onChange={e => setEditRole(e.target.value)} className="border-border/50 h-8 text-xs" />
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Description</label>
+                <Input placeholder="Details..." value={editDesc} onChange={e => setEditDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+              </div>
+
+              {/* Approval Status (expense only) */}
+              {editItem.type === 'expense' && (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Approval Status</label>
+                  <Select value={editStatus} onValueChange={setEditStatus}>
+                    <SelectTrigger className="border-border/50 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 justify-end p-5 pt-0">
+              <Button variant="outline" size="sm" onClick={() => setEditItem(null)}>Cancel</Button>
+              <Button size="sm" onClick={handleSaveEdit} disabled={!editAmount || editSaving} className="gap-1">
+                {editSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Pencil className="h-3 w-3" />}
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

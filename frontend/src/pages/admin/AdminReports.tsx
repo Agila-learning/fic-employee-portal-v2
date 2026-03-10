@@ -138,6 +138,28 @@ const AdminReports = () => {
     }
   };
 
+  // Apply frontend filters
+  const filteredReports = reports.filter(r => {
+    // Date filter
+    if (selectedDate) {
+      const reportDate = new Date(r.report_date);
+      const selected = new Date(selectedDate);
+      if (
+        reportDate.getFullYear() !== selected.getFullYear() ||
+        reportDate.getMonth() !== selected.getMonth() ||
+        reportDate.getDate() !== selected.getDate()
+      ) return false;
+    }
+    // Department filter
+    if (selectedDepartment !== 'all' && r.department !== selectedDepartment) return false;
+    // Employee filter
+    if (selectedEmployee !== 'all') {
+      const userId = typeof r.user_id === 'object' ? (r.user_id as any)?._id || (r.user_id as any) : r.user_id;
+      if (userId !== selectedEmployee) return false;
+    }
+    return true;
+  });
+
   // Group reports by department
   const reportsByDepartment = DEPARTMENTS.reduce((acc, dept) => {
     acc[dept] = reports.filter(r => r.department === dept);
@@ -383,7 +405,7 @@ const AdminReports = () => {
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
-            ) : reports.length === 0 ? (
+            ) : filteredReports.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No reports found for the selected filters
               </div>
@@ -402,7 +424,7 @@ const AdminReports = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {reports.map((report, index) => {
+                    {filteredReports.map((report, index) => {
                       const isBDAorHR = report.department === 'BDA' || report.department === 'HR';
 
                       return (

@@ -52,24 +52,35 @@ const AdminDashboard = () => {
     count: leads.filter(l => l.status === status.value).length
   })).sort((a, b) => b.count - a.count);
 
+  // Helper to compare assigned_to (could be ObjectId string or populated object) vs user_id
+  const matchEmployee = (leadAssignedTo: any, empUserId: string) => {
+    if (!leadAssignedTo) return false;
+    if (typeof leadAssignedTo === 'string') return leadAssignedTo === empUserId;
+    if (typeof leadAssignedTo === 'object') {
+      return leadAssignedTo._id === empUserId || leadAssignedTo.id === empUserId || String(leadAssignedTo) === empUserId;
+    }
+    return false;
+  };
+
   const employeePerformance = activeEmployees.map(emp => ({
     ...emp,
-    successCount: leads.filter(l => l.assigned_to === emp.user_id && l.status === 'success').length,
-    converted: leads.filter(l => l.assigned_to === emp.user_id && (l.status === 'converted' || l.status === 'success')).length,
-    total: leads.filter(l => l.assigned_to === emp.user_id).length
-  })).sort((a, b) => b.successCount - a.successCount).slice(0, 5);
+    successCount: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) && l.status === 'success').length,
+    converted: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) && (l.status === 'converted' || l.status === 'success')).length,
+    total: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id)).length
+  })).sort((a, b) => b.converted - a.converted).slice(0, 5);
 
   // Weekly top performers
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+  const weekLabel = `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
   const weeklyPerformance = activeEmployees.map(emp => {
-    const weeklySuccess = leads.filter(l =>
-      l.assigned_to === emp.user_id &&
+    const weeklyLeads = leads.filter(l =>
+      matchEmployee(l.assigned_to, emp.user_id) &&
       (l.status === 'converted' || l.status === 'success') &&
       l.updated_at && isWithinInterval(parseISO(l.updated_at), { start: weekStart, end: weekEnd })
-    ).length;
-    return { ...emp, weeklySuccess };
+    );
+    return { ...emp, weeklySuccess: weeklyLeads.length };
   }).filter(e => e.weeklySuccess > 0).sort((a, b) => b.weeklySuccess - a.weeklySuccess).slice(0, 5);
 
   const topPerformerCount = employeePerformance.filter(e => e.converted > 0).length;
@@ -239,10 +250,13 @@ const AdminDashboard = () => {
           <Card id="top-performers-section" className="border-border/50 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:border-primary/20 animate-slide-up stagger-2">
             <CardHeader className="border-b border-border/50 bg-muted/30">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                  Top Performers (All Time)
-                </CardTitle>
+                <div>
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                    Top Performers
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">All-time conversions ranking</p>
+                </div>
                 <div onClick={() => navigate('/admin/employees')}>
                   <Button variant="ghost" size="sm" className="gap-1 group/btn">
                     View All
@@ -253,9 +267,9 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
-                {employeePerformance.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No employee data yet</p>
-                ) : employeePerformance.map((emp, index) => (
+                {employeePerformance.filter(e => e.converted > 0).length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No conversions yet</p>
+                ) : employeePerformance.filter(e => e.converted > 0).map((emp, index) => (
                   <div
                     key={emp.id}
                     className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] cursor-pointer group/emp"
@@ -275,14 +289,14 @@ const AdminDashboard = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate group-hover/emp:text-primary transition-colors">{emp.name}</p>
-                      <p className="text-xs text-muted-foreground">{emp.total} leads assigned</p>
+                      <p className="text-xs text-muted-foreground">{emp.total} leads • {emp.successCount} success</p>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-1.5 text-success">
-                        <CheckCircle className="h-5 w-5" />
+                        <Trophy className="h-5 w-5" />
                         <span className="text-xl font-bold">{emp.converted}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">converted</p>
+                      <p className="text-xs text-muted-foreground">conversions</p>
                     </div>
                   </div>
                 ))}
@@ -293,15 +307,22 @@ const AdminDashboard = () => {
           {/* Weekly Top Performers */}
           <Card className="border-border/50 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:border-primary/20 animate-slide-up stagger-2">
             <CardHeader className="border-b border-border/50 bg-muted/30">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                Weekly Top Performers
-              </CardTitle>
+              <div>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                  Weekly Top Performers
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">Week of {weekLabel}</p>
+              </div>
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
                 {weeklyPerformance.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No conversions this week yet</p>
+                  <div className="text-center py-8">
+                    <Star className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                    <p className="text-muted-foreground text-sm">No conversions this week yet</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">{weekLabel}</p>
+                  </div>
                 ) : weeklyPerformance.map((emp, index) => (
                   <div
                     key={emp.id}
@@ -312,7 +333,8 @@ const AdminDashboard = () => {
                       "flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all duration-300",
                       index === 0 ? "bg-gradient-to-br from-green-400 to-green-600 text-white shadow-lg shadow-green-500/30" :
                         index === 1 ? "bg-gradient-to-br from-emerald-300 to-emerald-400 text-emerald-800" :
-                          "bg-muted text-muted-foreground"
+                          index === 2 ? "bg-gradient-to-br from-teal-400 to-teal-600 text-white" :
+                            "bg-muted text-muted-foreground"
                     )}>
                       {index + 1}
                     </div>
@@ -321,9 +343,10 @@ const AdminDashboard = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate group-hover/emp:text-primary transition-colors">{emp.name}</p>
+                      <p className="text-xs text-muted-foreground">This week's conversions</p>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-1.5 text-success">
+                      <div className="flex items-center gap-1.5 text-green-600">
                         <Star className="h-5 w-5" />
                         <span className="text-xl font-bold">{emp.weeklySuccess}</span>
                       </div>
