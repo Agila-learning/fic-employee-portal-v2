@@ -228,6 +228,21 @@ const AdminMyExpenses = () => {
   const totalSpent = useMemo(() => (Array.isArray(expenses) ? expenses : []).reduce((s, e) => s + Number(e?.amount || 0), 0), [expenses]);
   const totalCredited = useMemo(() => (Array.isArray(credits) ? credits : []).reduce((s, c) => s + Number(c?.amount || 0), 0), [credits]);
 
+  const chartData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    (Array.isArray(expenses) ? expenses : []).forEach(e => {
+      if (!e) return;
+      const amt = Number(e.amount);
+      if (!isNaN(amt)) {
+        const cat = e.category || 'Other';
+        counts[cat] = (counts[cat] || 0) + amt;
+      }
+    });
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .filter(d => d.value > 0);
+  }, [expenses]);
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -431,20 +446,7 @@ const AdminMyExpenses = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={useMemo(() => {
-                        const counts: Record<string, number> = {};
-                        (Array.isArray(expenses) ? expenses : []).forEach(e => {
-                          if (!e) return;
-                          const amt = Number(e.amount);
-                          if (!isNaN(amt)) {
-                            const cat = e.category || 'Other';
-                            counts[cat] = (counts[cat] || 0) + amt;
-                          }
-                        });
-                        return Object.entries(counts)
-                          .map(([name, value]) => ({ name, value }))
-                          .filter(d => d.value > 0);
-                      }, [expenses])}
+                      data={chartData}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
@@ -710,6 +712,32 @@ const EmployeeExpenseManagement = () => {
     return { pendingCount, totalApprovedExp, totalCredited };
   }, [expenses, credits, user]);
 
+  const utilizationData = useMemo(() => {
+    const safeEmps = Array.isArray(employeeList) ? employeeList : [];
+    const safeExp = Array.isArray(expenses) ? expenses : [];
+    const safeCreds = Array.isArray(credits) ? credits : [];
+    
+    return safeEmps.filter(emp => emp && emp._id !== user?.id).map(emp => {
+      const exp = safeExp.filter(e => {
+        if (!e) return false;
+        const uid = e.user_id?._id || e.user_id;
+        return uid === emp._id && e.approval_status === 'approved';
+      }).reduce((s, e) => s + Number(e?.amount || 0), 0);
+      
+      const cred = safeCreds.filter(c => {
+        if (!c) return false;
+        const uid = c.user_id?._id || c.user_id;
+        return uid === emp._id;
+      }).reduce((s, c) => s + Number(c?.amount || 0), 0);
+      
+      return { 
+        name: (emp.name || 'Unknown').split(' ')[0], 
+        expense: isNaN(exp) ? 0 : exp, 
+        balance: isNaN(cred - exp) ? 0 : cred - exp 
+      };
+    }).filter(d => d && (d.expense > 0 || d.balance !== 0));
+  }, [employeeList, expenses, credits, user]);
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -818,31 +846,7 @@ const EmployeeExpenseManagement = () => {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={useMemo(() => {
-                    const safeEmps = Array.isArray(employeeList) ? employeeList : [];
-                    const safeExp = Array.isArray(expenses) ? expenses : [];
-                    const safeCreds = Array.isArray(credits) ? credits : [];
-                    
-                    return safeEmps.filter(emp => emp && emp._id !== user?.id).map(emp => {
-                      const exp = safeExp.filter(e => {
-                        if (!e) return false;
-                        const uid = e.user_id?._id || e.user_id;
-                        return uid === emp._id && e.approval_status === 'approved';
-                      }).reduce((s, e) => s + Number(e?.amount || 0), 0);
-                      
-                      const cred = safeCreds.filter(c => {
-                        if (!c) return false;
-                        const uid = c.user_id?._id || c.user_id;
-                        return uid === emp._id;
-                      }).reduce((s, c) => s + Number(c?.amount || 0), 0);
-                      
-                      return { 
-                        name: (emp.name || 'Unknown').split(' ')[0], 
-                        expense: isNaN(exp) ? 0 : exp, 
-                        balance: isNaN(cred - exp) ? 0 : cred - exp 
-                      };
-                    }).filter(d => d && (d.expense > 0 || d.balance !== 0));
-                  }, [employeeList, expenses, credits, user])}
+                  data={utilizationData}
                   layout="vertical"
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
