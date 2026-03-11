@@ -256,90 +256,94 @@ const EmployeeExpenseManagement = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between"><CardTitle className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4 text-amber-500" /> Pending Approvals</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <div className="max-h-[300px] overflow-y-auto">
-                <Table>
-                  <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-[10px]">Amount</TableHead><TableHead className="text-right text-[10px]">Actions</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {(Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
-                    ) : (Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
-                      <TableRow key={e?._id} className="group hover:bg-muted/50 transition-colors">
-                        <TableCell className="text-[10px] py-2">{e?.user_id?.name || 'Employee'}</TableCell>
-                        <TableCell className="text-[10px] py-2 font-bold text-destructive">₹{e?.amount || 0}</TableCell>
-                        <TableCell className="text-right py-2">
-                          <div className="flex justify-end gap-1">
-                            <Button size="icon" variant="ghost" className="h-6 w-6 text-emerald-600 hover:bg-emerald-50" onClick={() => e && handleApproval(e._id, 'approved')} title="Approve"><Pencil className="h-3 w-3" /></Button>
-                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-red-50" onClick={() => e && handleApproval(e._id, 'rejected')} title="Reject"><X className="h-3 w-3" /></Button>
-                          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between"><CardTitle className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4 text-amber-500" /> Pending Approvals</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <div className="max-h-[300px] overflow-y-auto">
+              <Table>
+                <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-[10px]">Amount</TableHead><TableHead className="text-right text-[10px]">Actions</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {(Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
+                    <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
+                  ) : (Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
+                    <TableRow key={e?._id} className="group hover:bg-muted/50 transition-colors">
+                      <TableCell className="text-[10px] py-2">{e?.user_id?.name || 'Employee'}</TableCell>
+                      <TableCell className="text-[10px] py-2 font-bold text-destructive">₹{e?.amount || 0}</TableCell>
+                      <TableCell className="text-right py-2">
+                        <div className="flex justify-end gap-1">
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-emerald-600 hover:bg-emerald-50" onClick={() => e && handleApproval(e._id, 'approved')} title="Approve"><Pencil className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-red-50" onClick={() => e && handleApproval(e._id, 'rejected')} title="Reject"><X className="h-3 w-3" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><Users className="h-4 w-4 text-blue-500" /> Employee Summaries</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <div className="max-h-[300px] overflow-y-auto">
+              <Table>
+                <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-right text-[10px]">Balance</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {(Array.isArray(employeeList) ? employeeList : []).filter(emp => emp && emp._id !== user?.id).map(emp => {
+                    const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
+                    const empCred = (Array.isArray(credits) ? credits : []).filter(c => c && (c.user_id?._id === emp._id || c.user_id === emp._id)).reduce((s, c) => s + Number(c.amount || 0), 0);
+                    const balance = empCred - empExp;
+                    return (
+                      <TableRow key={emp._id} className="group hover:bg-muted/50 transition-colors">
+                        <TableCell className="text-[10px] py-2">{emp.name || 'Unknown'}</TableCell>
+                        <TableCell className={cn("text-right text-[10px] py-2 font-bold", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
+                          ₹{isNaN(balance) ? 0 : balance.toLocaleString()}
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><Users className="h-4 w-4 text-blue-500" /> Employee Summaries</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <div className="max-h-[300px] overflow-y-auto">
-                <Table>
-                  <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-right text-[10px]">Balance</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {(Array.isArray(employeeList) ? employeeList : []).filter(emp => emp && emp._id !== user?.id).map(emp => {
-                      const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
-                      const empCred = (Array.isArray(credits) ? credits : []).filter(c => c && (c.user_id?._id === emp._id || c.user_id === emp._id)).reduce((s, c) => s + Number(c.amount || 0), 0);
-                      const balance = empCred - empExp;
-                      return (
-                        <TableRow key={emp._id} className="group hover:bg-muted/50 transition-colors">
-                          <TableCell className="text-[10px] py-2">{emp.name || 'Unknown'}</TableCell>
-                          <TableCell className={cn("text-right text-[10px] py-2 font-bold", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
-                            ₹{isNaN(balance) ? 0 : balance.toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
-          <CardHeader className="pb-2 border-b border-border/10"><CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Credit Utilization</CardTitle></CardHeader>
-          <CardContent className="p-4 h-[250px] relative">
+          <CardHeader className="pb-2 border-b border-border/10"><CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Credit Utilization Overview</CardTitle></CardHeader>
+          <CardContent className="p-6 h-[400px] relative">
             {loading ? (
               <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary/30" /></div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={utilizationData}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  layout="horizontal"
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border)/0.3)" />
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" width={60} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.3)" />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    cursor={{ fill: 'transparent' }}
+                    cursor={{ fill: 'hsl(var(--muted)/0.2)' }}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
                   />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                  <Bar dataKey="expense" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={10} name="Spent" />
-                  <Bar dataKey="balance" fill="#10b981" radius={[0, 4, 4, 0]} barSize={10} name="Balance" />
+                  <Legend verticalAlign="top" iconType="circle" wrapperStyle={{ fontSize: '11px', paddingBottom: '20px' }} />
+                  <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={30} name="Spent (₹)" />
+                  <Bar dataKey="balance" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} name="Balance (₹)" />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
 
       <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
         <CardHeader className="bg-muted/30 flex flex-row items-center justify-between">

@@ -240,136 +240,81 @@ const AdminMyExpenses = () => {
         </motion.div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="lg:col-span-2"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-              <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2 text-destructive">
-                  <TrendingDown className="h-5 w-5" /> {editExpenseId ? 'Edit Debit (Expense)' : 'Add Debit (Expense)'}
-                </CardTitle>
-                {editExpenseId && (
-                  <Button variant="ghost" size="sm" onClick={() => { setEditExpenseId(null); setExpAmount(''); setExpDesc(''); }} className="h-8">
-                    <X className="h-4 w-4 mr-1" /> Cancel
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="pt-4 space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                          <CalendarIcon className="mr-2 h-3 w-3" /> {format(expDate, 'PPP')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={expDate} onSelect={(d) => d && setExpDate(d)} className="p-3" />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Category</label>
-                    <div className="flex gap-2">
-                      <Select value={expCategory} onValueChange={setExpCategory}>
-                        <SelectTrigger className="border-border/50 text-xs w-[120px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm h-full">
+            <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2 text-destructive">
+                <TrendingDown className="h-5 w-5" /> {editExpenseId ? 'Edit Debit (Expense)' : 'Add Debit (Expense)'}
+              </CardTitle>
+              {editExpenseId && (
+                <Button variant="ghost" size="sm" onClick={() => { setEditExpenseId(null); setExpAmount(''); setExpDesc(''); }} className="h-8">
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="pt-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
+                        <CalendarIcon className="mr-2 h-3 w-3" /> {format(expDate, 'PPP')}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={expDate} onSelect={(d) => d && setExpDate(d)} className="p-3" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Category</label>
+                  <div className="flex gap-2">
+                    <Select value={expCategory} onValueChange={setExpCategory}>
+                      <SelectTrigger className="border-border/50 text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {expCategory === 'Others' && (
                       <Input placeholder="Manual entry..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
-                    </div>
+                    )}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Amount (₹)</label>
-                    <Input type="number" placeholder="0.00" value={expAmount} onChange={e => setExpAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Paid To</label>
-                    <Input placeholder="e.g. Amazon" value={expPaidTo} onChange={e => setExpPaidTo(e.target.value)} className="border-border/50 h-8 text-xs" />
-                  </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Amount (₹)</label>
+                  <Input type="number" placeholder="0.00" value={expAmount} onChange={e => setExpAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium">Description</label>
-                  <Input placeholder="Details..." value={expDesc} onChange={e => setExpDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+                  <label className="text-xs font-medium">Paid To</label>
+                  <Input placeholder="e.g. Amazon" value={expPaidTo} onChange={e => setExpPaidTo(e.target.value)} className="border-border/50 h-8 text-xs" />
                 </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <div className="flex-1">
-                    <Input ref={fileInputRef} type="file" className="hidden" onChange={e => setReceiptFile(e.target.files?.[0] || null)} />
-                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="w-full gap-2 text-xs border-dashed">
-                      {receiptFile ? <><FileImage className="h-3 w-3" /> {receiptFile.name.slice(0, 10)}...</> : <><Upload className="h-3 w-3" /> Receipt</>}
-                    </Button>
-                  </div>
-                  <Button onClick={handleAddExpense} size="sm" className="bg-destructive hover:bg-destructive/90 text-white gap-2 text-xs" disabled={!expAmount || !expDesc || uploading}>
-                    {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : (editExpenseId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />)}
-                    {editExpenseId ? 'Update Debit' : 'Add Debit'}
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Description</label>
+                <Input placeholder="Details..." value={expDesc} onChange={e => setExpDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <div className="flex-1">
+                  <Input ref={fileInputRef} type="file" className="hidden" onChange={e => setReceiptFile(e.target.files?.[0] || null)} />
+                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="w-full gap-2 text-xs border-dashed">
+                    {receiptFile ? <><FileImage className="h-3 w-3" /> {receiptFile.name.slice(0, 10)}...</> : <><Upload className="h-3 w-3" /> Receipt</>}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-              <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2 text-emerald-600">
-                  <TrendingUp className="h-5 w-5" /> {editCreditId ? 'Edit Credit' : 'Add Credit'}
-                </CardTitle>
-                {editCreditId && (
-                  <Button variant="ghost" size="sm" onClick={() => { setEditCreditId(null); setCredAmount(''); setCredGivenBy(''); }} className="h-8">
-                    <X className="h-4 w-4 mr-1" /> Cancel
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="pt-4 space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                          <CalendarIcon className="mr-2 h-3 w-3" /> {format(credDate, 'PPP')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={credDate} onSelect={(d) => d && setCredDate(d)} className="p-3" />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Amount (₹)</label>
-                    <Input type="number" placeholder="0.00" value={credAmount} onChange={e => setCredAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Given By</label>
-                    <Input placeholder="Internal/CEO" value={credGivenBy} onChange={e => setCredGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Role</label>
-                    <Input placeholder="Title" value={credRole} onChange={e => setCredRole(e.target.value)} className="border-border/50 h-8 text-xs" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium">Description</label>
-                  <Input placeholder="Optional notes..." value={credDesc} onChange={e => setCredDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
-                </div>
-                <div className="pt-2 text-right">
-                  <Button onClick={handleAddCredit} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs" disabled={!credAmount || !credGivenBy}>
-                    {editCreditId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-                    {editCreditId ? 'Update Credit' : 'Add Credit'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                <Button onClick={handleAddExpense} size="sm" className="bg-destructive hover:bg-destructive/90 text-white gap-2 text-xs" disabled={!expAmount || !expDesc || uploading}>
+                  {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : (editExpenseId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />)}
+                  {editExpenseId ? 'Update Debit' : 'Add Debit'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         <motion.div
@@ -377,47 +322,124 @@ const AdminMyExpenses = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm h-full flex flex-col">
-            <CardHeader className="pb-3 border-b border-border/10">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" /> Expense Breakdown
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm h-full">
+            <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2 text-emerald-600">
+                <TrendingUp className="h-5 w-5" /> {editCreditId ? 'Edit Credit' : 'Add Credit'}
               </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 min-h-[300px] pt-4 relative">
-              {loading ? (
-                <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/30" /></div>
-              ) : expenses.length === 0 ? (
-                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">No data available</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                      animationBegin={500}
-                      animationDuration={1500}
-                    >
-                      {CATEGORIES.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Amount']}
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              {editCreditId && (
+                <Button variant="ghost" size="sm" onClick={() => { setEditCreditId(null); setCredAmount(''); setCredGivenBy(''); }} className="h-8">
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
               )}
+            </CardHeader>
+            <CardContent className="pt-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
+                        <CalendarIcon className="mr-2 h-3 w-3" /> {format(credDate, 'PPP')}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={credDate} onSelect={(d) => d && setCredDate(d)} className="p-3" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Amount (₹)</label>
+                  <Input type="number" placeholder="0.00" value={credAmount} onChange={e => setCredAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Given By</label>
+                  <Input placeholder="Internal/CEO" value={credGivenBy} onChange={e => setCredGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Role</label>
+                  <Input placeholder="Title" value={credRole} onChange={e => setCredRole(e.target.value)} className="border-border/50 h-8 text-xs" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Description</label>
+                <Input placeholder="Optional notes..." value={credDesc} onChange={e => setCredDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+              </div>
+              <div className="pt-2 text-right">
+                <Button onClick={handleAddCredit} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs" disabled={!credAmount || !credGivenBy}>
+                  {editCreditId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                  {editCreditId ? 'Update Credit' : 'Add Credit'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+          <CardHeader className="pb-3 border-b border-border/10">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" /> Expense Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 relative min-h-[400px]">
+            {loading ? (
+              <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/30" /></div>
+            ) : expenses.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">No data available</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div className="h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={110}
+                        paddingAngle={5}
+                        dataKey="value"
+                        animationBegin={500}
+                        animationDuration={1500}
+                      >
+                        {chartData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Amount']}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold border-b pb-2">Category Wise Distribution</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {chartData.map((item, index) => (
+                      <div key={item.name} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }} />
+                          <span className="text-xs font-medium truncate max-w-[120px]">{item.name}</span>
+                        </div>
+                        <span className="text-xs font-bold">₹{item.value.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
