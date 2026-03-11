@@ -225,8 +225,8 @@ const AdminMyExpenses = () => {
     }
   };
 
-  const totalSpent = useMemo(() => (Array.isArray(expenses) ? expenses : []).reduce((s, e) => s + Number(e.amount || 0), 0), [expenses]);
-  const totalCredited = useMemo(() => (Array.isArray(credits) ? credits : []).reduce((s, c) => s + Number(c.amount || 0), 0), [credits]);
+  const totalSpent = useMemo(() => (Array.isArray(expenses) ? expenses : []).reduce((s, e) => s + Number(e?.amount || 0), 0), [expenses]);
+  const totalCredited = useMemo(() => (Array.isArray(credits) ? credits : []).reduce((s, c) => s + Number(c?.amount || 0), 0), [credits]);
 
   return (
     <motion.div 
@@ -434,6 +434,7 @@ const AdminMyExpenses = () => {
                       data={useMemo(() => {
                         const counts: Record<string, number> = {};
                         (Array.isArray(expenses) ? expenses : []).forEach(e => {
+                          if (!e) return;
                           const amt = Number(e.amount);
                           if (!isNaN(amt)) {
                             const cat = e.category || 'Other';
@@ -496,7 +497,10 @@ const AdminMyExpenses = () => {
                   <AnimatePresence mode="popLayout">
                     {loading ? (
                       <TableRow><TableCell colSpan={5} className="text-center py-8 flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading transactions...</TableCell></TableRow>
-                    ) : (Array.isArray(expenses) && Array.isArray(credits) ? [...expenses.map(e => ({ ...e, type: 'debit' })), ...credits.map(c => ({ ...c, type: 'credit' }))] : []).sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime()).map((item, idx) => (
+                    ) : (Array.isArray(expenses) && Array.isArray(credits) 
+                        ? [...expenses.filter(e => e).map(e => ({ ...e, type: 'debit' })), ...credits.filter(c => c).map(c => ({ ...c, type: 'credit' }))] 
+                        : []
+                    ).sort((a, b) => new Date(b?.expense_date || b?.credit_date || 0).getTime() - new Date(a?.expense_date || a?.credit_date || 0).getTime()).map((item, idx) => (
                       <motion.tr
                         key={item._id}
                         initial={{ opacity: 0, x: -10 }}
@@ -676,14 +680,14 @@ const EmployeeExpenseManagement = () => {
     ws.addRow(headers);
     applyHeaderStyle(ws, 6, '1F618D');
 
-    expenses.filter(e => e.user_id?._id !== user?.id).forEach(e => {
+    expenses.filter(e => e && e.user_id?._id !== user?.id).forEach(e => {
       ws.addRow([
         e.user_id?.name || 'Unknown',
-        format(safeParseDate(e.expense_date), 'dd-MM-yyyy'),
-        e.category,
-        e.description,
-        e.amount,
-        e.approval_status
+        e.expense_date ? format(safeParseDate(e.expense_date), 'dd-MM-yyyy') : '-',
+        e.category || '-',
+        e.description || '-',
+        e.amount || 0,
+        e.approval_status || 'pending'
       ]);
     });
 
@@ -693,13 +697,13 @@ const EmployeeExpenseManagement = () => {
 
   // Merged, sorted list of ALL employee transactions (excluding admin's own)
   const allTransactions = useMemo(() => [
-    ...expenses.filter(e => e.user_id?._id !== user?.id).map(e => ({ ...e, type: 'expense' })),
-    ...credits.filter(c => c.user_id?._id !== user?.id).map(c => ({ ...c, type: 'credit' })),
-  ].sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime()), [expenses, credits, user]);
+    ...expenses.filter(e => e && e.user_id?._id !== user?.id).map(e => ({ ...e, type: 'expense' })),
+    ...credits.filter(c => c && c.user_id?._id !== user?.id).map(c => ({ ...c, type: 'credit' })),
+  ].sort((a, b) => new Date(b?.expense_date || b?.credit_date || 0).getTime() - new Date(a?.expense_date || a?.credit_date || 0).getTime()), [expenses, credits, user]);
 
   const stats = useMemo(() => {
-    const safeExpenses = Array.isArray(expenses) ? expenses : [];
-    const safeCredits = Array.isArray(credits) ? credits : [];
+    const safeExpenses = Array.isArray(expenses) ? expenses.filter(e => e) : [];
+    const safeCredits = Array.isArray(credits) ? credits.filter(c => c) : [];
     const pendingCount = safeExpenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length;
     const totalApprovedExp = safeExpenses.filter(e => e.approval_status === 'approved' && e.user_id?._id !== user?.id).reduce((s, e) => s + Number(e.amount || 0), 0);
     const totalCredited = safeCredits.filter(c => c.user_id?._id !== user?.id).reduce((s, c) => s + Number(c.amount || 0), 0);
@@ -759,16 +763,16 @@ const EmployeeExpenseManagement = () => {
                 <Table>
                   <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-[10px]">Amount</TableHead><TableHead className="text-right text-[10px]">Actions</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {(Array.isArray(expenses) ? expenses : []).filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
+                    {(Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
                       <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
-                    ) : (Array.isArray(expenses) ? expenses : []).filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
-                      <TableRow key={e._id} className="group hover:bg-muted/50 transition-colors">
-                        <TableCell className="text-[10px] py-2">{e.user_id?.name || 'Employee'}</TableCell>
-                        <TableCell className="text-[10px] py-2 font-bold text-destructive">₹{e.amount}</TableCell>
+                    ) : (Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
+                      <TableRow key={e?._id} className="group hover:bg-muted/50 transition-colors">
+                        <TableCell className="text-[10px] py-2">{e?.user_id?.name || 'Employee'}</TableCell>
+                        <TableCell className="text-[10px] py-2 font-bold text-destructive">₹{e?.amount || 0}</TableCell>
                         <TableCell className="text-right py-2">
                           <div className="flex justify-end gap-1">
-                            <Button size="icon" variant="ghost" className="h-6 w-6 text-emerald-600 hover:bg-emerald-50" onClick={() => handleApproval(e._id, 'approved')} title="Approve"><Pencil className="h-3 w-3" /></Button>
-                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-red-50" onClick={() => handleApproval(e._id, 'rejected')} title="Reject"><X className="h-3 w-3" /></Button>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-emerald-600 hover:bg-emerald-50" onClick={() => e && handleApproval(e._id, 'approved')} title="Approve"><Pencil className="h-3 w-3" /></Button>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-red-50" onClick={() => e && handleApproval(e._id, 'rejected')} title="Reject"><X className="h-3 w-3" /></Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -787,14 +791,14 @@ const EmployeeExpenseManagement = () => {
                   <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-right text-[10px]">Balance</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {(Array.isArray(employeeList) ? employeeList : []).filter(emp => emp && emp._id !== user?.id).map(emp => {
-                      const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
-                      const empCred = (Array.isArray(credits) ? credits : []).filter(c => c.user_id?._id === emp._id || c.user_id === emp._id).reduce((s, c) => s + Number(c.amount || 0), 0);
+                      const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
+                      const empCred = (Array.isArray(credits) ? credits : []).filter(c => c && (c.user_id?._id === emp._id || c.user_id === emp._id)).reduce((s, c) => s + Number(c.amount || 0), 0);
                       const balance = empCred - empExp;
                       return (
                         <TableRow key={emp._id} className="group hover:bg-muted/50 transition-colors">
                           <TableCell className="text-[10px] py-2">{emp.name || 'Unknown'}</TableCell>
                           <TableCell className={cn("text-right text-[10px] py-2 font-bold", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
-                            ₹{balance.toLocaleString()}
+                            ₹{isNaN(balance) ? 0 : balance.toLocaleString()}
                           </TableCell>
                         </TableRow>
                       );
@@ -821,21 +825,23 @@ const EmployeeExpenseManagement = () => {
                     
                     return safeEmps.filter(emp => emp && emp._id !== user?.id).map(emp => {
                       const exp = safeExp.filter(e => {
+                        if (!e) return false;
                         const uid = e.user_id?._id || e.user_id;
                         return uid === emp._id && e.approval_status === 'approved';
-                      }).reduce((s, e) => s + Number(e.amount || 0), 0);
+                      }).reduce((s, e) => s + Number(e?.amount || 0), 0);
                       
                       const cred = safeCreds.filter(c => {
+                        if (!c) return false;
                         const uid = c.user_id?._id || c.user_id;
                         return uid === emp._id;
-                      }).reduce((s, c) => s + Number(c.amount || 0), 0);
+                      }).reduce((s, c) => s + Number(c?.amount || 0), 0);
                       
                       return { 
                         name: (emp.name || 'Unknown').split(' ')[0], 
                         expense: isNaN(exp) ? 0 : exp, 
                         balance: isNaN(cred - exp) ? 0 : cred - exp 
                       };
-                    }).filter(d => d.expense > 0 || d.balance !== 0);
+                    }).filter(d => d && (d.expense > 0 || d.balance !== 0));
                   }, [employeeList, expenses, credits, user])}
                   layout="vertical"
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -888,16 +894,16 @@ const EmployeeExpenseManagement = () => {
                 </TableHeader>
                 <TableBody>
                   {allTransactions.map((item, index) => (
-                    <TableRow key={item._id}>
+                    <TableRow key={item?._id || index}>
                       <TableCell className="text-xs text-muted-foreground">{index + 1}</TableCell>
-                      <TableCell className="text-xs font-medium">{item.user_id?.name || 'Employee'}</TableCell>
+                      <TableCell className="text-xs font-medium">{item?.user_id?.name || 'Employee'}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={cn("text-[10px] uppercase", item.type === 'expense' ? "text-destructive border-destructive" : "text-emerald-600 border-emerald-600")}>
-                          {item.type === 'expense' ? 'Debit' : 'Credit'}
+                        <Badge variant="outline" className={cn("text-[10px] uppercase", item?.type === 'expense' ? "text-destructive border-destructive" : "text-emerald-600 border-emerald-600")}>
+                          {item?.type === 'expense' ? 'Debit' : 'Credit'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-xs whitespace-nowrap">
-                        {format(safeParseDate(item.expense_date || item.credit_date), 'dd MMM yyyy')}
+                        {item ? format(safeParseDate(item.expense_date || item.credit_date), 'dd MMM yyyy') : '—'}
                       </TableCell>
                       <TableCell>
                         <div className="text-xs font-medium">{item.category || item.given_by || (item.type === 'credit' ? 'Company Credit' : 'Other')}</div>

@@ -82,9 +82,10 @@ const AdminAttendance = () => {
   }, [fetchAttendance]);
 
   const filteredAttendance = attendanceRecords.filter(a => {
+    if (!a) return false;
     // Exclude admin users from attendance display
     const uid = (a.user_id && typeof a.user_id === 'object') ? (a.user_id as any)._id : a.user_id;
-    const emp = employees.find(e => e.user_id === uid);
+    const emp = employees.find(e => e && e.user_id === uid);
     if (emp && emp.role === 'admin') return false;
 
     const userName = (a.user_id && typeof a.user_id === 'object' ? (a.user_id as any).name : a.user_name) || 'Unknown';
@@ -100,11 +101,11 @@ const AdminAttendance = () => {
   });
 
   const getSummary = () => {
-    const totalEmployees = employees.filter(e => e.role !== 'admin' && e.is_active !== false).length;
+    const totalEmployees = employees.filter(e => e && e.role !== 'admin' && e.is_active !== false).length;
     
     // For summary, if it's a multi-day range, we might need average or per-day breakdown
     // But for the requested "traceability", let's show totals for the selected period
-    const safeFilteredAttendance = Array.isArray(filteredAttendance) ? filteredAttendance : [];
+    const safeFilteredAttendance = Array.isArray(filteredAttendance) ? filteredAttendance.filter(a => a) : [];
     const present = safeFilteredAttendance.filter(a => a.status === 'present' && !a.half_day).length;
     const halfDay = safeFilteredAttendance.filter(a => a.half_day === true).length;
     const absent = safeFilteredAttendance.filter(a => a.status === 'absent').length;
@@ -148,6 +149,7 @@ const AdminAttendance = () => {
     const empMap: Record<string, { name: string; present: number; halfDay: number; absent: number; totalDays: number }> = {};
     const safeAttendanceRecords = Array.isArray(attendanceRecords) ? attendanceRecords : [];
     safeAttendanceRecords.forEach(record => {
+      if (!record) return;
       const name = (record.user_id && typeof record.user_id === 'object' ? (record.user_id as any).name : record.user_name) || 'Unknown';
       const uid = (record.user_id && typeof record.user_id === 'object') ? (record.user_id as any)._id : record.user_id?.toString() || 'unknown';
       
@@ -211,9 +213,10 @@ const AdminAttendance = () => {
     allSheet.addRow(cols);
     applyHeaderStyle(allSheet, 8, '1A5276');
 
-    const sortedData = [...safeAttendanceRecords].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const sortedData = [...safeAttendanceRecords].filter(a => a).sort((a, b) => (a?.date || '').localeCompare(b?.date || ''));
     const dateGroups: Record<string, Attendance[]> = {};
     sortedData.forEach(record => {
+      if (!record) return;
       const d = record.date || 'Unknown';
       if (!dateGroups[d]) dateGroups[d] = [];
       dateGroups[d].push(record);
@@ -255,6 +258,7 @@ const AdminAttendance = () => {
     const safeAttendanceRecords = Array.isArray(attendanceRecords) ? attendanceRecords : [];
 
     safeAttendanceRecords.forEach(record => {
+      if (!record) return;
       const name = (record.user_id && typeof record.user_id === 'object' ? (record.user_id as any).name : record.user_name) || 'Unknown';
       const uid = (record.user_id && typeof record.user_id === 'object') ? (record.user_id as any)._id : record.user_id?.toString() || 'unknown';
       if (!uid) return;
