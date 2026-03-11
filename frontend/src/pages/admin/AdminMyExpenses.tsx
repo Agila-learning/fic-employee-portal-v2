@@ -13,7 +13,7 @@ import { operationService } from '@/api/operationService';
 import { leadService } from '@/api/leadService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { CalendarIcon, TrendingDown, TrendingUp, Wallet, Plus, Trash2, Upload, FileImage, Loader2, Pencil, X } from 'lucide-react';
+import { CalendarIcon, TrendingDown, TrendingUp, Wallet, Plus, Trash2, Upload, FileImage, BarChart3, Loader2, Pencil, X } from 'lucide-react';
 import { cn, safeParseDate } from '@/lib/utils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { CATEGORIES, PIE_COLORS } from './AdminExpenses';
