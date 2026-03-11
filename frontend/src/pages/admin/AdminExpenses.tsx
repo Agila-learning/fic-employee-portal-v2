@@ -806,7 +806,7 @@ const EmployeeExpenseManagement = () => {
                     return employeeList.filter(emp => emp._id !== user?.id).map(emp => {
                       const exp = expenses.filter(e => (e.user_id?._id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount), 0);
                       const cred = credits.filter(c => c.user_id?._id === emp._id).reduce((s, c) => s + Number(c.amount), 0);
-                      return { name: emp.name.split(' ')[0], expense: exp, balance: cred - exp };
+                      return { name: (emp.name || 'Unknown').split(' ')[0], expense: exp, balance: cred - exp };
                     }).filter(d => d.expense > 0 || d.balance !== 0);
                   }, [employeeList, expenses, credits, user])}
                   layout="vertical"

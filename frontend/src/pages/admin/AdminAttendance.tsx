@@ -82,10 +82,12 @@ const AdminAttendance = () => {
 
   const filteredAttendance = attendanceRecords.filter(a => {
     // Exclude admin users from attendance display
-    const emp = employees.find(e => e.user_id === a.user_id);
+    const uid = typeof a.user_id === 'object' ? a.user_id._id : a.user_id;
+    const emp = employees.find(e => e.user_id === uid);
     if (emp && emp.role === 'admin') return false;
 
-    const matchesSearch = a.user_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const userName = (typeof a.user_id === 'object' ? a.user_id.name : a.user_name) || 'Unknown';
+    const matchesSearch = userName.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Status filter
     let matchesStatus = true;
@@ -143,17 +145,18 @@ const AdminAttendance = () => {
     // ===== SHEET 1: Employee Summary =====
     const empMap: Record<string, { name: string; present: number; halfDay: number; absent: number; totalDays: number }> = {};
     attendanceRecords.forEach(record => {
-      const name = record.user_name || 'Unknown';
-      if (!empMap[record.user_id]) {
-        empMap[record.user_id] = { name, present: 0, halfDay: 0, absent: 0, totalDays: 0 };
+      const name = (typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+      const uid = typeof record.user_id === 'object' ? record.user_id._id : record.user_id;
+      if (!empMap[uid]) {
+        empMap[uid] = { name, present: 0, halfDay: 0, absent: 0, totalDays: 0 };
       }
-      empMap[record.user_id].totalDays++;
+      empMap[uid].totalDays++;
       if (record.half_day) {
-        empMap[record.user_id].halfDay++;
+        empMap[uid].halfDay++;
       } else if (record.status === 'present') {
-        empMap[record.user_id].present++;
+        empMap[uid].present++;
       } else {
-        empMap[record.user_id].absent++;
+        empMap[uid].absent++;
       }
     });
 
@@ -182,16 +185,19 @@ const AdminAttendance = () => {
     });
 
     // ===== SHEET 2: All Records (Grouped by Date) =====
-    const mapRecord = (record: Attendance) => ({
-      'Employee Name': record.user_name || 'Unknown',
-      'Date': record.date,
-      'Day': record.date ? new Date(record.date).toLocaleDateString('en-US', { weekday: 'long' }) : '-',
-      'Status': record.half_day ? 'Half Day' : (record.status === 'present' ? 'Present' : 'Absent'),
-      'Work Location': getLocationDisplayName(record.work_location),
-      'Marked At': record.marked_at ? new Date(record.marked_at).toLocaleTimeString() : '-',
-      'Leave Reason': record.status === 'absent' ? (record.leave_reason || record.notes || '-') : '-',
-      'Location Verified': record.location_verified ? 'Yes' : 'No'
-    });
+    const mapRecord = (record: Attendance) => {
+      const name = (typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+      return {
+        'Employee Name': name,
+        'Date': record.date,
+        'Day': record.date ? new Date(record.date).toLocaleDateString('en-US', { weekday: 'long' }) : '-',
+        'Status': record.half_day ? 'Half Day' : (record.status === 'present' ? 'Present' : 'Absent'),
+        'Work Location': getLocationDisplayName(record.work_location),
+        'Marked At': record.marked_at ? new Date(record.marked_at).toLocaleTimeString() : '-',
+        'Leave Reason': record.status === 'absent' ? (record.leave_reason || record.notes || '-') : '-',
+        'Location Verified': record.location_verified ? 'Yes' : 'No'
+      };
+    };
 
     const colWidths = [25, 14, 12, 12, 20, 14, 40, 16];
     const cols = ['Employee Name', 'Date', 'Day', 'Status', 'Work Location', 'Marked At', 'Leave Reason', 'Location Verified'];
@@ -244,16 +250,17 @@ const AdminAttendance = () => {
     const employeeStats: { [key: string]: { name: string; present: number; halfDay: number; absent: number } } = {};
 
     attendanceRecords.forEach(record => {
-      const name = record.user_name || 'Unknown';
-      if (!employeeStats[record.user_id]) {
-        employeeStats[record.user_id] = { name, present: 0, halfDay: 0, absent: 0 };
+      const name = (typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+      const uid = typeof record.user_id === 'object' ? record.user_id._id : record.user_id;
+      if (!employeeStats[uid]) {
+        employeeStats[uid] = { name, present: 0, halfDay: 0, absent: 0 };
       }
       if (record.half_day) {
-        employeeStats[record.user_id].halfDay++;
+        employeeStats[uid].halfDay++;
       } else if (record.status === 'present') {
-        employeeStats[record.user_id].present++;
+        employeeStats[uid].present++;
       } else {
-        employeeStats[record.user_id].absent++;
+        employeeStats[uid].absent++;
       }
     });
 
@@ -428,50 +435,53 @@ const AdminAttendance = () => {
                   </TableHeader>
                   <TableBody>
                     <AnimatePresence mode="popLayout">
-                      {filteredAttendance.map((record) => (
-                        <motion.tr 
-                          layout
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          key={record.id}
-                        >
-                          <TableCell className="font-semibold">
-                            <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
-                                {record.user_name?.split(' ').map(n=>n[0]).join('')}
+                      {filteredAttendance.map((record) => {
+                        const userName = (typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+                        return (
+                          <motion.tr 
+                            layout
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            key={record.id}
+                          >
+                            <TableCell className="font-semibold">
+                              <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
+                                  {userName.split(' ').map(n=>n[0]).join('').substring(0,2)}
+                                </div>
+                                {userName}
                               </div>
-                              {record.user_name}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xs font-mono">{record.date ? format(parseISO(record.date), 'dd/MM/yyyy') : '-'}</TableCell>
-                          <TableCell className="text-emerald-600 font-medium">
-                            {record.check_in ? format(new Date(record.check_in), 'hh:mm a') : '--:--'}
-                          </TableCell>
-                          <TableCell className="text-amber-600 font-medium">
-                            {record.check_out ? format(new Date(record.check_out), 'hh:mm a') : '--:--'}
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            {record.duration_minutes !== undefined ? (
-                              `${Math.floor(record.duration_minutes / 60)}h ${record.duration_minutes % 60}m`
-                            ) : '-'}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(record)}</TableCell>
-                          <TableCell className="max-w-[150px] truncate text-xs text-muted-foreground italic">
-                            {record.notes || '-'}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setEditingAttendance(record)}
-                              className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-colors"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </motion.tr>
-                      ))}
+                            </TableCell>
+                            <TableCell className="text-xs font-mono">{record.date ? format(parseISO(record.date), 'dd/MM/yyyy') : '-'}</TableCell>
+                            <TableCell className="text-emerald-600 font-medium">
+                              {record.check_in ? format(new Date(record.check_in), 'hh:mm a') : '--:--'}
+                            </TableCell>
+                            <TableCell className="text-amber-600 font-medium">
+                              {record.check_out ? format(new Date(record.check_out), 'hh:mm a') : '--:--'}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {record.duration_minutes !== undefined ? (
+                                `${Math.floor(record.duration_minutes / 60)}h ${record.duration_minutes % 60}m`
+                              ) : '-'}
+                            </TableCell>
+                            <TableCell>{getStatusBadge(record)}</TableCell>
+                            <TableCell className="max-w-[150px] truncate text-xs text-muted-foreground italic">
+                              {record.notes || '-'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setEditingAttendance(record)}
+                                className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-colors"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </motion.tr>
+                        );
+                      })}
                     </AnimatePresence>
                   </TableBody>
                 </Table>
