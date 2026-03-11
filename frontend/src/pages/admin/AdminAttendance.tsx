@@ -68,9 +68,10 @@ const AdminAttendance = () => {
       }
 
       const data = await operationService.getAllAttendance(filters);
-      setAttendanceRecords(data || []);
+      setAttendanceRecords(Array.isArray(data) ? data : []);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch attendance records', variant: 'destructive' });
+      setAttendanceRecords([]);
     } finally {
       setLoadingRecords(false);
     }
@@ -82,11 +83,11 @@ const AdminAttendance = () => {
 
   const filteredAttendance = attendanceRecords.filter(a => {
     // Exclude admin users from attendance display
-    const uid = (a.user_id && typeof a.user_id === 'object') ? a.user_id._id : a.user_id;
+    const uid = (a.user_id && typeof a.user_id === 'object') ? (a.user_id as any)._id : a.user_id;
     const emp = employees.find(e => e.user_id === uid);
     if (emp && emp.role === 'admin') return false;
 
-    const userName = (a.user_id && typeof a.user_id === 'object' ? a.user_id.name : a.user_name) || 'Unknown';
+    const userName = (a.user_id && typeof a.user_id === 'object' ? (a.user_id as any).name : a.user_name) || 'Unknown';
     const matchesSearch = userName.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Status filter
@@ -103,9 +104,10 @@ const AdminAttendance = () => {
     
     // For summary, if it's a multi-day range, we might need average or per-day breakdown
     // But for the requested "traceability", let's show totals for the selected period
-    const present = filteredAttendance.filter(a => a.status === 'present' && !a.half_day).length;
-    const halfDay = filteredAttendance.filter(a => a.half_day === true).length;
-    const absent = filteredAttendance.filter(a => a.status === 'absent').length;
+    const safeFilteredAttendance = Array.isArray(filteredAttendance) ? filteredAttendance : [];
+    const present = safeFilteredAttendance.filter(a => a.status === 'present' && !a.half_day).length;
+    const halfDay = safeFilteredAttendance.filter(a => a.half_day === true).length;
+    const absent = safeFilteredAttendance.filter(a => a.status === 'absent').length;
 
     return { totalEmployees, present, halfDay, absent };
   };
@@ -144,9 +146,11 @@ const AdminAttendance = () => {
 
     // ===== SHEET 1: Employee Summary =====
     const empMap: Record<string, { name: string; present: number; halfDay: number; absent: number; totalDays: number }> = {};
-    attendanceRecords.forEach(record => {
-      const name = (record.user_id && typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
-      const uid = (record.user_id && typeof record.user_id === 'object') ? record.user_id._id : record.user_id;
+    const safeAttendanceRecords = Array.isArray(attendanceRecords) ? attendanceRecords : [];
+    safeAttendanceRecords.forEach(record => {
+      const name = (record.user_id && typeof record.user_id === 'object' ? (record.user_id as any).name : record.user_name) || 'Unknown';
+      const uid = (record.user_id && typeof record.user_id === 'object') ? (record.user_id as any)._id : record.user_id?.toString() || 'unknown';
+      
       if (!empMap[uid]) {
         empMap[uid] = { name, present: 0, halfDay: 0, absent: 0, totalDays: 0 };
       }
@@ -186,7 +190,7 @@ const AdminAttendance = () => {
 
     // ===== SHEET 2: All Records (Grouped by Date) =====
     const mapRecord = (record: Attendance) => {
-      const name = (record.user_id && typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+      const name = (record.user_id && typeof record.user_id === 'object' ? (record.user_id as any).name : record.user_name) || 'Unknown';
       return {
         'Employee Name': name,
         'Date': record.date,
@@ -207,7 +211,7 @@ const AdminAttendance = () => {
     allSheet.addRow(cols);
     applyHeaderStyle(allSheet, 8, '1A5276');
 
-    const sortedData = [...attendanceRecords].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const sortedData = [...safeAttendanceRecords].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     const dateGroups: Record<string, Attendance[]> = {};
     sortedData.forEach(record => {
       const d = record.date || 'Unknown';
@@ -248,10 +252,12 @@ const AdminAttendance = () => {
 
   const getMonthlyStats = () => {
     const employeeStats: { [key: string]: { name: string; present: number; halfDay: number; absent: number } } = {};
+    const safeAttendanceRecords = Array.isArray(attendanceRecords) ? attendanceRecords : [];
 
-    attendanceRecords.forEach(record => {
-      const name = (record.user_id && typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
-      const uid = (record.user_id && typeof record.user_id === 'object') ? record.user_id._id : record.user_id;
+    safeAttendanceRecords.forEach(record => {
+      const name = (record.user_id && typeof record.user_id === 'object' ? (record.user_id as any).name : record.user_name) || 'Unknown';
+      const uid = (record.user_id && typeof record.user_id === 'object') ? (record.user_id as any)._id : record.user_id?.toString() || 'unknown';
+      if (!uid) return;
       if (!employeeStats[uid]) {
         employeeStats[uid] = { name, present: 0, halfDay: 0, absent: 0 };
       }
@@ -436,7 +442,7 @@ const AdminAttendance = () => {
                   <TableBody>
                     <AnimatePresence mode="popLayout">
                       {filteredAttendance.map((record) => {
-                        const userName = (record.user_id && typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+                        const userName = (record.user_id && typeof record.user_id === 'object' ? (record.user_id as any).name : record.user_name) || 'Unknown';
                         return (
                           <motion.tr 
                             layout

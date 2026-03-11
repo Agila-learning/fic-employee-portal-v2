@@ -9,7 +9,7 @@ const Credit = require('./models/Credit');
 
 async function run() {
     try {
-        await mongoose.connect(process.env.MONGODB_URI);
+        await mongoose.connect(process.env.MONGO_URI);
         const today = new Date().toISOString().split('T')[0];
         
         const attendance = await Attendance.find({ date: today }).populate('user_id', 'name');

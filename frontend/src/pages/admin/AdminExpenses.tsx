@@ -97,10 +97,12 @@ const AdminMyExpenses = () => {
         operationService.getMyExpenses(),
         operationService.getMyCredits()
       ]);
-      setExpenses(expData || []);
-      setCredits(credData || []);
+      setExpenses(Array.isArray(expData) ? expData : []);
+      setCredits(Array.isArray(credData) ? credData : []);
     } catch (error) {
       toast.error('Failed to fetch data');
+      setExpenses([]);
+      setCredits([]);
     } finally {
       setLoading(false);
     }
@@ -223,8 +225,8 @@ const AdminMyExpenses = () => {
     }
   };
 
-  const totalSpent = useMemo(() => expenses.reduce((s, e) => s + Number(e.amount), 0), [expenses]);
-  const totalCredited = useMemo(() => credits.reduce((s, c) => s + Number(c.amount), 0), [credits]);
+  const totalSpent = useMemo(() => (Array.isArray(expenses) ? expenses : []).reduce((s, e) => s + Number(e.amount || 0), 0), [expenses]);
+  const totalCredited = useMemo(() => (Array.isArray(credits) ? credits : []).reduce((s, c) => s + Number(c.amount || 0), 0), [credits]);
 
   return (
     <motion.div 
@@ -431,7 +433,7 @@ const AdminMyExpenses = () => {
                     <Pie
                       data={useMemo(() => {
                         const counts: Record<string, number> = {};
-                        expenses.forEach(e => {
+                        (Array.isArray(expenses) ? expenses : []).forEach(e => {
                           const amt = Number(e.amount);
                           if (!isNaN(amt)) {
                             const cat = e.category || 'Other';
@@ -494,7 +496,7 @@ const AdminMyExpenses = () => {
                   <AnimatePresence mode="popLayout">
                     {loading ? (
                       <TableRow><TableCell colSpan={5} className="text-center py-8 flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading transactions...</TableCell></TableRow>
-                    ) : [...expenses.map(e => ({ ...e, type: 'debit' })), ...credits.map(c => ({ ...c, type: 'credit' }))].sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime()).map((item, idx) => (
+                    ) : (Array.isArray(expenses) && Array.isArray(credits) ? [...expenses.map(e => ({ ...e, type: 'debit' })), ...credits.map(c => ({ ...c, type: 'credit' }))] : []).sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime()).map((item, idx) => (
                       <motion.tr
                         key={item._id}
                         initial={{ opacity: 0, x: -10 }}
@@ -566,11 +568,14 @@ const EmployeeExpenseManagement = () => {
         operationService.getAllCredits({}),
         employeeService.getEmployees()
       ]);
-      setExpenses(expData || []);
-      setCredits(credData || []);
-      setEmployeeList(empData || []);
+      setExpenses(Array.isArray(expData) ? expData : []);
+      setCredits(Array.isArray(credData) ? credData : []);
+      setEmployeeList(Array.isArray(empData) ? empData : []);
     } catch (error) {
       toast.error('Failed to fetch data');
+      setExpenses([]);
+      setCredits([]);
+      setEmployeeList([]);
     } finally {
       setLoading(false);
     }
@@ -693,9 +698,11 @@ const EmployeeExpenseManagement = () => {
   ].sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime()), [expenses, credits, user]);
 
   const stats = useMemo(() => {
-    const pendingCount = expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length;
-    const totalApprovedExp = expenses.filter(e => e.approval_status === 'approved' && e.user_id?._id !== user?.id).reduce((s, e) => s + Number(e.amount), 0);
-    const totalCredited = credits.filter(c => c.user_id?._id !== user?.id).reduce((s, c) => s + Number(c.amount), 0);
+    const safeExpenses = Array.isArray(expenses) ? expenses : [];
+    const safeCredits = Array.isArray(credits) ? credits : [];
+    const pendingCount = safeExpenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length;
+    const totalApprovedExp = safeExpenses.filter(e => e.approval_status === 'approved' && e.user_id?._id !== user?.id).reduce((s, e) => s + Number(e.amount || 0), 0);
+    const totalCredited = safeCredits.filter(c => c.user_id?._id !== user?.id).reduce((s, c) => s + Number(c.amount || 0), 0);
     return { pendingCount, totalApprovedExp, totalCredited };
   }, [expenses, credits, user]);
 
@@ -752,9 +759,9 @@ const EmployeeExpenseManagement = () => {
                 <Table>
                   <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-[10px]">Amount</TableHead><TableHead className="text-right text-[10px]">Actions</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
+                    {(Array.isArray(expenses) ? expenses : []).filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
                       <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
-                    ) : expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
+                    ) : (Array.isArray(expenses) ? expenses : []).filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
                       <TableRow key={e._id} className="group hover:bg-muted/50 transition-colors">
                         <TableCell className="text-[10px] py-2">{e.user_id?.name || 'Employee'}</TableCell>
                         <TableCell className="text-[10px] py-2 font-bold text-destructive">₹{e.amount}</TableCell>
@@ -779,13 +786,13 @@ const EmployeeExpenseManagement = () => {
                 <Table>
                   <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-right text-[10px]">Balance</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {employeeList.filter(emp => emp._id !== user?.id).map(emp => {
-                      const empExp = expenses.filter(e => (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount), 0);
-                      const empCred = credits.filter(c => c.user_id?._id === emp._id || c.user_id === emp._id).reduce((s, c) => s + Number(c.amount), 0);
+                    {(Array.isArray(employeeList) ? employeeList : []).filter(emp => emp && emp._id !== user?.id).map(emp => {
+                      const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
+                      const empCred = (Array.isArray(credits) ? credits : []).filter(c => c.user_id?._id === emp._id || c.user_id === emp._id).reduce((s, c) => s + Number(c.amount || 0), 0);
                       const balance = empCred - empExp;
                       return (
                         <TableRow key={emp._id} className="group hover:bg-muted/50 transition-colors">
-                          <TableCell className="text-[10px] py-2">{emp.name}</TableCell>
+                          <TableCell className="text-[10px] py-2">{emp.name || 'Unknown'}</TableCell>
                           <TableCell className={cn("text-right text-[10px] py-2 font-bold", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
                             ₹{balance.toLocaleString()}
                           </TableCell>
@@ -808,13 +815,17 @@ const EmployeeExpenseManagement = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={useMemo(() => {
-                    return employeeList.filter(emp => emp && emp._id !== user?.id).map(emp => {
-                      const exp = expenses.filter(e => {
+                    const safeEmps = Array.isArray(employeeList) ? employeeList : [];
+                    const safeExp = Array.isArray(expenses) ? expenses : [];
+                    const safeCreds = Array.isArray(credits) ? credits : [];
+                    
+                    return safeEmps.filter(emp => emp && emp._id !== user?.id).map(emp => {
+                      const exp = safeExp.filter(e => {
                         const uid = e.user_id?._id || e.user_id;
                         return uid === emp._id && e.approval_status === 'approved';
                       }).reduce((s, e) => s + Number(e.amount || 0), 0);
                       
-                      const cred = credits.filter(c => {
+                      const cred = safeCreds.filter(c => {
                         const uid = c.user_id?._id || c.user_id;
                         return uid === emp._id;
                       }).reduce((s, c) => s + Number(c.amount || 0), 0);
