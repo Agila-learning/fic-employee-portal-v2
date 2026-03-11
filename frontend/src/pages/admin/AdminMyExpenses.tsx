@@ -38,6 +38,8 @@ const AdminMyExpenses = () => {
   const [credAmount, setCredAmount] = useState('');
   const [credGivenBy, setCredGivenBy] = useState('');
   const [credRole, setCredRole] = useState('');
+  const [credCategory, setCredCategory] = useState('Others');
+  const [credCustomCategory, setCredCustomCategory] = useState('');
   const [credDesc, setCredDesc] = useState('');
 
   const [editExpenseId, setEditExpenseId] = useState<string | null>(null);
@@ -115,9 +117,10 @@ const AdminMyExpenses = () => {
 
   const handleAddCredit = async () => {
     if (!credAmount || !credGivenBy || !user) return;
+    const finalCategory = credCategory === 'Others' ? (credCustomCategory || 'Others') : credCategory;
     const payload = {
       credit_date: format(credDate, 'yyyy-MM-dd'), amount: parseFloat(credAmount),
-      given_by: credGivenBy, given_by_role: credRole, description: credDesc || null,
+      given_by: credGivenBy, given_by_role: credRole, category: finalCategory, description: credDesc || null,
     };
     try {
       if (editCreditId) {
@@ -129,7 +132,7 @@ const AdminMyExpenses = () => {
         toast.success('Credit added');
       }
       fetchData();
-      setCredAmount(''); setCredGivenBy(''); setCredRole(''); setCredDesc('');
+      setCredAmount(''); setCredGivenBy(''); setCredRole(''); setCredDesc(''); setCredCustomCategory('');
     } catch (error) {
       toast.error('Failed to add credit');
     }
@@ -168,6 +171,13 @@ const AdminMyExpenses = () => {
       setCredGivenBy(item.given_by || '');
       setCredRole(item.given_by_role || '');
       setCredDesc(item.description || '');
+      if (CATEGORIES.includes(item.category)) {
+        setCredCategory(item.category);
+        setCredCustomCategory('');
+      } else {
+        setCredCategory('Others');
+        setCredCustomCategory(item.category || '');
+      }
     }
   };
 
@@ -282,7 +292,7 @@ const AdminMyExpenses = () => {
                       </SelectContent>
                     </Select>
                     {expCategory === 'Others' && (
-                      <Input placeholder="Manual entry..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
+                      <Input placeholder="Enter custom category" value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
                     )}
                   </div>
                 </div>
@@ -363,9 +373,25 @@ const AdminMyExpenses = () => {
                   <Input placeholder="Title" value={credRole} onChange={e => setCredRole(e.target.value)} className="border-border/50 h-8 text-xs" />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Description</label>
-                <Input placeholder="Optional notes..." value={credDesc} onChange={e => setCredDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Category</label>
+                  <div className="flex gap-2">
+                    <Select value={credCategory} onValueChange={setCredCategory}>
+                      <SelectTrigger className="border-border/50 text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {credCategory === 'Others' && (
+                      <Input placeholder="Enter custom category" value={credCustomCategory} onChange={e => setCredCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Description</label>
+                  <Input placeholder="Optional notes..." value={credDesc} onChange={e => setCredDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+                </div>
               </div>
               <div className="pt-2 text-right">
                 <Button onClick={handleAddCredit} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs" disabled={!credAmount || !credGivenBy}>
@@ -382,6 +408,7 @@ const AdminMyExpenses = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
+        className="w-full"
       >
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
           <CardHeader className="pb-3 border-b border-border/10">

@@ -315,6 +315,7 @@ const EmployeeExpenseManagement = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
+        className="w-full"
       >
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
           <CardHeader className="pb-2 border-b border-border/10"><CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Credit Utilization Overview</CardTitle></CardHeader>
