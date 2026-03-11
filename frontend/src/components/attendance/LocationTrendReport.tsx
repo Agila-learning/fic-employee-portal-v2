@@ -173,7 +173,7 @@ const LocationTrendReport = ({ attendance }: LocationTrendReportProps) => {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={70}
+                      outerRadius={60}
                       label={({ name, percent }) => 
                         `${name.split(' ')[0]} ${(percent * 100).toFixed(0)}%`
                       }

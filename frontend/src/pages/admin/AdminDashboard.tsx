@@ -359,7 +359,7 @@ const AdminDashboard = () => {
                       cx="50%"
                       cy="45%"
                       innerRadius={60}
-                      outerRadius={85}
+                      outerRadius={70}
                       paddingAngle={5}
                       dataKey="count"
                       nameKey="label"

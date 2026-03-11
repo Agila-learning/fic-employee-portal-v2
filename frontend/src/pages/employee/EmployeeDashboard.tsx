@@ -393,7 +393,7 @@ const EmployeeDashboard = () => {
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
-                          outerRadius={70}
+                          outerRadius={60}
                           paddingAngle={5}
                           dataKey="count"
                           nameKey="label"

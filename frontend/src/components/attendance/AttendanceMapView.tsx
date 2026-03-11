@@ -30,12 +30,13 @@ const AttendanceMapView = ({ attendance, selectedDate }: AttendanceMapViewProps)
     filteredAttendance.forEach(record => {
       if (record.status === 'present' || record.half_day) {
         const location = (record as any).work_location || 'unknown';
+        const userName = (typeof record.user_id === 'object' ? (record.user_id as any).name : record.user_name) || 'Unknown';
         if (stats[location]) {
           stats[location].count++;
-          stats[location].employees.push(record.user_name || 'Unknown');
+          stats[location].employees.push(userName);
         } else {
           stats.unknown.count++;
-          stats.unknown.employees.push(record.user_name || 'Unknown');
+          stats.unknown.employees.push(userName);
         }
       }
     });
