@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { leadService } from '@/api/leadService';
 import { operationService } from '@/api/operationService';
@@ -14,7 +16,7 @@ import TaskRemindersNotification from '@/components/dashboard/TaskRemindersNotif
 import LeaveRequestForm from '@/components/leave/LeaveRequestForm';
 import LeaveRequestsList from '@/components/leave/LeaveRequestsList';
 
-import { FileSpreadsheet, CheckCircle, Clock, XCircle, Plus, Bell, ArrowRight, TrendingUp, Sparkles, Trophy, CreditCard, Briefcase } from 'lucide-react';
+import { FileSpreadsheet, CheckCircle, Clock, XCircle, Plus, Bell, ArrowRight, TrendingUp, Sparkles, Trophy, CreditCard, Briefcase, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
@@ -23,7 +25,9 @@ import { STATUS_OPTIONS, Lead } from '@/types';
 import { cn, safeParseDate } from '@/lib/utils';
 import { getRandomQuote } from '@/utils/motivationalQuotes';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, subDays, isSameDay } from 'date-fns';
+
+const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1'];
 
 const EmployeeDashboard = () => {
   const { user } = useAuth();
@@ -100,9 +104,23 @@ const EmployeeDashboard = () => {
     setQuote(getRandomQuote());
   }, []);
 
+  const activityData = useMemo(() => {
+    const last7Days = Array.from({ length: 7 }, (_, i) => subDays(new Date(), 6 - i));
+    return last7Days.map(date => ({
+      name: format(date, 'MMM dd'),
+      leads: myLeads.filter(l => isSameDay(safeParseDate(l.created_at), date)).length,
+      activity: myLeads.filter(l => isSameDay(safeParseDate(l.updated_at), date)).length
+    }));
+  }, [myLeads]);
+
   return (
     <DashboardLayout requiredRole="employee">
-      <div className="space-y-6 md:space-y-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6 md:space-y-8"
+      >
         {/* Header with gradient background */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 sm:p-6 md:p-8 text-white animate-fade-in">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-40" />
@@ -355,57 +373,85 @@ const EmployeeDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Lead Status Distribution */}
-          <Card className="border-border/50 overflow-hidden group hover:shadow-xl transition-all duration-500 hover:border-primary/20 animate-slide-up stagger-2">
+          {/* Lead Status Distribution (Replaced Bar with Pie Chart) */}
+          <Card className="border-border/50 overflow-hidden group hover:shadow-xl transition-all duration-500 hover:border-primary/20">
             <CardHeader className="border-b border-border/50 bg-muted/30 px-3 sm:px-6">
               <CardTitle className="text-sm sm:text-lg font-semibold flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-                Your Lead Status
+                Performance Overview
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              <div className="space-y-3 sm:space-y-4">
-                {statusDistribution.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-6 sm:py-8 text-sm">No leads to show distribution</p>
-                ) : statusDistribution.map((status, index) => {
-                  const percentage = totalLeads > 0 ? (status.count / totalLeads) * 100 : 0;
-                  return (
-                    <div key={status.value} className="group/item" style={{ animationDelay: `${index * 100}ms` }}>
-                      <div className="flex items-center justify-between mb-1 sm:mb-2">
-                        <span className="text-xs sm:text-sm font-medium group-hover/item:text-primary transition-colors truncate">{status.label}</span>
-                        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                          <span className="text-xs sm:text-sm text-muted-foreground font-mono">{status.count}</span>
-                          <span className="text-[10px] sm:text-xs text-muted-foreground">({percentage.toFixed(0)}%)</span>
-                        </div>
-                      </div>
-                      <div className="h-2 sm:h-3 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className={cn(
-                            "h-full rounded-full transition-all duration-1000 ease-out",
-                            "bg-gradient-to-r from-amber-500 to-amber-600"
-                          )}
-                          style={{
-                            width: `${percentage}%`,
-                            transitionDelay: `${index * 150}ms`
-                          }}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wider text-center">Lead Status Distribution</p>
+                  <div className="h-[220px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={statusDistribution.filter(s => s.count > 0)}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={45}
+                          outerRadius={70}
+                          paddingAngle={5}
+                          dataKey="count"
+                          nameKey="label"
+                        >
+                          {statusDistribution.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip 
+                          contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />
-                      </div>
+                        <Legend wrapperStyle={{ fontSize: '10px' }} iconType="circle" />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="flex flex-col justify-center gap-4">
+                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Weekly Conversion</p>
+                    <div className="flex items-end justify-between">
+                      <h3 className="text-3xl font-bold text-primary">{conversionRate}%</h3>
+                      <p className="text-xs text-green-600 font-bold flex items-center gap-1 mb-1">
+                        <TrendingUp className="h-3 w-3" /> +2%
+                      </p>
                     </div>
-                  );
-                })}
+                  </div>
+                  <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Active Leads</p>
+                    <div className="flex items-end justify-between">
+                      <h3 className="text-3xl font-bold text-amber-600">{pendingLeads}</h3>
+                      <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-tight">Requires Attention</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              {/* Conversion Rate Display */}
-              <div className="mt-4 sm:mt-6 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/20 border border-green-200 dark:border-green-800">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">Your Conversion Rate</span>
-                  <span className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{conversionRate}%</span>
+              
+              {/* Activity Chart (New) */}
+              <div className="mt-8">
+                <p className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wider">7-Day Activity Trends</p>
+                <div className="h-[150px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={activityData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                      <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
+                      <YAxis hide />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', fontSize: '10px' }}
+                      />
+                      <Bar dataKey="leads" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
+                      <Bar dataKey="activity" fill="#fbbf24" radius={[4, 4, 0, 0]} barSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-      </div>
+      </motion.div>
 
       {/* View Lead Dialog */}
       {viewingLead && (

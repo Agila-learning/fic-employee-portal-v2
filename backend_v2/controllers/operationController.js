@@ -1,4 +1,4 @@
-﻿const Payslip = require('../models/Payslip.js');
+const Payslip = require('../models/Payslip.js');
 const LeaveRequest = require('../models/LeaveRequest.js');
 const Attendance = require('../models/Attendance.js');
 const Expense = require('../models/Expense.js');
@@ -175,7 +175,15 @@ const getMyAttendance = async (req, res) => {
 
 const getAllAttendance = async (req, res) => {
     try {
-        const attendance = await Attendance.find({}).populate('user_id', 'name email');
+        const { startDate, endDate, user_id } = req.query;
+        const filter = {};
+        if (user_id) filter.user_id = user_id;
+        if (startDate || endDate) {
+            filter.date = {};
+            if (startDate) filter.date.$gte = startDate;
+            if (endDate) filter.date.$lte = endDate;
+        }
+        const attendance = await Attendance.find(filter).populate('user_id', 'name email employee_id');
         res.json(attendance);
     } catch (error) {
         res.status(500).json({ message: error.message });

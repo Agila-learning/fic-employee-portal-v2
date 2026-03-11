@@ -29,6 +29,7 @@ export interface Attendance {
   longitude?: number | null;
   location_verified?: boolean;
   work_location?: WorkLocation | null;
+  notes?: string;
 }
 
 export interface AttendanceSummary {

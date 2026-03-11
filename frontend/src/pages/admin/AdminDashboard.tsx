@@ -1,18 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLeads } from '@/hooks/useLeads';
 import { useEmployees } from '@/hooks/useEmployees';
+import { operationService } from '@/api/operationService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import LeadFormDialog from '@/components/leads/LeadFormDialog';
-import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase, Star } from 'lucide-react';
+import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase, Star, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import AdminLeaveRequests from '@/components/leave/AdminLeaveRequests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { STATUS_OPTIONS, STATUS_OPTIONS_ADMIN, Lead, INTERESTED_DOMAIN_OPTIONS } from '@/types';
 import { cn, safeParseDate } from '@/lib/utils';
 import { Link, useNavigate } from 'react-router-dom';
-import { startOfWeek, endOfWeek, isWithinInterval, parseISO, format } from 'date-fns';
+import { startOfWeek, endOfWeek, isWithinInterval, parseISO, format, startOfMonth, endOfMonth, isSameDay } from 'date-fns';
+
+const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1'];
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -20,6 +26,46 @@ const AdminDashboard = () => {
   const { employees } = useEmployees();
   const { leads, refetchLeads } = useLeads();
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
+  const [attendance, setAttendance] = useState<any[]>([]);
+  const [loadingAttendance, setLoadingAttendance] = useState(true);
+  const [attendanceRange, setAttendanceRange] = useState<'today' | 'week' | 'month'>('today');
+
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      setLoadingAttendance(true);
+      try {
+        const data = await operationService.getAllAttendance();
+        setAttendance(data || []);
+      } catch (error) {
+        console.error('Failed to fetch attendance', error);
+      } finally {
+        setLoadingAttendance(false);
+      }
+    };
+    fetchAttendance();
+  }, []);
+
+  const attendanceStats = useMemo(() => {
+    let filtered = attendance;
+    const now = new Date();
+    if (attendanceRange === 'today') {
+      filtered = attendance.filter(a => isSameDay(safeParseDate(a.date), now));
+    } else if (attendanceRange === 'week') {
+      const start = startOfWeek(now, { weekStartsOn: 1 });
+      const end = endOfWeek(now, { weekStartsOn: 1 });
+      filtered = attendance.filter(a => isWithinInterval(safeParseDate(a.date), { start, end }));
+    } else if (attendanceRange === 'month') {
+      const start = startOfMonth(now);
+      const end = endOfMonth(now);
+      filtered = attendance.filter(a => isWithinInterval(safeParseDate(a.date), { start, end }));
+    }
+
+    const present = filtered.filter(a => a.status === 'present').length;
+    const absent = filtered.filter(a => a.status === 'absent').length;
+    const halfDay = filtered.filter(a => a.status === 'half_day').length;
+    
+    return { present, absent, halfDay, total: employees.length };
+  }, [attendance, attendanceRange, employees]);
 
   const activeEmployees = employees.filter(e => e.is_active !== false);
   const activeEmployeeCount = activeEmployees.length;
@@ -136,13 +182,22 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout requiredRole="admin">
-      <div className="space-y-6 md:space-y-8">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6 md:space-y-8"
+      >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">Welcome back, {user?.name}! Here's your team's overview.</p>
-          </div>
+          </motion.div>
         </div>
 
         {/* Stats Cards with staggered animation */}
@@ -243,47 +298,88 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Lead Status Distribution */}
-          <Card className="border-border/50 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:border-primary/20 animate-slide-up stagger-1">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Attendance Overview (New Section) */}
+          <Card className="border-border/50 overflow-hidden lg:col-span-1">
+            <CardHeader className="border-b border-border/50 bg-muted/30 pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-primary" /> Team Attendance
+                </CardTitle>
+                <div className="flex bg-muted rounded-lg p-0.5 scale-90 origin-right">
+                  <button onClick={() => setAttendanceRange('today')} className={cn("px-2 py-1 text-[10px] rounded-md transition-all", attendanceRange === 'today' ? "bg-background shadow-sm font-bold" : "text-muted-foreground")}>Day</button>
+                  <button onClick={() => setAttendanceRange('week')} className={cn("px-2 py-1 text-[10px] rounded-md transition-all", attendanceRange === 'week' ? "bg-background shadow-sm font-bold" : "text-muted-foreground")}>Week</button>
+                  <button onClick={() => setAttendanceRange('month')} className={cn("px-2 py-1 text-[10px] rounded-md transition-all", attendanceRange === 'month' ? "bg-background shadow-sm font-bold" : "text-muted-foreground")}>Month</button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                  <p className="text-xl font-bold text-emerald-600">{attendanceStats.present}</p>
+                  <p className="text-[10px] font-medium text-emerald-600/70 uppercase">Present</p>
+                </div>
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-center">
+                  <p className="text-xl font-bold text-rose-600">{attendanceStats.absent}</p>
+                  <p className="text-[10px] font-medium text-rose-600/70 uppercase">Absent</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Half Day</span>
+                  <span className="font-bold">{attendanceStats.halfDay}</span>
+                </div>
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden flex">
+                  <div className="h-full bg-emerald-500" style={{ width: `${(attendanceStats.present / attendanceStats.total) * 100}%` }} />
+                  <div className="h-full bg-amber-500" style={{ width: `${(attendanceStats.halfDay / attendanceStats.total) * 100}%` }} />
+                  <div className="h-full bg-rose-500" style={{ width: `${(attendanceStats.absent / attendanceStats.total) * 100}%` }} />
+                </div>
+                <p className="text-[10px] text-center text-muted-foreground italic">Total Strength: {attendanceStats.total}</p>
+              </div>
+              <Button variant="outline" size="sm" className="w-full mt-4 text-[10px] h-8 gap-2" onClick={() => navigate('/admin/attendance')}>
+                Manage Full Attendance <ArrowRight className="h-3 w-3" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Lead Status Distribution (Replaced Bar with Pie Chart) */}
+          <Card className="border-border/50 overflow-hidden lg:col-span-2">
             <CardHeader className="border-b border-border/50 bg-muted/30">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                 Lead Status Distribution
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {statusDistribution.map((status, index) => {
-                  const percentage = totalLeads > 0 ? (status.count / totalLeads) * 100 : 0;
-                  return (
-                    <div
-                      key={status.value}
-                      className="group/item cursor-pointer"
-                      style={{ animationDelay: `${index * 50}ms` }}
+            <CardContent className="p-0">
+              <div className="h-[300px] w-full pt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusDistribution.filter(s => s.count > 0)}
+                      cx="50%"
+                      cy="45%"
+                      innerRadius={60}
+                      outerRadius={85}
+                      paddingAngle={5}
+                      dataKey="count"
+                      nameKey="label"
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium group-hover/item:text-primary transition-colors">{status.label}</span>
-                        <span className="text-sm text-muted-foreground font-mono">{status.count}</span>
-                      </div>
-                      <div className="h-3 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className={cn(
-                            "h-full rounded-full transition-all duration-1000 ease-out",
-                            status.color || "bg-gradient-to-r from-primary to-primary/70"
-                          )}
-                          style={{
-                            width: `${percentage}%`,
-                            transitionDelay: `${index * 100}ms`
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                      {statusDistribution.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '10px' }} iconType="circle" layout="horizontal" verticalAlign="bottom" align="center" />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
 
           {/* Top Performers (All Time) */}
           <Card id="top-performers-section" className="border-border/50 overflow-hidden group hover:shadow-lg transition-all duration-500 hover:border-primary/20 animate-slide-up stagger-2">
@@ -449,7 +545,7 @@ const AdminDashboard = () => {
 
         {/* Leave Requests Management */}
         <AdminLeaveRequests />
-      </div>
+      </motion.div>
 
       {/* View Lead Dialog */}
       {viewingLead && (

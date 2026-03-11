@@ -127,8 +127,8 @@ export const operationService = {
         return response.data;
     },
 
-    getAllAttendance: async () => {
-        const response = await apiClient.get('/operations/attendance');
+    getAllAttendance: async (filters?: any) => {
+        const response = await apiClient.get('/operations/attendance', { params: filters });
         return response.data;
     }
 };

@@ -48,6 +48,10 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/utility', utilityRoutes);
 app.use('/api/operations', operationRoutes);
 
+// Initialize Cron Jobs
+const { initCronJobs } = require('./services/cronService');
+initCronJobs();
+
 app.get('/', (req, res) => {
     res.send('FIC Employee Portal API is running...');
 });

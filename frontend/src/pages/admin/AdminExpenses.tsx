@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isW
 import { CalendarIcon, Download, TrendingDown, TrendingUp, Wallet, Users, Clock, Plus, Trash2, IndianRupee, Upload, FileImage, BarChart3, ExternalLink, Loader2, Pencil, X } from 'lucide-react';
 import { cn, safeParseDate } from '@/lib/utils';
 import { createWorkbook, setColumnWidths, applyHeaderStyle, downloadWorkbook, styleCell } from '@/utils/excelExport';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#06b6d4', '#e11d48'];
 
@@ -226,205 +227,310 @@ const AdminMyExpenses = () => {
   const totalCredited = useMemo(() => credits.reduce((s, c) => s + Number(c.amount), 0), [credits]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6"
+    >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground"><TrendingDown className="h-4 w-4" /> Total Spent</div>
-            <p className="text-2xl font-bold text-destructive mt-1">₹{totalSpent.toLocaleString()}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground"><TrendingUp className="h-4 w-4" /> Total Credited</div>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">₹{totalCredited.toLocaleString()}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground"><Wallet className="h-4 w-4" /> Balance</div>
-            <p className={cn("text-2xl font-bold mt-1", totalCredited - totalSpent >= 0 ? "text-emerald-600" : "text-destructive")}>₹{(totalCredited - totalSpent).toLocaleString()}</p>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden relative">
+            {loading && <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] flex items-center justify-center z-10"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><TrendingDown className="h-4 w-4" /> Total Spent</div>
+              <p className="text-2xl font-bold text-destructive mt-1">₹{totalSpent.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden relative">
+            {loading && <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] flex items-center justify-center z-10"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><TrendingUp className="h-4 w-4" /> Total Credited</div>
+              <p className="text-2xl font-bold text-emerald-600 mt-1">₹{totalCredited.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden relative">
+            {loading && <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] flex items-center justify-center z-10"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Wallet className="h-4 w-4" /> Balance</div>
+              <p className={cn("text-2xl font-bold mt-1", totalCredited - totalSpent >= 0 ? "text-emerald-600" : "text-destructive")}>₹{(totalCredited - totalSpent).toLocaleString()}</p>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2 text-destructive">
-              <TrendingDown className="h-5 w-5" /> {editExpenseId ? 'Edit Debit (Expense)' : 'Add Debit (Expense)'}
-            </CardTitle>
-            {editExpenseId && (
-              <Button variant="ghost" size="sm" onClick={() => { setEditExpenseId(null); setExpAmount(''); setExpDesc(''); }} className="h-8">
-                <X className="h-4 w-4 mr-1" /> Cancel
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                      <CalendarIcon className="mr-2 h-3 w-3" /> {format(expDate, 'PPP')}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={expDate} onSelect={(d) => d && setExpDate(d)} className="p-3" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Category</label>
-                <div className="flex gap-2">
-                  <Select value={expCategory} onValueChange={setExpCategory}>
-                    <SelectTrigger className="border-border/50 text-xs w-[120px]"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Input placeholder="Manual entry..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+          className="lg:col-span-2"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2 text-destructive">
+                  <TrendingDown className="h-5 w-5" /> {editExpenseId ? 'Edit Debit (Expense)' : 'Add Debit (Expense)'}
+                </CardTitle>
+                {editExpenseId && (
+                  <Button variant="ghost" size="sm" onClick={() => { setEditExpenseId(null); setExpAmount(''); setExpDesc(''); }} className="h-8">
+                    <X className="h-4 w-4 mr-1" /> Cancel
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="pt-4 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
+                          <CalendarIcon className="mr-2 h-3 w-3" /> {format(expDate, 'PPP')}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={expDate} onSelect={(d) => d && setExpDate(d)} className="p-3" />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Category</label>
+                    <div className="flex gap-2">
+                      <Select value={expCategory} onValueChange={setExpCategory}>
+                        <SelectTrigger className="border-border/50 text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Input placeholder="Manual entry..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Amount (₹)</label>
-                <Input type="number" placeholder="0.00" value={expAmount} onChange={e => setExpAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Paid To</label>
-                <Input placeholder="e.g. Amazon" value={expPaidTo} onChange={e => setExpPaidTo(e.target.value)} className="border-border/50 h-8 text-xs" />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Description</label>
-              <Input placeholder="Details..." value={expDesc} onChange={e => setExpDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
-            </div>
-            <div className="flex items-center gap-3 pt-2">
-              <div className="flex-1">
-                <Input ref={fileInputRef} type="file" className="hidden" onChange={e => setReceiptFile(e.target.files?.[0] || null)} />
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="w-full gap-2 text-xs border-dashed">
-                  {receiptFile ? <><FileImage className="h-3 w-3" /> {receiptFile.name.slice(0, 10)}...</> : <><Upload className="h-3 w-3" /> Receipt</>}
-                </Button>
-              </div>
-              <Button onClick={handleAddExpense} size="sm" className="bg-destructive hover:bg-destructive/90 text-white gap-2 text-xs" disabled={!expAmount || !expDesc || uploading}>
-                {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : (editExpenseId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />)}
-                {editExpenseId ? 'Update Debit' : 'Add Debit'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2 text-emerald-600">
-              <TrendingUp className="h-5 w-5" /> {editCreditId ? 'Edit Credit' : 'Add Credit'}
-            </CardTitle>
-            {editCreditId && (
-              <Button variant="ghost" size="sm" onClick={() => { setEditCreditId(null); setCredAmount(''); setCredGivenBy(''); }} className="h-8">
-                <X className="h-4 w-4 mr-1" /> Cancel
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                      <CalendarIcon className="mr-2 h-3 w-3" /> {format(credDate, 'PPP')}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Amount (₹)</label>
+                    <Input type="number" placeholder="0.00" value={expAmount} onChange={e => setExpAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Paid To</label>
+                    <Input placeholder="e.g. Amazon" value={expPaidTo} onChange={e => setExpPaidTo(e.target.value)} className="border-border/50 h-8 text-xs" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Description</label>
+                  <Input placeholder="Details..." value={expDesc} onChange={e => setExpDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <div className="flex-1">
+                    <Input ref={fileInputRef} type="file" className="hidden" onChange={e => setReceiptFile(e.target.files?.[0] || null)} />
+                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="w-full gap-2 text-xs border-dashed">
+                      {receiptFile ? <><FileImage className="h-3 w-3" /> {receiptFile.name.slice(0, 10)}...</> : <><Upload className="h-3 w-3" /> Receipt</>}
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={credDate} onSelect={(d) => d && setCredDate(d)} className="p-3" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Amount (₹)</label>
-                <Input type="number" placeholder="0.00" value={credAmount} onChange={e => setCredAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Given By</label>
-                <Input placeholder="Internal/CEO" value={credGivenBy} onChange={e => setCredGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium">Role</label>
-                <Input placeholder="Title" value={credRole} onChange={e => setCredRole(e.target.value)} className="border-border/50 h-8 text-xs" />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Description</label>
-              <Input placeholder="Optional notes..." value={credDesc} onChange={e => setCredDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
-            </div>
-            <div className="pt-2 text-right">
-              <Button onClick={handleAddCredit} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs" disabled={!credAmount || !credGivenBy}>
-                {editCreditId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-                {editCreditId ? 'Update Credit' : 'Add Credit'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                  </div>
+                  <Button onClick={handleAddExpense} size="sm" className="bg-destructive hover:bg-destructive/90 text-white gap-2 text-xs" disabled={!expAmount || !expDesc || uploading}>
+                    {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : (editExpenseId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />)}
+                    {editExpenseId ? 'Update Debit' : 'Add Debit'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-3 border-b border-border/10 flex flex-row items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2 text-emerald-600">
+                  <TrendingUp className="h-5 w-5" /> {editCreditId ? 'Edit Credit' : 'Add Credit'}
+                </CardTitle>
+                {editCreditId && (
+                  <Button variant="ghost" size="sm" onClick={() => { setEditCreditId(null); setCredAmount(''); setCredGivenBy(''); }} className="h-8">
+                    <X className="h-4 w-4 mr-1" /> Cancel
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="pt-4 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
+                          <CalendarIcon className="mr-2 h-3 w-3" /> {format(credDate, 'PPP')}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={credDate} onSelect={(d) => d && setCredDate(d)} className="p-3" />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Amount (₹)</label>
+                    <Input type="number" placeholder="0.00" value={credAmount} onChange={e => setCredAmount(e.target.value)} className="border-border/50 h-8 text-xs" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Given By</label>
+                    <Input placeholder="Internal/CEO" value={credGivenBy} onChange={e => setCredGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Role</label>
+                    <Input placeholder="Title" value={credRole} onChange={e => setCredRole(e.target.value)} className="border-border/50 h-8 text-xs" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Description</label>
+                  <Input placeholder="Optional notes..." value={credDesc} onChange={e => setCredDesc(e.target.value)} className="border-border/50 h-8 text-xs" />
+                </div>
+                <div className="pt-2 text-right">
+                  <Button onClick={handleAddCredit} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs" disabled={!credAmount || !credGivenBy}>
+                    {editCreditId ? <Pencil className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                    {editCreditId ? 'Update Credit' : 'Add Credit'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm h-full flex flex-col">
+            <CardHeader className="pb-3 border-b border-border/10">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" /> Expense Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 min-h-[300px] pt-4 relative">
+              {loading ? (
+                <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary/30" /></div>
+              ) : expenses.length === 0 ? (
+                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">No data available</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={useMemo(() => {
+                        const counts: Record<string, number> = {};
+                        expenses.forEach(e => {
+                          const cat = e.category || 'Other';
+                          counts[cat] = (counts[cat] || 0) + Number(e.amount);
+                        });
+                        return Object.entries(counts).map(([name, value]) => ({ name, value }));
+                      }, [expenses])}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      animationBegin={500}
+                      animationDuration={1500}
+                    >
+                      {CATEGORIES.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Amount']}
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* History Table */}
-      <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
-        <CardHeader className="bg-muted/30">
-          <CardTitle className="text-base">Transaction History</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/20">
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="w-10"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8">Loading...</TableCell></TableRow>
-                ) : [...expenses.map(e => ({ ...e, type: 'debit' })), ...credits.map(c => ({ ...c, type: 'credit' }))].sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime()).map(item => (
-                  <TableRow key={item._id}>
-                    <TableCell>
-                      <Badge variant="outline" className={cn("text-[10px] uppercase", item.type === 'debit' ? "text-destructive border-destructive" : "text-emerald-600 border-emerald-600")}>
-                        {item.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs">{item.expense_date || item.credit_date ? format(safeParseDate(item.expense_date || item.credit_date), 'dd MMM yyyy') : '—'}</TableCell>
-                    <TableCell>
-                      <div className="text-xs font-medium">{item.category || item.given_by || (item.type === 'credit' ? 'Company Credit' : 'Other')}</div>
-                      <div className="text-[10px] text-muted-foreground truncate max-w-[150px]">{item.description}</div>
-                    </TableCell>
-                    <TableCell className={cn("text-right font-bold text-xs", item.type === 'debit' ? "text-destructive" : "text-emerald-600")}>
-                      {item.type === 'debit' ? '-' : '+'}₹{Number(item.amount).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 justify-end">
-                        <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-primary hover:bg-primary/10" onClick={() => handleEditClick(item)}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-red-500 hover:bg-red-50" onClick={() => item.type === 'debit' ? handleDeleteExpense(item._id) : handleDeleteCredit(item._id)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+          <CardHeader className="bg-muted/30">
+            <CardTitle className="text-base">Transaction History</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/20">
+                    <TableHead>Type</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                </TableHeader>
+                <TableBody>
+                  <AnimatePresence mode="popLayout">
+                    {loading ? (
+                      <TableRow><TableCell colSpan={5} className="text-center py-8 flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading transactions...</TableCell></TableRow>
+                    ) : [...expenses.map(e => ({ ...e, type: 'debit' })), ...credits.map(c => ({ ...c, type: 'credit' }))].sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime()).map((item, idx) => (
+                      <motion.tr
+                        key={item._id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="bg-card/50 group hover:bg-muted/50 transition-colors border-b border-border/10"
+                      >
+                        <TableCell>
+                          <Badge variant="outline" className={cn("text-[10px] uppercase", item.type === 'debit' ? "text-destructive border-destructive" : "text-emerald-600 border-emerald-600")}>
+                            {item.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">{item.expense_date || item.credit_date ? format(safeParseDate(item.expense_date || item.credit_date), 'dd MMM yyyy') : '—'}</TableCell>
+                        <TableCell>
+                          <div className="text-xs font-medium">{item.category || item.given_by || (item.type === 'credit' ? 'Company Credit' : 'Other')}</div>
+                          <div className="text-[10px] text-muted-foreground truncate max-w-[150px]">{item.description}</div>
+                        </TableCell>
+                        <TableCell className={cn("text-right font-bold text-xs", item.type === 'debit' ? "text-destructive" : "text-emerald-600")}>
+                          {item.type === 'debit' ? '-' : '+'}₹{Number(item.amount).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 justify-end">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-primary hover:bg-primary/10" onClick={() => handleEditClick(item)}>
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-red-500 hover:bg-red-50" onClick={() => item.type === 'debit' ? handleDeleteExpense(item._id) : handleDeleteCredit(item._id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -576,63 +682,149 @@ const EmployeeExpenseManagement = () => {
   };
 
   // Merged, sorted list of ALL employee transactions (excluding admin's own)
-  const allTransactions = [
+  const allTransactions = useMemo(() => [
     ...expenses.filter(e => e.user_id?._id !== user?.id).map(e => ({ ...e, type: 'expense' })),
     ...credits.filter(c => c.user_id?._id !== user?.id).map(c => ({ ...c, type: 'credit' })),
-  ].sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime());
+  ].sort((a, b) => new Date(b.expense_date || b.credit_date).getTime() - new Date(a.expense_date || a.credit_date).getTime()), [expenses, credits, user]);
+
+  const stats = useMemo(() => {
+    const pendingCount = expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length;
+    const totalApprovedExp = expenses.filter(e => e.approval_status === 'approved' && e.user_id?._id !== user?.id).reduce((s, e) => s + Number(e.amount), 0);
+    const totalCredited = credits.filter(c => c.user_id?._id !== user?.id).reduce((s, c) => s + Number(c.amount), 0);
+    return { pendingCount, totalApprovedExp, totalCredited };
+  }, [expenses, credits, user]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button onClick={exportEmployeeExpenses} size="sm" variant="outline" className="gap-2">
-          <Download className="h-4 w-4" /> Export Employee Expenses
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
+    >
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden">
+            {loading && <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="h-3 w-3" /> Pending</div>
+              <p className="text-xl font-bold text-amber-600 mt-1">{stats.pendingCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden">
+            {loading && <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingDown className="h-3 w-3" /> Exp. Approved</div>
+              <p className="text-xl font-bold text-destructive mt-1">₹{stats.totalApprovedExp.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden">
+            {loading && <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingUp className="h-3 w-3" /> Total Credits</div>
+              <p className="text-xl font-bold text-emerald-600 mt-1">₹{stats.totalCredited.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden">
+            {loading && <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground"><Wallet className="h-3 w-3" /> Net Liquidity</div>
+              <p className={cn("text-xl font-bold mt-1", (stats.totalCredited - stats.totalApprovedExp) >= 0 ? "text-emerald-600" : "text-destructive")}>
+                ₹{(stats.totalCredited - stats.totalApprovedExp).toLocaleString()}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        <Button onClick={exportEmployeeExpenses} size="sm" variant="outline" className="gap-2 shrink-0">
+          <Download className="h-4 w-4" /> Export Report
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> Pending Approvals</CardTitle></CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader><TableRow><TableHead>Employee</TableHead><TableHead>Amount</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
-                  <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-sm">No pending approvals</TableCell></TableRow>
-                ) : expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
-                  <TableRow key={e._id}>
-                    <TableCell className="text-xs font-medium">{e.user_id?.name || 'Employee'}</TableCell>
-                    <TableCell className="text-xs font-bold text-destructive">₹{e.amount}</TableCell>
-                    <TableCell className="text-right flex justify-end gap-1">
-                      <Button size="sm" variant="ghost" className="h-7 px-2 text-emerald-600" onClick={() => handleApproval(e._id, 'approved')}>Approve</Button>
-                      <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive" onClick={() => handleApproval(e._id, 'rejected')}>Reject</Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between"><CardTitle className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4 text-amber-500" /> Pending Approvals</CardTitle></CardHeader>
+            <CardContent className="p-0">
+              <div className="max-h-[300px] overflow-y-auto">
+                <Table>
+                  <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-[10px]">Amount</TableHead><TableHead className="text-right text-[10px]">Actions</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
+                      <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
+                    ) : expenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
+                      <TableRow key={e._id} className="group hover:bg-muted/50 transition-colors">
+                        <TableCell className="text-[10px] py-2">{e.user_id?.name || 'Employee'}</TableCell>
+                        <TableCell className="text-[10px] py-2 font-bold text-destructive">₹{e.amount}</TableCell>
+                        <TableCell className="text-right py-2">
+                          <div className="flex justify-end gap-1">
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-emerald-600 hover:bg-emerald-50" onClick={() => handleApproval(e._id, 'approved')} title="Approve"><Pencil className="h-3 w-3" /></Button>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-red-50" onClick={() => handleApproval(e._id, 'rejected')} title="Reject"><X className="h-3 w-3" /></Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> Employee Summaries</CardTitle></CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader><TableRow><TableHead>Employee</TableHead><TableHead className="text-right">Net Balance</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {employeeList.filter(emp => emp._id !== user?.id).map(emp => {
-                  const empExp = expenses.filter(e => (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount), 0);
-                  const empCred = credits.filter(c => c.user_id?._id === emp._id || c.user_id === emp._id).reduce((s, c) => s + Number(c.amount), 0);
-                  return (
-                    <TableRow key={emp._id}>
-                      <TableCell className="text-xs">{emp.name}</TableCell>
-                      <TableCell className={cn("text-right text-xs font-bold", (empCred - empExp) >= 0 ? "text-emerald-600" : "text-destructive")}>
-                        ₹{(empCred - empExp).toLocaleString()}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><Users className="h-4 w-4 text-blue-500" /> Employee Summaries</CardTitle></CardHeader>
+            <CardContent className="p-0">
+              <div className="max-h-[300px] overflow-y-auto">
+                <Table>
+                  <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-right text-[10px]">Balance</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {employeeList.filter(emp => emp._id !== user?.id).map(emp => {
+                      const empExp = expenses.filter(e => (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount), 0);
+                      const empCred = credits.filter(c => c.user_id?._id === emp._id || c.user_id === emp._id).reduce((s, c) => s + Number(c.amount), 0);
+                      const balance = empCred - empExp;
+                      return (
+                        <TableRow key={emp._id} className="group hover:bg-muted/50 transition-colors">
+                          <TableCell className="text-[10px] py-2">{emp.name}</TableCell>
+                          <TableCell className={cn("text-right text-[10px] py-2 font-bold", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
+                            ₹{balance.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+          <CardHeader className="pb-2 border-b border-border/10"><CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Credit Utilization</CardTitle></CardHeader>
+          <CardContent className="p-4 h-[250px] relative">
+            {loading ? (
+              <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary/30" /></div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={useMemo(() => {
+                    return employeeList.filter(emp => emp._id !== user?.id).map(emp => {
+                      const exp = expenses.filter(e => (e.user_id?._id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount), 0);
+                      const cred = credits.filter(c => c.user_id?._id === emp._id).reduce((s, c) => s + Number(c.amount), 0);
+                      return { name: emp.name.split(' ')[0], expense: exp, balance: cred - exp };
+                    }).filter(d => d.expense > 0 || d.balance !== 0);
+                  }, [employeeList, expenses, credits, user])}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border)/0.3)" />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" width={60} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    cursor={{ fill: 'transparent' }}
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                  <Bar dataKey="expense" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={10} name="Spent" />
+                  <Bar dataKey="balance" fill="#10b981" radius={[0, 4, 4, 0]} barSize={10} name="Balance" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -823,7 +1015,7 @@ const EmployeeExpenseManagement = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
