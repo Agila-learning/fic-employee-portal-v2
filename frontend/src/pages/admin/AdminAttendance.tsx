@@ -82,11 +82,11 @@ const AdminAttendance = () => {
 
   const filteredAttendance = attendanceRecords.filter(a => {
     // Exclude admin users from attendance display
-    const uid = typeof a.user_id === 'object' ? a.user_id._id : a.user_id;
+    const uid = (a.user_id && typeof a.user_id === 'object') ? a.user_id._id : a.user_id;
     const emp = employees.find(e => e.user_id === uid);
     if (emp && emp.role === 'admin') return false;
 
-    const userName = (typeof a.user_id === 'object' ? a.user_id.name : a.user_name) || 'Unknown';
+    const userName = (a.user_id && typeof a.user_id === 'object' ? a.user_id.name : a.user_name) || 'Unknown';
     const matchesSearch = userName.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Status filter
@@ -145,8 +145,8 @@ const AdminAttendance = () => {
     // ===== SHEET 1: Employee Summary =====
     const empMap: Record<string, { name: string; present: number; halfDay: number; absent: number; totalDays: number }> = {};
     attendanceRecords.forEach(record => {
-      const name = (typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
-      const uid = typeof record.user_id === 'object' ? record.user_id._id : record.user_id;
+      const name = (record.user_id && typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+      const uid = (record.user_id && typeof record.user_id === 'object') ? record.user_id._id : record.user_id;
       if (!empMap[uid]) {
         empMap[uid] = { name, present: 0, halfDay: 0, absent: 0, totalDays: 0 };
       }
@@ -186,7 +186,7 @@ const AdminAttendance = () => {
 
     // ===== SHEET 2: All Records (Grouped by Date) =====
     const mapRecord = (record: Attendance) => {
-      const name = (typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+      const name = (record.user_id && typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
       return {
         'Employee Name': name,
         'Date': record.date,
@@ -250,8 +250,8 @@ const AdminAttendance = () => {
     const employeeStats: { [key: string]: { name: string; present: number; halfDay: number; absent: number } } = {};
 
     attendanceRecords.forEach(record => {
-      const name = (typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
-      const uid = typeof record.user_id === 'object' ? record.user_id._id : record.user_id;
+      const name = (record.user_id && typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+      const uid = (record.user_id && typeof record.user_id === 'object') ? record.user_id._id : record.user_id;
       if (!employeeStats[uid]) {
         employeeStats[uid] = { name, present: 0, halfDay: 0, absent: 0 };
       }
@@ -436,7 +436,7 @@ const AdminAttendance = () => {
                   <TableBody>
                     <AnimatePresence mode="popLayout">
                       {filteredAttendance.map((record) => {
-                        const userName = (typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
+                        const userName = (record.user_id && typeof record.user_id === 'object' ? record.user_id.name : record.user_name) || 'Unknown';
                         return (
                           <motion.tr 
                             layout
@@ -550,7 +550,7 @@ const AdminAttendance = () => {
           <LocationTrendReport attendance={attendanceRecords} />
         </div>
         
-        <AttendanceMapView attendance={attendanceRecords} selectedDate={startDate} />
+        <AttendanceMapView attendance={attendanceRecords} selectedDate={startDate} employees={employees} />
         <EmployeeAttendanceExport employees={employees} holidays={holidays} />
       </motion.div>
 

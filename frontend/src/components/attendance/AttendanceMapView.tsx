@@ -1,16 +1,45 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Navigation, Building2, Home, CheckCircle } from 'lucide-react';
-import { Attendance } from '@/hooks/useAttendance';
 import { OFFICE_LOCATIONS, getLocationDisplayName, WorkLocation } from '@/utils/geolocation';
 import { cn } from '@/lib/utils';
 
-interface AttendanceMapViewProps {
-  attendance: Attendance[];
-  selectedDate?: string;
+interface Attendance {
+  user_id: any;
+  user_name?: string;
+  work_location?: string;
+  check_in?: string;
+  check_out?: string;
+  status: string;
+  date: string;
+  half_day?: boolean;
 }
 
-const AttendanceMapView = ({ attendance, selectedDate }: AttendanceMapViewProps) => {
+interface AttendanceMapViewProps {
+  attendance: Attendance[];
+  selectedDate: string;
+  employees?: any[];
+}
+
+const AttendanceMapView = ({ attendance, selectedDate, employees = [] }: AttendanceMapViewProps) => {
+  const getEmployeeName = (record: Attendance) => {
+    if (!record.user_id) return record.user_name || 'Unknown';
+    // 1. Try populated object
+    if (typeof record.user_id === 'object' && record.user_id?.name) {
+      return record.user_id.name;
+    }
+    
+    // 2. Try employees list fallback
+    const uid = typeof record.user_id === 'object' ? record.user_id._id : record.user_id;
+    if (uid && employees.length > 0) {
+      const emp = employees.find(e => e.user_id === uid || e._id === uid);
+      if (emp?.name) return emp.name;
+    }
+    
+    // 3. Last fallbacks
+    return record.user_name || 'Unknown';
+  };
+
   const filteredAttendance = useMemo(() => {
     if (!selectedDate) return attendance;
     return attendance.filter(a => a.date === selectedDate);

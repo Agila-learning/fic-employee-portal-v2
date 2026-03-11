@@ -392,8 +392,8 @@ const EmployeeDashboard = () => {
                           data={statusDistribution.filter(s => s.count > 0)}
                           cx="50%"
                           cy="50%"
-                          innerRadius={45}
-                          outerRadius={60}
+                          innerRadius={40}
+                          outerRadius={55}
                           paddingAngle={5}
                           dataKey="count"
                           nameKey="label"

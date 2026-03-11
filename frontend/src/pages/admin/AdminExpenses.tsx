@@ -432,10 +432,15 @@ const AdminMyExpenses = () => {
                       data={useMemo(() => {
                         const counts: Record<string, number> = {};
                         expenses.forEach(e => {
-                          const cat = e.category || 'Other';
-                          counts[cat] = (counts[cat] || 0) + Number(e.amount);
+                          const amt = Number(e.amount);
+                          if (!isNaN(amt)) {
+                            const cat = e.category || 'Other';
+                            counts[cat] = (counts[cat] || 0) + amt;
+                          }
                         });
-                        return Object.entries(counts).map(([name, value]) => ({ name, value }));
+                        return Object.entries(counts)
+                          .map(([name, value]) => ({ name, value }))
+                          .filter(d => d.value > 0);
                       }, [expenses])}
                       cx="50%"
                       cy="50%"
@@ -803,10 +808,22 @@ const EmployeeExpenseManagement = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={useMemo(() => {
-                    return employeeList.filter(emp => emp._id !== user?.id).map(emp => {
-                      const exp = expenses.filter(e => (e.user_id?._id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount), 0);
-                      const cred = credits.filter(c => c.user_id?._id === emp._id).reduce((s, c) => s + Number(c.amount), 0);
-                      return { name: (emp.name || 'Unknown').split(' ')[0], expense: exp, balance: cred - exp };
+                    return employeeList.filter(emp => emp && emp._id !== user?.id).map(emp => {
+                      const exp = expenses.filter(e => {
+                        const uid = e.user_id?._id || e.user_id;
+                        return uid === emp._id && e.approval_status === 'approved';
+                      }).reduce((s, e) => s + Number(e.amount || 0), 0);
+                      
+                      const cred = credits.filter(c => {
+                        const uid = c.user_id?._id || c.user_id;
+                        return uid === emp._id;
+                      }).reduce((s, c) => s + Number(c.amount || 0), 0);
+                      
+                      return { 
+                        name: (emp.name || 'Unknown').split(' ')[0], 
+                        expense: isNaN(exp) ? 0 : exp, 
+                        balance: isNaN(cred - exp) ? 0 : cred - exp 
+                      };
                     }).filter(d => d.expense > 0 || d.balance !== 0);
                   }, [employeeList, expenses, credits, user])}
                   layout="vertical"
