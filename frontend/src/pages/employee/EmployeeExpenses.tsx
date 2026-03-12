@@ -27,6 +27,8 @@ const CATEGORIES = [
   'Office Supplies', 'Courier Charges', 'Petrol', 'Marketing', 'Lead Generation', 'Others'
 ];
 
+const ROLES = ['CEO', 'Manager', 'Employee', 'HR', 'Others'];
+
 const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#06b6d4', '#e11d48'];
 
 const EmployeeExpenses = () => {
@@ -48,6 +50,7 @@ const EmployeeExpenses = () => {
   const [credAmount, setCredAmount] = useState('');
   const [credGivenBy, setCredGivenBy] = useState('');
   const [credRole, setCredRole] = useState('manager');
+  const [customRole, setCustomRole] = useState('');
   const [credDesc, setCredDesc] = useState('');
 
   const fetchData = useCallback(async () => {
@@ -115,17 +118,18 @@ const EmployeeExpenses = () => {
 
   const handleAddCredit = async () => {
     if (!credAmount || !credGivenBy) return;
+    const finalRole = credRole === 'others' ? (customRole || 'Others') : credRole;
     try {
       await operationService.createCredit({
         credit_date: format(credDate, 'yyyy-MM-dd'),
         amount: parseFloat(credAmount),
         given_by: credGivenBy,
-        given_by_role: credRole,
+        given_by_role: finalRole,
         description: credDesc || undefined
       });
       toast.success('Credit added');
       fetchData();
-      setCredAmount(''); setCredGivenBy(''); setCredDesc('');
+      setCredAmount(''); setCredGivenBy(''); setCredDesc(''); setCustomRole('');
     } catch (error) {
       toast.error('Failed to add credit');
     }
@@ -428,7 +432,7 @@ const EmployeeExpenses = () => {
               <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
                 <CardHeader className="pb-3 border-b border-border/10"><CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4 text-emerald-600" /> Add Credit Recd.</CardTitle></CardHeader>
                 <CardContent className="pt-4 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
                     <div className="space-y-1">
                       <label className="text-xs font-medium uppercase text-muted-foreground">Date</label>
                       <Popover>
@@ -445,7 +449,21 @@ const EmployeeExpenses = () => {
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs font-medium uppercase text-muted-foreground">Given By</label>
-                      <Input placeholder="Name/Role" value={credGivenBy} onChange={e => setCredGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
+                      <Input placeholder="Name/Source" value={credGivenBy} onChange={e => setCredGivenBy(e.target.value)} className="border-border/50 h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium uppercase text-muted-foreground">Role</label>
+                      <div className="flex gap-2">
+                        <Select value={credRole} onValueChange={setCredRole}>
+                          <SelectTrigger className="border-border/50 h-8 text-xs w-[110px]"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {ROLES.map(r => <SelectItem key={r} value={r.toLowerCase()}>{r}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        {credRole === 'others' && (
+                          <Input placeholder="Typing..." value={customRole} onChange={e => setCustomRole(e.target.value)} className="border-border/50 h-8 text-xs flex-1" />
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs font-medium uppercase text-muted-foreground">Amount (₹)</label>
