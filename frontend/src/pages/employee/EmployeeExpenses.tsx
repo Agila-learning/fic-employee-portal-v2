@@ -58,8 +58,8 @@ const EmployeeExpenses = () => {
         operationService.getMyExpenses(),
         operationService.getMyCredits()
       ]);
-      setExpenses(expData || []);
-      setCredits(credData || []);
+      setExpenses(Array.isArray(expData) ? expData : []);
+      setCredits(Array.isArray(credData) ? credData : []);
     } catch (error) {
       toast.error('Failed to fetch expense data');
     } finally {
@@ -151,26 +151,46 @@ const EmployeeExpenses = () => {
   };
 
   // (Remaining UI logic stays same but refactored for readability and premium feel)
-  const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
-  const monthStart = startOfMonth(today);
-  const monthEnd = endOfMonth(today);
+  const { totalSpent, totalCredited, dailySpent, weeklySpent, monthlySpent, pieData } = useMemo(() => {
+    const safeExpenses = Array.isArray(expenses) ? expenses : [];
+    const safeCredits = Array.isArray(credits) ? credits : [];
 
-  const filterByRange = (items: any[], range: 'daily' | 'weekly' | 'monthly') => {
-    return items.filter(item => {
-      const d = safeParseDate(item.expense_date || item.credit_date);
-      if (range === 'daily') return format(d, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-      if (range === 'weekly') return isWithinInterval(d, { start: weekStart, end: weekEnd });
-      return isWithinInterval(d, { start: monthStart, end: monthEnd });
+    const tSpent = safeExpenses.reduce((s, e) => s + (Number(e?.amount) || 0), 0);
+    const tCredited = safeCredits.reduce((s, c) => s + (Number(c?.amount) || 0), 0);
+
+    const now = new Date();
+    const wStart = startOfWeek(now, { weekStartsOn: 1 });
+    const wEnd = endOfWeek(now, { weekStartsOn: 1 });
+    const mStart = startOfMonth(now);
+    const mEnd = endOfMonth(now);
+
+    const getDaily = safeExpenses.filter(e => format(safeParseDate(e.expense_date), 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd'))
+      .reduce((s, e) => s + (Number(e.amount) || 0), 0);
+    
+    const getWeekly = safeExpenses.filter(e => isWithinInterval(safeParseDate(e.expense_date), { start: wStart, end: wEnd }))
+      .reduce((s, e) => s + (Number(e.amount) || 0), 0);
+
+    const getMonthly = safeExpenses.filter(e => isWithinInterval(safeParseDate(e.expense_date), { start: mStart, end: mEnd }))
+      .reduce((s, e) => s + (Number(e.amount) || 0), 0);
+
+    const counts: Record<string, number> = {};
+    safeExpenses.forEach(e => {
+      const cat = e?.category || 'Other';
+      counts[cat] = (counts[cat] || 0) + (Number(e?.amount) || 0);
     });
-  };
+    const pData = Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .filter(d => d.value > 0);
 
-  const totalSpent = expenses.reduce((s, e) => s + Number(e.amount), 0);
-  const totalCredited = credits.reduce((s, c) => s + Number(c.amount), 0);
-  const dailySpent = filterByRange(expenses, 'daily').reduce((s, e) => s + Number(e.amount), 0);
-  const weeklySpent = filterByRange(expenses, 'weekly').reduce((s, e) => s + Number(e.amount), 0);
-  const monthlySpent = filterByRange(expenses, 'monthly').reduce((s, e) => s + Number(e.amount), 0);
+    return { 
+      totalSpent: tSpent, 
+      totalCredited: tCredited, 
+      dailySpent: getDaily, 
+      weeklySpent: getWeekly, 
+      monthlySpent: getMonthly,
+      pieData: pData
+    };
+  }, [expenses, credits]);
 
   const statusBadge = (status: string) => {
     if (status === 'approved') return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Approved</Badge>;
@@ -497,14 +517,7 @@ const EmployeeExpenses = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={useMemo(() => {
-                        const counts: Record<string, number> = {};
-                        expenses.forEach(e => {
-                          const cat = e.category || 'Other';
-                          counts[cat] = (counts[cat] || 0) + Number(e.amount);
-                        });
-                        return Object.entries(counts).map(([name, value]) => ({ name, value }));
-                      }, [expenses])}
+                      data={pieData}
                       cx="50%"
                       cy="50%"
                       innerRadius={50}
