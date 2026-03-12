@@ -256,24 +256,58 @@ const EmployeeExpenseManagement = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between"><CardTitle className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4 text-amber-500" /> Pending Approvals</CardTitle></CardHeader>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Clock className="h-4 w-4 text-amber-500" /> Pending Approvals
+            </CardTitle>
+          </CardHeader>
           <CardContent className="p-0">
-            <div className="max-h-[300px] overflow-y-auto">
+            <div className="overflow-x-auto">
               <Table>
-                <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-[10px]">Amount</TableHead><TableHead className="text-right text-[10px]">Actions</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-xs">Date</TableHead>
+                    <TableHead className="text-xs">Employee</TableHead>
+                    <TableHead className="text-xs">Category</TableHead>
+                    <TableHead className="text-xs">Description</TableHead>
+                    <TableHead className="text-xs">Amount</TableHead>
+                    <TableHead className="text-right text-xs">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {(Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
-                    <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
                   ) : (Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
                     <TableRow key={e?._id} className="group hover:bg-muted/50 transition-colors">
-                      <TableCell className="text-[10px] py-2">{e?.user_id?.name || 'Employee'}</TableCell>
-                      <TableCell className="text-[10px] py-2 font-bold text-destructive">₹{e?.amount || 0}</TableCell>
+                      <TableCell className="text-xs py-2 whitespace-nowrap">
+                        {e?.expense_date ? format(safeParseDate(e.expense_date), 'dd MMM yyyy') : '-'}
+                      </TableCell>
+                      <TableCell className="text-xs py-2 font-medium">{e?.user_id?.name || 'Employee'}</TableCell>
+                      <TableCell className="text-xs py-2">{e?.category || '-'}</TableCell>
+                      <TableCell className="text-xs py-2">
+                        <div className="max-w-[200px] truncate" title={e?.description}>{e?.description || '-'}</div>
+                      </TableCell>
+                      <TableCell className="text-xs py-2 font-bold text-destructive">₹{e?.amount || 0}</TableCell>
                       <TableCell className="text-right py-2">
-                        <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" className="h-6 w-6 text-emerald-600 hover:bg-emerald-50" onClick={() => e && handleApproval(e._id, 'approved')} title="Approve"><Pencil className="h-3 w-3" /></Button>
-                          <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:bg-red-50" onClick={() => e && handleApproval(e._id, 'rejected')} title="Reject"><X className="h-3 w-3" /></Button>
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 text-[10px] px-2 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
+                            onClick={() => e && handleApproval(e._id, 'approved')}
+                          >
+                            Approve
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 text-[10px] px-2 text-destructive border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                            onClick={() => e && handleApproval(e._id, 'rejected')}
+                          >
+                            Reject
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -285,11 +319,20 @@ const EmployeeExpenseManagement = () => {
         </Card>
 
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><Users className="h-4 w-4 text-blue-500" /> Employee Summaries</CardTitle></CardHeader>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-4 w-4 text-blue-500" /> Employee Summaries
+            </CardTitle>
+          </CardHeader>
           <CardContent className="p-0">
             <div className="max-h-[300px] overflow-y-auto">
               <Table>
-                <TableHeader><TableRow className="bg-muted/30"><TableHead className="text-[10px]">Employee</TableHead><TableHead className="text-right text-[10px]">Balance</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-xs">Employee</TableHead>
+                    <TableHead className="text-right text-xs">Balance</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {(Array.isArray(employeeList) ? employeeList : []).filter(emp => emp && emp._id !== user?.id).map(emp => {
                     const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
@@ -297,8 +340,8 @@ const EmployeeExpenseManagement = () => {
                     const balance = empCred - empExp;
                     return (
                       <TableRow key={emp._id} className="group hover:bg-muted/50 transition-colors">
-                        <TableCell className="text-[10px] py-2">{emp.name || 'Unknown'}</TableCell>
-                        <TableCell className={cn("text-right text-[10px] py-2 font-bold", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
+                        <TableCell className="text-xs py-2">{emp.name || 'Unknown'}</TableCell>
+                        <TableCell className={cn("text-right text-xs py-2 font-bold", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
                           ₹{isNaN(balance) ? 0 : balance.toLocaleString()}
                         </TableCell>
                       </TableRow>
