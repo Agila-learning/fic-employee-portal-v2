@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, Send } from 'lucide-react';
+import { Calendar as CalendarIcon, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -32,7 +32,7 @@ const LeaveRequestForm = () => {
     <Card className="border-border/50 overflow-hidden animate-fade-in">
       <CardHeader className="border-b border-border/50 bg-muted/30 pb-3">
         <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-orange-500" />
+          <Calendar as CalendarIcon className="h-5 w-5 text-orange-500" />
           Request Leave
         </CardTitle>
       </CardHeader>
@@ -49,7 +49,7 @@ const LeaveRequestForm = () => {
                     !date && 'text-muted-foreground'
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <Calendar as CalendarIcon className="mr-2 h-4 w-4" />
                   {date ? format(date, 'PPP') : 'Pick a date'}
                 </Button>
               </PopoverTrigger>
@@ -97,3 +97,4 @@ const LeaveRequestForm = () => {
 };
 
 export default LeaveRequestForm;
+

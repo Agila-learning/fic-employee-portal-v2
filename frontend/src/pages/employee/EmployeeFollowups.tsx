@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Search, Eye, Phone, MapPin, ExternalLink, Calendar as CalendarLucide } from 'lucide-react';
+import { Calendar as CalendarIcon, Search, Eye, Phone, MapPin, ExternalLink, Calendar as CalendarLucide } from 'lucide-react';
 import { format, isToday, isTomorrow, isPast, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { Lead } from '@/types';
@@ -160,3 +160,4 @@ const EmployeeFollowups = () => {
 };
 
 export default EmployeeFollowups;
+

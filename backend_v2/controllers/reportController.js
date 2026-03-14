@@ -1,4 +1,4 @@
-﻿const EmployeeReport = require('../models/EmployeeReport');
+const EmployeeReport = require('../models/EmployeeReport');
 
 const createReport = async (req, res) => {
     const { report_date, department, morning_description, afternoon_description, candidates_screened } = req.body;
@@ -23,7 +23,9 @@ const createReport = async (req, res) => {
 const getReports = async (req, res) => {
     try {
         const filter = req.user.role === 'admin' ? {} : { user_id: req.user._id };
-        const reports = await EmployeeReport.find(filter).populate('user_id', 'name email');
+        const reports = await EmployeeReport.find(filter)
+            .populate('user_id', 'name email')
+            .sort({ report_date: -1 });
         res.json(reports);
     } catch (error) {
         res.status(500).json({ message: error.message });

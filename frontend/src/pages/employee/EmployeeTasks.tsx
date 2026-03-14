@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle, CalendarIcon, ListTodo } from 'lucide-react';
+import { CheckCircle, Calendar as CalendarIcon, ListTodo } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, isValid } from 'date-fns';
 
@@ -99,7 +99,7 @@ const EmployeeTasks = () => {
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{task.description || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 text-xs">
-                            <CalendarIcon className="h-3 w-3" />
+                            <Calendar as CalendarIcon className="h-3 w-3" />
                             {safeFormatDate(task.due_date)}
                           </div>
                         </TableCell>
@@ -174,3 +174,4 @@ const EmployeeTasks = () => {
 };
 
 export default EmployeeTasks;
+

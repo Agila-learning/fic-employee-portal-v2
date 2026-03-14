@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { operationService } from '@/api/operationService';
 import { leadService } from '@/api/leadService';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
-import { CalendarIcon, Plus, Trash2, Download, IndianRupee, TrendingUp, TrendingDown, Wallet, Upload, FileImage, ExternalLink } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Trash2, Download, IndianRupee, TrendingUp, TrendingDown, Wallet, Upload, FileImage, ExternalLink } from 'lucide-react';
 import { cn, safeParseDate } from '@/lib/utils';
 import { createWorkbook, setColumnWidths, applyHeaderStyle, downloadWorkbook, styleCell, defaultBorder } from '@/utils/excelExport';
 import { toast } from 'sonner';
@@ -335,7 +335,7 @@ const EmployeeExpenses = () => {
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal border-border/50 text-xs">
-                            <CalendarIcon className="mr-2 h-3 w-3" />
+                            <Calendar as CalendarIcon className="mr-2 h-3 w-3" />
                             {format(expDate, 'PPP')}
                           </Button>
                         </PopoverTrigger>
@@ -438,7 +438,7 @@ const EmployeeExpenses = () => {
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal border-border/50 text-xs">
-                            <CalendarIcon className="mr-2 h-3 w-3" />
+                            <Calendar as CalendarIcon className="mr-2 h-3 w-3" />
                             {format(credDate, 'PPP')}
                           </Button>
                         </PopoverTrigger>
@@ -563,3 +563,4 @@ const EmployeeExpenses = () => {
 };
 
 export default EmployeeExpenses;
+

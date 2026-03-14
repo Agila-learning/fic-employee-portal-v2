@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
-import { FileText, Send, History, CheckCircle, Clock, Plus, Trash2, CalendarIcon } from 'lucide-react';
+import { FileText, Send, History, CheckCircle, Clock, Plus, Trash2, Calendar as CalendarIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';

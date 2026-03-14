@@ -20,7 +20,6 @@ import {
   FileText,
   IndianRupee,
   FileSignature,
-  FileSignature,
   Trophy,
   MessageSquare,
 } from 'lucide-react';
@@ -167,19 +166,20 @@ const Sidebar = () => {
           <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
             {links.map((link) => {
               const isActive = location.pathname === link.to;
-              return (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300',
-                    isActive
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30'
-                      : 'text-amber-100/90 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:text-white hover:pl-5'
-                  )}
-                >
-                  <link.icon className={cn("h-5 w-5 transition-colors", isActive ? "text-white" : "text-amber-400")} />
-                  <span className="flex-1">{link.label}</span>
+    const Icon = link.icon;
+    return (
+      <Link
+        key={link.to}
+        to={link.to}
+        className={cn(
+          'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300',
+          isActive
+            ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30'
+            : 'text-amber-100/90 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:text-white hover:pl-5'
+        )}
+      >
+        <Icon className={cn("h-5 w-5 transition-colors", isActive ? "text-white" : "text-amber-400")} />
+        <span className="flex-1">{link.label}</span>
                   {link.to === '/admin/leave-requests' && pendingLeaveCount > 0 && (
                     <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white animate-pulse">
                       {pendingLeaveCount}

@@ -13,7 +13,7 @@ import { operationService } from '@/api/operationService';
 import { leadService } from '@/api/leadService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { CalendarIcon, TrendingDown, TrendingUp, Wallet, Plus, Trash2, Upload, FileImage, BarChart3, Loader2, Pencil, X } from 'lucide-react';
+import { Calendar as CalendarIcon, TrendingDown, TrendingUp, Wallet, Plus, Trash2, Upload, FileImage, BarChart3, Loader2, Pencil, X } from 'lucide-react';
 import { cn, safeParseDate } from '@/lib/utils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { CATEGORIES, PIE_COLORS } from './AdminExpenses';
@@ -274,7 +274,7 @@ const AdminMyExpenses = () => {
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                        <CalendarIcon className="mr-2 h-3 w-3" /> {format(expDate, 'PPP')}
+                        <Calendar as CalendarIcon className="mr-2 h-3 w-3" /> {format(expDate, 'PPP')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -350,7 +350,7 @@ const AdminMyExpenses = () => {
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                        <CalendarIcon className="mr-2 h-3 w-3" /> {format(credDate, 'PPP')}
+                        <Calendar as CalendarIcon className="mr-2 h-3 w-3" /> {format(credDate, 'PPP')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -542,3 +542,4 @@ const AdminMyExpenses = () => {
 };
 
 export default AdminMyExpenses;
+

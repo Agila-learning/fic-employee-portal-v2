@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const AdminChat = () => {
+  const location = useLocation();
   const [employees, setEmployees] = useState<any[]>([]);
   const [chatList, setChatList] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -36,6 +38,15 @@ const AdminChat = () => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.selectedUserId && employees.length > 0) {
+      const userToSelect = employees.find(e => e._id === location.state.selectedUserId);
+      if (userToSelect) {
+        setSelectedUser(userToSelect);
+      }
+    }
+  }, [location.state, employees]);
 
   const filteredEmployees = employees.filter(emp => 
     emp.name.toLowerCase().includes(searchQuery.toLowerCase())

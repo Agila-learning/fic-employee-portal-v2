@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, Download, FileUser } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, FileUser } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { attendanceService } from '@/api/attendanceService';
@@ -267,7 +267,7 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <Calendar as CalendarIcon className="mr-2 h-4 w-4" />
                   {fromDate ? format(fromDate, 'PPP') : 'Pick date'}
                 </Button>
               </PopoverTrigger>
@@ -289,7 +289,7 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <Calendar as CalendarIcon className="mr-2 h-4 w-4" />
                   {toDate ? format(toDate, 'PPP') : 'Pick date'}
                 </Button>
               </PopoverTrigger>
@@ -328,3 +328,4 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
 };
 
 export default EmployeeAttendanceExport;
+

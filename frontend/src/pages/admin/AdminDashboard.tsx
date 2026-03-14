@@ -8,14 +8,14 @@ import { operationService } from '@/api/operationService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import LeadFormDialog from '@/components/leads/LeadFormDialog';
-import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase, Star, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase, Star, Calendar as CalendarIcon, Loader2, MessageSquare } from 'lucide-react';
 import AdminLeaveRequests from '@/components/leave/AdminLeaveRequests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { STATUS_OPTIONS, STATUS_OPTIONS_ADMIN, Lead, INTERESTED_DOMAIN_OPTIONS } from '@/types';
 import { cn, safeParseDate } from '@/lib/utils';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { startOfWeek, endOfWeek, isWithinInterval, parseISO, format, startOfMonth, endOfMonth, isSameDay } from 'date-fns';
 
 const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1'];
@@ -196,7 +196,7 @@ const AdminDashboard = () => {
             transition={{ delay: 0.2 }}
           >
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">Welcome back, {user?.name}! Here's your team's overview.</p>
+
           </motion.div>
         </div>
 
@@ -480,12 +480,25 @@ const AdminDashboard = () => {
                       <p className="font-semibold truncate group-hover/emp:text-primary transition-colors">{emp.name}</p>
                       <p className="text-xs text-muted-foreground">This week's conversions</p>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1.5 text-green-600">
-                        <Star className="h-5 w-5" />
-                        <span className="text-xl font-bold">{emp.weeklySuccess}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <div className="flex items-center gap-1.5 text-green-600">
+                          <Star className="h-5 w-5" />
+                          <span className="text-xl font-bold">{emp.weeklySuccess}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">this week</p>
                       </div>
-                      <p className="text-xs text-muted-foreground">this week</p>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full hover:bg-primary/20 hover:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate('/admin/messages', { state: { selectedUserId: emp.id } });
+                        }}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}

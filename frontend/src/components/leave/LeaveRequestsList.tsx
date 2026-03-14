@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { CalendarIcon, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ const LeaveRequestsList = () => {
     <Card className="border-border/50 overflow-hidden animate-fade-in">
       <CardHeader className="border-b border-border/50 bg-muted/30 pb-3">
         <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-blue-500" />
+          <Calendar as CalendarIcon className="h-5 w-5 text-blue-500" />
           My Leave Requests
           {leaveRequests.length > 0 && (
             <Badge variant="secondary" className="ml-auto">{leaveRequests.length}</Badge>
@@ -83,3 +83,4 @@ const LeaveRequestsList = () => {
 };
 
 export default LeaveRequestsList;
+

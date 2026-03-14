@@ -13,7 +13,7 @@ import { operationService } from '@/api/operationService';
 import { employeeService } from '@/api/employeeService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { CalendarIcon, Download, TrendingDown, TrendingUp, Wallet, Users, Clock, Trash2, IndianRupee, BarChart3, Loader2, Pencil, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, TrendingDown, TrendingUp, Wallet, Users, Clock, Trash2, IndianRupee, BarChart3, Loader2, Pencil, X } from 'lucide-react';
 import { cn, safeParseDate } from '@/lib/utils';
 import { createWorkbook, setColumnWidths, applyHeaderStyle, downloadWorkbook } from '@/utils/excelExport';
 import { ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -501,7 +501,7 @@ const EmployeeExpenseManagement = () => {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                      <CalendarIcon className="mr-2 h-3 w-3" /> {format(editDate, 'PPP')}
+                      <Calendar as CalendarIcon className="mr-2 h-3 w-3" /> {format(editDate, 'PPP')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -577,3 +577,4 @@ const EmployeeExpenseManagement = () => {
 };
 
 export default EmployeeExpenseManagement;
+

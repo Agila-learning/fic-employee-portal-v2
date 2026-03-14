@@ -1,4 +1,4 @@
-﻿const Expense = require('../models/Expense');
+const Expense = require('../models/Expense');
 
 const createExpense = async (req, res) => {
     const { description, amount, category, date, expense_date } = req.body;
@@ -19,7 +19,9 @@ const createExpense = async (req, res) => {
 const getExpenses = async (req, res) => {
     try {
         const filter = req.user.role === 'admin' ? {} : { user_id: req.user._id };
-        const expenses = await Expense.find(filter).populate('user_id', 'name email');
+        const expenses = await Expense.find(filter)
+            .populate('user_id', 'name email')
+            .sort({ expense_date: -1 });
         res.json(expenses);
     } catch (error) {
         res.status(500).json({ message: error.message });

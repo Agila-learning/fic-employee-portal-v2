@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useSuccessStories, SuccessStory } from '@/hooks/useSuccessStories';
-import { Plus, Edit2, Trash2, Trophy, MapPin, Briefcase, Quote, IndianRupee, Video, Link, Upload, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Trophy, MapPin, Briefcase, Quote, IndianRupee, Video, Link as LinkIcon, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const emptyForm = { candidate_name: '', package: '', location: '', domain: '', motivation_words: '', video_url: '' as string, video_path: '' as string };
@@ -237,7 +237,7 @@ const AdminSuccessStories = () => {
                   <X className="h-3 w-3 mr-1" /> None
                 </Button>
                 <Button type="button" size="sm" variant={videoMode === 'link' ? 'default' : 'outline'} onClick={() => { setVideoMode('link'); setVideoFile(null); }}>
-                  <Link className="h-3 w-3 mr-1" /> Link
+                  <LinkIcon className="h-3 w-3 mr-1" /> Link
                 </Button>
                 <Button type="button" size="sm" variant={videoMode === 'upload' ? 'default' : 'outline'} onClick={() => { setVideoMode('upload'); }}>
                   <Upload className="h-3 w-3 mr-1" /> Upload

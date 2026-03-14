@@ -6,7 +6,7 @@ import AttendanceCard from '@/components/dashboard/AttendanceCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Clock, CheckCircle, XCircle, History } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle, XCircle, History } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -114,3 +114,4 @@ const EmployeeAttendance = () => {
 };
 
 export default EmployeeAttendance;
+

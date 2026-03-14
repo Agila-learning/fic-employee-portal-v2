@@ -23,7 +23,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Upload, MessageSquare, History, Send, Clock, Calendar, CreditCard, FileImage, AlertCircle, CheckCircle2, FileWarning } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Upload, MessageSquare, History, Send, Clock, Calendar as CalendarIcon, CreditCard, FileImage, AlertCircle, CheckCircle2, FileWarning } from 'lucide-react';
 import { format } from 'date-fns';
 import ConfettiCelebration from '@/components/ui/ConfettiCelebration';
 import SecureFileLink from '@/components/leads/SecureFileLink';
@@ -820,7 +821,7 @@ const LeadForm = ({
           <div className={`space-y-2 p-3 sm:p-4 rounded-lg border ${isExpired || currentDateExpired ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800' : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900'}`}>
             <Label htmlFor="followup_date" className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${isExpired || currentDateExpired ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'}`}>
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
+                <CalendarIcon className="mr-2 h-4 w-4" />
                 <span className="text-xs sm:text-sm">Follow-up Date & Time <span className="text-red-500">*</span></span>
               </div>
               {lead && (
