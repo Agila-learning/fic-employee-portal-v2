@@ -57,6 +57,7 @@ const AdminExpenses = lazyWithRetry(() => import("./pages/admin/AdminExpenses"))
 const AdminPayroll = lazyWithRetry(() => import("./pages/admin/AdminPayroll"));
 const AdminOfferLetter = lazyWithRetry(() => import("./pages/admin/AdminOfferLetter"));
 const AdminSuccessStories = lazyWithRetry(() => import("./pages/admin/AdminSuccessStories"));
+const AdminChat = lazyWithRetry(() => import("./pages/admin/AdminChat"));
 
 // Lazy load employee pages
 const EmployeeDashboard = lazyWithRetry(() => import("./pages/employee/EmployeeDashboard"));
@@ -70,6 +71,7 @@ const EmployeeLeave = lazyWithRetry(() => import("./pages/employee/EmployeeLeave
 const EmployeeExpenses = lazyWithRetry(() => import("./pages/employee/EmployeeExpenses"));
 const EmployeePayslips = lazyWithRetry(() => import("./pages/employee/EmployeePayslips"));
 const EmployeeSuccessStories = lazyWithRetry(() => import("./pages/employee/EmployeeSuccessStories"));
+const EmployeeChat = lazyWithRetry(() => import("./pages/employee/EmployeeChat"));
 const Settings = lazyWithRetry(() => import("./pages/Settings"));
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 
@@ -129,6 +131,7 @@ const App = () => (
                 <Route path="/admin/payroll" element={<AdminPayroll />} />
                 <Route path="/admin/offer-letter" element={<AdminOfferLetter />} />
                 <Route path="/admin/success-stories" element={<AdminSuccessStories />} />
+                <Route path="/admin/messages" element={<AdminChat />} />
                 
                 {/* Employee Routes */}
                 <Route path="/employee" element={<EmployeeDashboard />} />
@@ -142,6 +145,7 @@ const App = () => (
                 <Route path="/employee/expenses" element={<EmployeeExpenses />} />
                 <Route path="/employee/payslips" element={<EmployeePayslips />} />
                 <Route path="/employee/success-stories" element={<EmployeeSuccessStories />} />
+                <Route path="/employee/messages" element={<EmployeeChat />} />
                 
                 {/* Common Routes */}
                 <Route path="/settings" element={<Settings />} />

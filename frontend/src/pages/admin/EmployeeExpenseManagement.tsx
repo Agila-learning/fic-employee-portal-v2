@@ -279,7 +279,10 @@ const EmployeeExpenseManagement = () => {
                 <TableBody>
                   {(Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
-                  ) : (Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).map(e => (
+                  ) : (Array.isArray(expenses) ? expenses : [])
+                    .filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id)
+                    .sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime())
+                    .map(e => (
                     <TableRow key={e?._id} className="group hover:bg-muted/50 transition-colors">
                       <TableCell className="text-xs py-2 whitespace-nowrap">
                         {e?.expense_date ? format(safeParseDate(e.expense_date), 'dd MMM yyyy') : '-'}

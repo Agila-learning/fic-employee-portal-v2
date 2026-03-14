@@ -158,7 +158,7 @@ const AdminReports = () => {
       if (userId !== selectedEmployee) return false;
     }
     return true;
-  });
+  }).sort((a, b) => new Date(b.report_date).getTime() - new Date(a.report_date).getTime());
 
   // Group reports by department
   const reportsByDepartment = DEPARTMENTS.reduce((acc, dept) => {
