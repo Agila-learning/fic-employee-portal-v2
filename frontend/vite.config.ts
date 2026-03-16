@@ -15,6 +15,19 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [react()],
+  build: {
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          utils: ['axios', 'date-fns', 'recharts', 'framer-motion'],
+          heavy: ['jspdf', 'html2canvas', 'exceljs'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
