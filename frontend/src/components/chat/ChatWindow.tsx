@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, RefreshCw, Loader2, Paperclip, Mic, X, Image as ImageIcon, File as FileIcon, Download, Play, Square } from 'lucide-react';
+import { Send, RefreshCw, Loader2, Paperclip, Mic, X, Image as ImageIcon, File as FileIcon, Download, Play, Square, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, safeParseDate } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface Message {
@@ -44,7 +44,7 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const fetchMessages = useCallback(async () => {
     if (!selectedUser) return;
@@ -67,9 +67,7 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
   }, [selectedUser, fetchMessages]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleSend = async (e?: React.FormEvent, extraData: any = {}) => {
@@ -239,7 +237,7 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-0 bg-[#0b141a]/5 dark:bg-[#0b141a]/40" viewportRef={scrollRef}>
+      <ScrollArea className="flex-1 p-0 bg-[#0b141a]/5 dark:bg-[#0b141a]/40">
         <div className="flex flex-col p-4 space-y-4">
           {messages.length === 0 && !isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
@@ -254,17 +252,21 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
               const prevMsg = index > 0 ? messages[index - 1] : null;
               const nextMsg = index < messages.length - 1 ? messages[index + 1] : null;
               
-              const isStartOfGroup = !prevMsg || prevMsg.sender !== msg.sender || new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() > 60000;
-              const isEndOfGroup = !nextMsg || nextMsg.sender !== msg.sender || new Date(nextMsg.createdAt).getTime() - new Date(msg.createdAt).getTime() > 60000;
+              const currentMsgDate = safeParseDate(msg.createdAt);
+              const prevMsgDate = prevMsg ? safeParseDate(prevMsg.createdAt) : null;
+              const nextMsgDate = nextMsg ? safeParseDate(nextMsg.createdAt) : null;
+
+              const isStartOfGroup = !prevMsgDate || prevMsg.sender !== msg.sender || currentMsgDate.getTime() - prevMsgDate.getTime() > 60000;
+              const isEndOfGroup = !nextMsgDate || nextMsg.sender !== msg.sender || nextMsgDate.getTime() - currentMsgDate.getTime() > 60000;
               
-              const showTimeHeader = !prevMsg || new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() > 3600000; // 1 hour
+              const showTimeHeader = !prevMsgDate || currentMsgDate.getTime() - prevMsgDate.getTime() > 3600000; // 1 hour
 
               return (
                 <div key={msg._id} className="flex flex-col">
                   {showTimeHeader && (
                     <div className="w-full flex justify-center my-6">
                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 bg-muted/20 px-3 py-1 rounded-lg backdrop-blur-sm border border-white/5">
-                         {format(new Date(msg.createdAt), 'EEEE, MMM d')}
+                         {format(currentMsgDate, 'EEEE, MMM d')}
                        </span>
                     </div>
                   )}
@@ -292,7 +294,7 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
                           isMe ? "text-primary-foreground/60" : "text-muted-foreground/60"
                         )}>
                           <span className="text-[9px] font-medium uppercase">
-                            {format(new Date(msg.createdAt), 'hh:mm a')}
+                            {format(currentMsgDate, 'hh:mm a')}
                           </span>
                           {isMe && (
                             <div className="flex ml-0.5">
@@ -323,6 +325,7 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
                <Loader2 className="h-8 w-8 animate-spin text-primary/20" />
              </div>
           )}
+          <div ref={bottomRef} />
         </div>
       </ScrollArea>
 
