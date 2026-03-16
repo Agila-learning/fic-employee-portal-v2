@@ -67,6 +67,7 @@ const Sidebar = () => {
 
   const adminLinks = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
     { to: '/admin/employees', icon: Users, label: 'Employees' },
 
     { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
@@ -82,12 +83,12 @@ const Sidebar = () => {
     { to: '/admin/payroll', icon: FileText, label: 'Payroll' },
     { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
     { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
-    { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   const employeeLinks = [
     { to: '/employee', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/employee/messages', icon: MessageSquare, label: 'Chat' },
     { to: '/employee/leads', icon: FileSpreadsheet, label: 'My Leads' },
     { to: '/employee/followups', icon: CalendarClock, label: 'Follow-ups' },
     { to: '/employee/add-lead', icon: UserPlus, label: 'Add Lead' },
@@ -98,7 +99,6 @@ const Sidebar = () => {
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
     { to: '/employee/success-stories', icon: Trophy, label: 'Success Stories' },
-    { to: '/employee/messages', icon: MessageSquare, label: 'Chat' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
