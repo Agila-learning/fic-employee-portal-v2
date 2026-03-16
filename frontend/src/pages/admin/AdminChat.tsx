@@ -57,7 +57,7 @@ const AdminChat = () => {
       <div className="flex flex-col h-[calc(100vh-140px)]">
         <div className="mb-4">
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <MessageSquare className="h-6 w-6 text-primary" /> Messages
+            <MessageSquare className="h-6 w-6 text-primary" /> Chat
           </h1>
           <p className="text-muted-foreground text-sm">Chat with employees individually</p>
         </div>
@@ -120,8 +120,10 @@ const AdminChat = () => {
                               <p className="text-xs text-muted-foreground truncate">
                                 {chatInfo ? chatInfo.lastMessage : (emp.department || 'Employee')}
                               </p>
-                              {chatInfo?.isUnread && (
-                                <div className="h-2 w-2 rounded-full bg-primary" />
+                              {chatInfo?.unreadCount > 0 && (
+                                <div className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-bold shadow-sm">
+                                  {chatInfo.unreadCount}
+                                </div>
                               )}
                             </div>
                           </div>

@@ -82,7 +82,7 @@ const Sidebar = () => {
     { to: '/admin/payroll', icon: FileText, label: 'Payroll' },
     { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
     { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
-    { to: '/admin/messages', icon: MessageSquare, label: 'Messages' },
+    { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -98,7 +98,7 @@ const Sidebar = () => {
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
     { to: '/employee/success-stories', icon: Trophy, label: 'Success Stories' },
-    { to: '/employee/messages', icon: MessageSquare, label: 'Messages' },
+    { to: '/employee/messages', icon: MessageSquare, label: 'Chat' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 

@@ -57,7 +57,7 @@ const EmployeeChat = () => {
       <div className="flex flex-col h-[calc(100vh-140px)]">
         <div className="mb-4">
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <MessageSquare className="h-6 w-6 text-primary" /> Help & Support
+            <MessageSquare className="h-6 w-6 text-primary" /> Chat
           </h1>
           <p className="text-muted-foreground text-sm">Chat with the Administrator</p>
         </div>

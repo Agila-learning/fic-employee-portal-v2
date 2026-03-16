@@ -212,6 +212,20 @@ const EmployeeExpenseManagement = () => {
     }).filter(d => d && (d.expense > 0 || d.balance !== 0));
   }, [employeeList, expenses, credits, user]);
 
+  const groupedTransactions = useMemo(() => {
+    const groups: { [date: string]: any[] } = {};
+    allTransactions.forEach(item => {
+      const date = item.expense_date || item.credit_date;
+      const dateStr = format(safeParseDate(date), 'yyyy-MM-dd');
+      if (!groups[dateStr]) groups[dateStr] = [];
+      groups[dateStr].push(item);
+    });
+    return Object.keys(groups).sort((a, b) => b.localeCompare(a)).map(date => ({
+      date,
+      items: groups[date]
+    }));
+  }, [allTransactions]);
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -421,59 +435,70 @@ const EmployeeExpenseManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allTransactions.map((item, index) => (
-                    <TableRow key={item?._id || index}>
-                      <TableCell className="text-xs text-muted-foreground">{index + 1}</TableCell>
-                      <TableCell className="text-xs font-medium">{item?.user_id?.name || 'Employee'}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={cn("text-[10px] uppercase", item?.type === 'expense' ? "text-destructive border-destructive" : "text-emerald-600 border-emerald-600")}>
-                          {item?.type === 'expense' ? 'Debit' : 'Credit'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs whitespace-nowrap">
-                        {item ? format(safeParseDate(item.expense_date || item.credit_date), 'dd MMM yyyy') : '—'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-xs font-medium">{item.category || item.given_by || (item.type === 'credit' ? 'Company Credit' : 'Other')}</div>
-                        <div className="text-[10px] text-muted-foreground truncate max-w-[140px]">{item.description || '—'}</div>
-                      </TableCell>
-                      <TableCell className={cn("text-right font-bold text-xs", item.type === 'expense' ? "text-destructive" : "text-emerald-600")}>
-                        {item.type === 'expense' ? '-' : '+'}₹{Number(item.amount).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        {item.type === 'expense' ? (
-                          <Badge variant="outline" className={cn("text-[10px]",
-                            item.approval_status === 'approved' ? 'text-emerald-600 border-emerald-600' :
-                              item.approval_status === 'rejected' ? 'text-destructive border-destructive' :
-                                'text-amber-600 border-amber-600'
-                          )}>
-                            {item.approval_status || 'pending'}
+                  {groupedTransactions.map((group) => (
+                    <>
+                      <TableRow key={group.date} className="bg-muted/10">
+                        <TableCell colSpan={8} className="py-2 px-4">
+                          <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border-primary/20">
+                            {format(safeParseDate(group.date), 'dd MMMM yyyy')}
                           </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-600">Credit</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 justify-end">
-                          <Button
-                            variant="ghost" size="icon"
-                            className="h-7 w-7 hover:text-primary hover:bg-primary/10"
-                            onClick={() => openEditDialog(item)}
-                            title="Edit"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost" size="icon"
-                            className="h-7 w-7 hover:text-red-500 hover:bg-red-50"
-                            onClick={() => handleDeleteEmployee(item)}
-                            title="Delete"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                        </TableCell>
+                      </TableRow>
+                      {group.items.map((item, index) => (
+                        <TableRow key={item?._id || index} className="group hover:bg-muted/30 transition-colors">
+                          <TableCell className="text-xs text-muted-foreground">{index + 1}</TableCell>
+                          <TableCell className="text-xs font-medium">{item?.user_id?.name || 'Employee'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cn("text-[10px] uppercase", item?.type === 'expense' ? "text-destructive border-destructive" : "text-emerald-600 border-emerald-600")}>
+                                {item?.type === 'expense' ? 'Debit' : 'Credit'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">
+                            {item ? format(safeParseDate(item.expense_date || item.credit_date), 'dd MMM yyyy') : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-xs font-medium">{item.category || item.given_by || (item.type === 'credit' ? 'Company Credit' : 'Other')}</div>
+                            <div className="text-[10px] text-muted-foreground truncate max-w-[140px]">{item.description || '—'}</div>
+                          </TableCell>
+                          <TableCell className={cn("text-right font-bold text-xs", item.type === 'expense' ? "text-destructive" : "text-emerald-600")}>
+                            {item.type === 'expense' ? '-' : '+'}₹{Number(item.amount).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            {item.type === 'expense' ? (
+                              <Badge variant="outline" className={cn("text-[10px]",
+                                item.approval_status === 'approved' ? 'text-emerald-600 border-emerald-600' :
+                                  item.approval_status === 'rejected' ? 'text-destructive border-destructive' :
+                                    'text-amber-600 border-amber-600'
+                              )}>
+                                {item.approval_status || 'pending'}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-600">Credit</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 justify-end">
+                              <Button
+                                variant="ghost" size="icon"
+                                className="h-7 w-7 hover:text-primary hover:bg-primary/10"
+                                onClick={() => openEditDialog(item)}
+                                title="Edit"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost" size="icon"
+                                className="h-7 w-7 hover:text-red-500 hover:bg-red-50"
+                                onClick={() => handleDeleteEmployee(item)}
+                                title="Delete"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
                   ))}
                 </TableBody>
               </Table>
@@ -501,7 +526,7 @@ const EmployeeExpenseManagement = () => {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                      <Calendar as CalendarIcon className="mr-2 h-3 w-3" /> {format(editDate, 'PPP')}
+                      <CalendarIcon className="mr-2 h-3 w-3" /> {format(editDate, 'PPP')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">

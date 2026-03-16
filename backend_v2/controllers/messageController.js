@@ -4,17 +4,22 @@ const User = require('../models/User');
 // Send a message
 exports.sendMessage = async (req, res) => {
     try {
-        const { receiverId, content } = req.body;
+        const { receiverId, content, messageType, fileUrl, fileName, fileSize, duration } = req.body;
         const senderId = req.user.id;
 
-        if (!receiverId || !content) {
+        if (!receiverId || (!content && !fileUrl)) {
             return res.status(400).json({ message: 'Receiver and content are required' });
         }
 
         const newMessage = new Message({
             sender: senderId,
             receiver: receiverId,
-            content
+            content: content || (messageType === 'voice' ? 'Voice Message' : fileName || 'Attachment'),
+            messageType: messageType || 'text',
+            fileUrl,
+            fileName,
+            fileSize,
+            duration
         });
 
         await newMessage.save();
@@ -72,17 +77,28 @@ exports.getChatList = async (req, res) => {
 
         const users = await User.find({ _id: { $in: Array.from(chatPartners) } }).select('name role');
 
-        const result = users.map(user => {
-            const lastMsg = latestMessages.find(m => m.sender.toString() === user._id.toString() || m.receiver.toString() === user._id.toString());
+        const result = await Promise.all(users.map(async (user) => {
+            const lastMsg = latestMessages.find(m => 
+                m.sender.toString() === user._id.toString() || 
+                m.receiver.toString() === user._id.toString()
+            );
+            
+            const unreadCount = await Message.countDocuments({
+                sender: user._id,
+                receiver: myId,
+                isRead: false
+            });
+
             return {
                 _id: user._id,
                 name: user.name,
                 role: user.role,
                 lastMessage: lastMsg.content,
                 lastMessageTime: lastMsg.createdAt,
-                isUnread: lastMsg.receiver.toString() === myId.toString() && !lastMsg.isRead
+                isUnread: unreadCount > 0,
+                unreadCount
             };
-        });
+        }));
 
         res.status(200).json(result);
     } catch (error) {
