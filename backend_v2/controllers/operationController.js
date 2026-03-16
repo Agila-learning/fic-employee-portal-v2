@@ -284,7 +284,7 @@ const createExpense = async (req, res) => {
 
 const getMyExpenses = async (req, res) => {
     try {
-        const expenses = await Expense.find({ user_id: req.user._id });
+        const expenses = await Expense.find({ user_id: req.user._id }).sort({ expense_date: -1, createdAt: -1 });
         res.json(expenses);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -295,7 +295,9 @@ const getAllExpenses = async (req, res) => {
     try {
         const filter = {};
         if (req.query.status) filter.approval_status = req.query.status;
-        const expenses = await Expense.find(filter).populate('user_id', 'name email');
+        const expenses = await Expense.find(filter)
+            .populate('user_id', 'name email')
+            .sort({ expense_date: -1, createdAt: -1 });
         res.json(expenses);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -377,7 +379,7 @@ const createHoliday = async (req, res) => {
 // Credits
 const getMyCredits = async (req, res) => {
     try {
-        const credits = await Credit.find({ user_id: req.user._id });
+        const credits = await Credit.find({ user_id: req.user._id }).sort({ credit_date: -1, createdAt: -1 });
         res.json(credits);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -386,7 +388,9 @@ const getMyCredits = async (req, res) => {
 
 const getAllCredits = async (req, res) => {
     try {
-        const credits = await Credit.find({}).populate('user_id', 'name email');
+        const credits = await Credit.find({})
+            .populate('user_id', 'name email')
+            .sort({ credit_date: -1, createdAt: -1 });
         res.json(credits);
     } catch (error) {
         res.status(500).json({ message: error.message });
