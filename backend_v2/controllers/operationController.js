@@ -166,8 +166,38 @@ const markAttendance = async (req, res) => {
 
 const getMyAttendance = async (req, res) => {
     try {
-        const attendance = await Attendance.find({ user_id: req.user._id });
-        res.json(attendance);
+        const attendance = await Attendance.find({ user_id: req.user._id }).sort({ date: -1 });
+        const holidays = await Holiday.find({});
+        
+        // Enhance with virtual records for Sundays and Holidays missing from DB
+        const enhancedAttendance = [...attendance];
+        const existingDates = new Set(attendance.map(a => a.date));
+        
+        // Define a reasonable range (e.g., last 60 days) to fill gaps
+        const now = new Date();
+        for (let i = 0; i < 60; i++) {
+            const d = new Date();
+            d.setDate(now.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            
+            if (!existingDates.has(dateStr)) {
+                const dayOfWeek = d.getDay(); // 0 = Sunday
+                const isHoliday = holidays.find(h => h.date.toISOString().split('T')[0] === dateStr);
+                
+                if (dayOfWeek === 0 || isHoliday) {
+                    enhancedAttendance.push({
+                        user_id: req.user._id,
+                        date: dateStr,
+                        status: 'present',
+                        notes: dayOfWeek === 0 ? 'Sunday (Auto)' : `Holiday: ${isHoliday.name}`,
+                        isVirtual: true // Mark as virtual for frontend handling
+                    });
+                }
+            }
+        }
+
+        // Sort again since we pushed new records
+        res.json(enhancedAttendance.sort((a, b) => b.date.localeCompare(a.date)));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -183,7 +213,9 @@ const getAllAttendance = async (req, res) => {
             if (startDate) filter.date.$gte = startDate;
             if (endDate) filter.date.$lte = endDate;
         }
-        const attendance = await Attendance.find(filter).populate('user_id', 'name email employee_id');
+        const attendance = await Attendance.find(filter)
+            .populate('user_id', 'name email employee_id')
+            .sort({ date: -1 });
         res.json(attendance);
     } catch (error) {
         res.status(500).json({ message: error.message });

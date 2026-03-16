@@ -72,7 +72,7 @@ const EmployeeAttendance = () => {
                       ) : attendanceHistory.length === 0 ? (
                         <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">No attendance records found</TableCell></TableRow>
                       ) : attendanceHistory.map((record) => (
-                        <TableRow key={record._id || record.id}>
+                        <TableRow key={record.id || record._id || `row-${record.date}`}>
                           <TableCell className="font-medium">
                             {record.date ? format(parseISO(record.date), 'dd MMM yyyy') : 'No Date'}
                           </TableCell>

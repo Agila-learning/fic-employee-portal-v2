@@ -78,8 +78,8 @@ export const useAttendance = () => {
       const myData = await attendanceService.getMyAttendance();
       const mappedMyAttendance = myData.map((a: any) => ({
         ...a,
-        id: a._id,
-        marked_at: a.check_in || a.createdAt || a.created_at || new Date().toISOString()
+        id: a._id || `virtual-${a.date}`,
+        marked_at: a.check_in || a.createdAt || a.created_at || new Date(a.date).toISOString()
       }));
       setMyAttendance(mappedMyAttendance);
 
