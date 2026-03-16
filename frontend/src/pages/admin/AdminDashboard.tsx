@@ -24,7 +24,7 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { employees } = useEmployees();
-  const { leads, refetchLeads } = useLeads();
+  const { leads, refetchLeads } = useLeads(100); // Fetch only 100 most recent leads for dashboard
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loadingAttendance, setLoadingAttendance] = useState(true);
@@ -34,7 +34,12 @@ const AdminDashboard = () => {
     const fetchAttendance = async () => {
       setLoadingAttendance(true);
       try {
-        const data = await operationService.getAllAttendance();
+        const now = new Date();
+        const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+        const endOfYear = new Date(now.getFullYear(), 11, 31).toISOString().split('T')[0];
+        
+        // Fetch only this year's attendance to avoid crashing browser with 5000+ records
+        const data = await operationService.getAllAttendance({ startDate: startOfYear, endDate: endOfYear });
         setAttendance(data || []);
       } catch (error) {
         console.error('Failed to fetch attendance', error);

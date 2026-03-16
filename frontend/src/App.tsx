@@ -9,9 +9,10 @@ import MobileDesktopPopup from "@/components/ui/MobileDesktopPopup";
 import { lazy, Suspense } from "react";
 
 import ErrorBoundary from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
+// Basic pages
+const Index = lazyWithRetry(() => import('./pages/Index'));
+const Auth = lazyWithRetry(() => import('./pages/Auth'));
+const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
 /**
  * Enhanced lazy loading that reloads the page on chunk load failures.

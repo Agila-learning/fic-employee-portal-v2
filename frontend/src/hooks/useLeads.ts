@@ -27,22 +27,29 @@ const logLeadAccess = async (
   }
 };
 
-export const useLeads = () => {
+export const useLeads = (limit?: number) => {
   const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentLimit, setCurrentLimit] = useState<number | undefined>(limit);
 
-  const fetchLeads = async () => {
+  const fetchLeads = async (fetchLimit?: number) => {
     if (!user) return;
 
     try {
-      const data = await leadService.getLeads();
+      const activeLimit = fetchLimit !== undefined ? fetchLimit : currentLimit;
+      const data = await leadService.getLeads(activeLimit);
 
-      // Log for audit
-      if (data && data.length > 0) {
-        for (const lead of data.slice(0, 5)) {
-          logLeadAccess(user.id, lead._id, 'view', ['name', 'status']);
-        }
+      // Log for audit - Single event for performance
+      if (data && data.length > 0 && user) {
+        const leadIds = data.slice(0, 5).map((l: any) => l._id);
+        leadService.logAccess({
+          user_id: user.id,
+          lead_id: leadIds.join(','), // Log multiple IDs in one go
+          action: 'view',
+          accessed_fields: ['name', 'status'],
+          user_agent: navigator.userAgent,
+        }).catch(err => console.error('[DEV] Audit log error:', err));
       }
 
       const mappedLeads = data.map((l: any) => ({

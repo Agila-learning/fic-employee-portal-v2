@@ -1,4 +1,4 @@
-﻿const Lead = require('../models/Lead');
+const Lead = require('../models/Lead');
 
 const createLead = async (req, res) => {
     const lead = new Lead({
@@ -15,12 +15,21 @@ const createLead = async (req, res) => {
 
 const getLeads = async (req, res) => {
     try {
+        const limit = parseInt(req.query.limit) || 0;
         const filter = req.user.role === 'admin'
             ? {}
             : { $or: [{ assigned_to: req.user._id }, { created_by: req.user._id }] };
-        const leads = await Lead.find(filter)
+        
+        let query = Lead.find(filter)
             .populate('assigned_to', 'name email')
-            .populate('created_by', 'name email');
+            .populate('created_by', 'name email')
+            .sort({ updatedAt: -1 }); // Default to latest first
+
+        if (limit > 0) {
+            query = query.limit(limit);
+        }
+
+        const leads = await query;
         res.json(leads);
     } catch (error) {
         res.status(500).json({ message: error.message });
