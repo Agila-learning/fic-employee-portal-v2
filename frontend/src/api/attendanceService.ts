@@ -26,9 +26,9 @@ export const attendanceService = {
         return response.data;
     },
 
-    getAttendanceForDateRange: async (employeeId: string, fromDate: string, toDate: string) => {
+    getAttendanceForDateRange: async (userId: string, startDate: string, endDate: string) => {
         const response = await apiClient.get(`/operations/attendance/range`, {
-            params: { employeeId, from: fromDate, to: toDate }
+            params: { user_id: userId, startDate, endDate }
         });
         return response.data;
     }
