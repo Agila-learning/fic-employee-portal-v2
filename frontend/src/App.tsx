@@ -10,71 +10,44 @@ import { lazy, Suspense } from "react";
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 // Basic pages
-const Index = lazyWithRetry(() => import('./pages/Index'));
-const Auth = lazyWithRetry(() => import('./pages/Auth'));
-const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
+const Index = lazy(() => import('./pages/Index'));
+const Auth = lazy(() => import('./pages/Auth'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-/**
- * Enhanced lazy loading that reloads the page on chunk load failures.
- * This is crucial for fixing the "Failed to fetch dynamically imported module" error
- * which happens when a new build is deployed and the browser tries to load a stale chunk.
- */
-const lazyWithRetry = (componentImport: () => Promise<any>) => {
-  return lazy(async () => {
-    const pageHasBeenForceRefreshed = JSON.parse(
-      window.localStorage.getItem('page-has-been-force-refreshed') || 'false'
-    );
-
-    try {
-      const component = await componentImport();
-      window.localStorage.setItem('page-has-been-force-refreshed', 'false');
-      return component;
-    } catch (error) {
-      if (!pageHasBeenForceRefreshed) {
-        // A temporary load error occurred. Force a page refresh to get fresh assets.
-        window.localStorage.setItem('page-has-been-force-refreshed', 'true');
-        return window.location.reload();
-      }
-
-      // The error persists after a refresh, so let it propagate to ErrorBoundary
-      throw error;
-    }
-  });
-};
 
 // Lazy load admin pages
-const AdminDashboard = lazyWithRetry(() => import("./pages/admin/AdminDashboard"));
-const AdminEmployees = lazyWithRetry(() => import("./pages/admin/AdminEmployees"));
-const AdminLeads = lazyWithRetry(() => import("./pages/admin/AdminLeads"));
-const AdminTasks = lazyWithRetry(() => import("./pages/admin/AdminTasks"));
-const AdminAnnouncements = lazyWithRetry(() => import("./pages/admin/AdminAnnouncements"));
-const AdminAttendance = lazyWithRetry(() => import("./pages/admin/AdminAttendance"));
-const AdminFollowups = lazyWithRetry(() => import("./pages/admin/AdminFollowups"));
-const AdminStorage = lazyWithRetry(() => import("./pages/admin/AdminStorage"));
-const AdminInvoice = lazyWithRetry(() => import("./pages/admin/AdminInvoice"));
-const AdminReports = lazyWithRetry(() => import("./pages/admin/AdminReports"));
-const AdminLeaveRequestsPage = lazyWithRetry(() => import("./pages/admin/AdminLeaveRequests"));
-const AdminExpenses = lazyWithRetry(() => import("./pages/admin/AdminExpenses"));
-const AdminPayroll = lazyWithRetry(() => import("./pages/admin/AdminPayroll"));
-const AdminOfferLetter = lazyWithRetry(() => import("./pages/admin/AdminOfferLetter"));
-const AdminSuccessStories = lazyWithRetry(() => import("./pages/admin/AdminSuccessStories"));
-const AdminChat = lazyWithRetry(() => import("./pages/admin/AdminChat"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminEmployees = lazy(() => import("./pages/admin/AdminEmployees"));
+const AdminLeads = lazy(() => import("./pages/admin/AdminLeads"));
+const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
+const AdminAnnouncements = lazy(() => import("./pages/admin/AdminAnnouncements"));
+const AdminAttendance = lazy(() => import("./pages/admin/AdminAttendance"));
+const AdminFollowups = lazy(() => import("./pages/admin/AdminFollowups"));
+const AdminStorage = lazy(() => import("./pages/admin/AdminStorage"));
+const AdminInvoice = lazy(() => import("./pages/admin/AdminInvoice"));
+const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
+const AdminLeaveRequestsPage = lazy(() => import("./pages/admin/AdminLeaveRequests"));
+const AdminExpenses = lazy(() => import("./pages/admin/AdminExpenses"));
+const AdminPayroll = lazy(() => import("./pages/admin/AdminPayroll"));
+const AdminOfferLetter = lazy(() => import("./pages/admin/AdminOfferLetter"));
+const AdminSuccessStories = lazy(() => import("./pages/admin/AdminSuccessStories"));
+const AdminChat = lazy(() => import("./pages/admin/AdminChat"));
 
 // Lazy load employee pages
-const EmployeeDashboard = lazyWithRetry(() => import("./pages/employee/EmployeeDashboard"));
-const EmployeeLeads = lazyWithRetry(() => import("./pages/employee/EmployeeLeads"));
-const EmployeeFollowups = lazyWithRetry(() => import("./pages/employee/EmployeeFollowups"));
-const EmployeeAttendance = lazyWithRetry(() => import("./pages/employee/EmployeeAttendance"));
-const EmployeeTasks = lazyWithRetry(() => import("./pages/employee/EmployeeTasks"));
-const EmployeeReports = lazyWithRetry(() => import("./pages/employee/EmployeeReports"));
-const AddLead = lazyWithRetry(() => import("./pages/employee/AddLead"));
-const EmployeeLeave = lazyWithRetry(() => import("./pages/employee/EmployeeLeave"));
-const EmployeeExpenses = lazyWithRetry(() => import("./pages/employee/EmployeeExpenses"));
-const EmployeePayslips = lazyWithRetry(() => import("./pages/employee/EmployeePayslips"));
-const EmployeeSuccessStories = lazyWithRetry(() => import("./pages/employee/EmployeeSuccessStories"));
-const EmployeeChat = lazyWithRetry(() => import("./pages/employee/EmployeeChat"));
-const Settings = lazyWithRetry(() => import("./pages/Settings"));
-const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const EmployeeDashboard = lazy(() => import("./pages/employee/EmployeeDashboard"));
+const EmployeeLeads = lazy(() => import("./pages/employee/EmployeeLeads"));
+const EmployeeFollowups = lazy(() => import("./pages/employee/EmployeeFollowups"));
+const EmployeeAttendance = lazy(() => import("./pages/employee/EmployeeAttendance"));
+const EmployeeTasks = lazy(() => import("./pages/employee/EmployeeTasks"));
+const EmployeeReports = lazy(() => import("./pages/employee/EmployeeReports"));
+const AddLead = lazy(() => import("./pages/employee/AddLead"));
+const EmployeeLeave = lazy(() => import("./pages/employee/EmployeeLeave"));
+const EmployeeExpenses = lazy(() => import("./pages/employee/EmployeeExpenses"));
+const EmployeePayslips = lazy(() => import("./pages/employee/EmployeePayslips"));
+const EmployeeSuccessStories = lazy(() => import("./pages/employee/EmployeeSuccessStories"));
+const EmployeeChat = lazy(() => import("./pages/employee/EmployeeChat"));
+const Settings = lazy(() => import("./pages/Settings"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const PageLoader = () => (
   <div className="flex h-screen items-center justify-center bg-background">
