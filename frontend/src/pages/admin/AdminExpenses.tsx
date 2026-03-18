@@ -15,6 +15,7 @@ export const CATEGORIES = [
 ];
 
 const AdminExpenses = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('my-expenses');
 
   return (
@@ -23,9 +24,11 @@ const AdminExpenses = () => {
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              <IndianRupee className="h-8 w-8 text-primary" /> Admin Expenses
+              <IndianRupee className="h-8 w-8 text-primary" /> {user?.role === 'md' ? 'Expenses Management' : 'Admin Expenses'}
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm md:text-base">Comprehensive expense oversight and management</p>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base">
+              {user?.role === 'md' ? 'Oversight of employee expenses and personal records' : 'Comprehensive expense oversight and management'}
+            </p>
           </div>
         </header>
 
