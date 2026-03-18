@@ -295,8 +295,16 @@ const getAllExpenses = async (req, res) => {
     try {
         const filter = {};
         if (req.query.status) filter.approval_status = req.query.status;
+        
+        // MD can see everything except Admin expenses
+        if (req.user.role === 'md') {
+            const adminUsers = await User.find({ role: 'admin' }).select('_id');
+            const adminIds = adminUsers.map(u => u._id);
+            filter.user_id = { $nin: adminIds };
+        }
+
         const expenses = await Expense.find(filter)
-            .populate('user_id', 'name email')
+            .populate('user_id', 'name email role')
             .sort({ expense_date: -1, createdAt: -1 });
         res.json(expenses);
     } catch (error) {

@@ -11,6 +11,16 @@ exports.sendMessage = async (req, res) => {
             return res.status(400).json({ message: 'Receiver and content are required' });
         }
 
+        const receiver = await User.findById(receiverId);
+        if (!receiver) {
+            return res.status(404).json({ message: 'Receiver not found' });
+        }
+
+        // Employee can only chat with Admin
+        if (req.user.role === 'employee' && receiver.role !== 'admin') {
+            return res.status(403).json({ message: 'Employees can only message Admin users' });
+        }
+
         const newMessage = new Message({
             sender: senderId,
             receiver: receiverId,
@@ -74,8 +84,13 @@ exports.getChatList = async (req, res) => {
                 latestMessages.push(msg);
             }
         });
+        
+        let users = await User.find({ _id: { $in: Array.from(chatPartners) } }).select('name role');
 
-        const users = await User.find({ _id: { $in: Array.from(chatPartners) } }).select('name role');
+        // If employee, filter out non-admin partners
+        if (req.user.role === 'employee') {
+            users = users.filter(user => user.role === 'admin');
+        }
 
         const result = await Promise.all(users.map(async (user) => {
             const lastMsg = latestMessages.find(m => 

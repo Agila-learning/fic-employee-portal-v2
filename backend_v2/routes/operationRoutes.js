@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
@@ -31,6 +31,7 @@ router.route('/attendance')
     .post(protect, markAttendance)
     .get(protect, admin, getAllAttendance);
 router.get('/attendance/my', protect, getMyAttendance);
+router.get('/attendance/range', protect, admin, getAllAttendance); // Frontend calls /range
 router.patch('/attendance/checkout', protect, checkOut);
 router.put('/attendance/:id', protect, admin, updateAttendance);
 
