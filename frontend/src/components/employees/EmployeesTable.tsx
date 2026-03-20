@@ -10,6 +10,7 @@ import CreateEmployeeDialog from './CreateEmployeeDialog';
 import { MoreHorizontal, Pencil, UserX, UserCheck, Search, UserPlus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { getInitials } from '@/lib/utils';
 
 const EmployeesTable = () => {
   const { employees, toggleEmployeeStatus, deleteEmployee, isLoading, refetchEmployees } = useEmployees();
@@ -74,7 +75,7 @@ const EmployeesTable = () => {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full gradient-secondary">
-                      <span className="text-sm font-semibold text-secondary-foreground">{employee.name.split(' ').map(n => n[0]).join('')}</span>
+                      <span className="text-sm font-semibold text-secondary-foreground">{getInitials(employee.name)}</span>
                     </div>
                     <p className="font-medium">{employee.name}</p>
                   </div>

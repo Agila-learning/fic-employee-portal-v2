@@ -16,3 +16,17 @@ export const safeParseDate = (dateStr: any): Date => {
     return new Date();
   }
 };
+
+export function getInitials(name: string | null | undefined): string {
+  if (!name || typeof name !== 'string') return '??';
+  try {
+    return name
+      .split(' ')
+      .filter(part => part.length > 0)
+      .map(part => part[0].toUpperCase())
+      .join('')
+      .substring(0, 3);
+  } catch (e) {
+    return '??';
+  }
+}

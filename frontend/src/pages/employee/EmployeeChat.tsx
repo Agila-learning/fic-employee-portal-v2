@@ -8,7 +8,7 @@ import { MessageSquare, ShieldCheck, Loader2 } from 'lucide-react';
 import { messageService } from '@/api/messageService';
 import { employeeService } from '@/api/employeeService';
 import ChatWindow from '@/components/chat/ChatWindow';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 
 const EmployeeChat = () => {
   const [adminUser, setAdminUser] = useState<any>(null);
@@ -84,7 +84,7 @@ const EmployeeChat = () => {
                     <div className="relative">
                       <Avatar className="h-10 w-10 shrink-0">
                         <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
-                          {adminUser.name.split(' ').map((n: string) => n[0]).join('')}
+                          {getInitials(adminUser.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">

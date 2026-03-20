@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { STATUS_OPTIONS, STATUS_OPTIONS_ADMIN, Lead, INTERESTED_DOMAIN_OPTIONS } from '@/types';
-import { cn, safeParseDate } from '@/lib/utils';
+import { cn, safeParseDate, getInitials } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { startOfWeek, endOfWeek, isWithinInterval, parseISO, format, startOfMonth, endOfMonth, isSameDay } from 'date-fns';
 
@@ -425,7 +425,7 @@ const AdminDashboard = () => {
                       {index + 1}
                     </div>
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-md group-hover/emp:shadow-lg group-hover/emp:scale-105 transition-all duration-300">
-                      <span className="text-sm font-bold text-white">{emp.name.split(' ').map(n => n[0]).join('')}</span>
+                      <span className="text-sm font-bold text-white">{getInitials(emp.name)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate group-hover/emp:text-primary transition-colors">{emp.name}</p>
@@ -479,7 +479,7 @@ const AdminDashboard = () => {
                       {index + 1}
                     </div>
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-md group-hover/emp:shadow-lg group-hover/emp:scale-105 transition-all duration-300">
-                      <span className="text-sm font-bold text-white">{emp.name.split(' ').map(n => n[0]).join('')}</span>
+                      <span className="text-sm font-bold text-white">{getInitials(emp.name)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate group-hover/emp:text-primary transition-colors">{emp.name}</p>
@@ -540,7 +540,7 @@ const AdminDashboard = () => {
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 group-hover/lead:bg-primary/20 transition-colors">
-                    <span className="text-sm font-bold text-primary">{lead.name.split(' ').map(n => n[0]).join('')}</span>
+                    <span className="text-sm font-bold text-primary">{getInitials(lead.name)}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate group-hover/lead:text-primary transition-colors">{lead.name}</p>

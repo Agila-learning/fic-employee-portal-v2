@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar as CalendarIcon, Download, FileUser } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { attendanceService } from '@/api/attendanceService';
+import { operationService } from '@/api/operationService';
 import { Holiday } from '@/hooks/useHolidays';
 
 interface Employee {
@@ -47,9 +47,12 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
 
   const getAttendanceForDateRange = async (employeeId: string, from: Date, to: Date) => {
     try {
-      const fromStr = format(from, 'yyyy-MM-dd');
-      const toStr = format(to, 'yyyy-MM-dd');
-      const data = await attendanceService.getAttendanceForDateRange(employeeId, fromStr, toStr);
+      const filters = {
+        userId: employeeId,
+        startDate: format(from, 'yyyy-MM-dd'),
+        endDate: format(to, 'yyyy-MM-dd')
+      };
+      const data = await operationService.getAllAttendance(filters);
       return (data || []) as AttendanceRecord[];
     } catch (error) {
       console.error('Error fetching attendance range:', error);
@@ -111,7 +114,7 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
           totalSundays++;
         } else if (holidayInfo) {
           status = 'Holiday (Auto-Present)';
-          remarks = `${holidayInfo.name} (${holidayInfo.type === 'govt' ? 'Govt' : 'Festival'})`;
+          remarks = `${holidayInfo.name} (${holidayInfo.type === 'public' ? 'Public' : 'Optional'})`;
           totalHolidays++;
         } else if (record) {
           if (record.half_day) {
@@ -267,7 +270,7 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal">
-                  <Calendar as CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   {fromDate ? format(fromDate, 'PPP') : 'Pick date'}
                 </Button>
               </PopoverTrigger>
@@ -289,7 +292,7 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal">
-                  <Calendar as CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   {toDate ? format(toDate, 'PPP') : 'Pick date'}
                 </Button>
               </PopoverTrigger>

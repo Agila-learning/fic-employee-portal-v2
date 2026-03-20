@@ -70,20 +70,32 @@ export const useHolidays = () => {
   };
 
   const isSunday = (date: Date | string): boolean => {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.getDay() === 0;
+    try {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      if (!d || isNaN(d.getTime())) return false;
+      return d.getDay() === 0;
+    } catch (e) {
+      return false;
+    }
   };
 
   const getDateStatus = (date: string): { type: 'sunday' | 'holiday' | 'working'; holiday?: Holiday } => {
-    const d = new Date(date);
-    if (isSunday(d)) {
-      return { type: 'sunday' };
+    try {
+      if (!date) return { type: 'working' };
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return { type: 'working' };
+      
+      if (isSunday(d)) {
+        return { type: 'sunday' };
+      }
+      const holiday = isHoliday(date);
+      if (holiday) {
+        return { type: 'holiday', holiday };
+      }
+      return { type: 'working' };
+    } catch (e) {
+      return { type: 'working' };
     }
-    const holiday = isHoliday(date);
-    if (holiday) {
-      return { type: 'holiday', holiday };
-    }
-    return { type: 'working' };
   };
 
   useEffect(() => {

@@ -23,7 +23,7 @@ import {
   Trophy,
   MessageSquare,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ficLogo from '@/assets/fic-logo.jpeg';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -151,7 +151,7 @@ const Sidebar = () => {
             <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3 backdrop-blur-sm">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-md">
                 <span className="text-sm font-bold text-white">
-                  {user?.name.split(' ').map(n => n[0]).join('')}
+                  {getInitials(user?.name)}
                 </span>
               </div>
               <div className="flex-1 min-w-0">

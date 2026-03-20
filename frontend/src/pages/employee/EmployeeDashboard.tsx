@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import LeadStatusBadge from '@/components/leads/LeadStatusBadge';
 import { STATUS_OPTIONS, Lead } from '@/types';
-import { cn, safeParseDate } from '@/lib/utils';
+import { cn, safeParseDate, getInitials } from '@/lib/utils';
 import { getRandomQuote } from '@/utils/motivationalQuotes';
 import { toast } from 'sonner';
 import { format, subDays, isSameDay } from 'date-fns';
@@ -360,7 +360,7 @@ const EmployeeDashboard = () => {
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl bg-primary/10 group-hover/lead:bg-primary/20 group-hover/lead:scale-110 transition-all duration-300 shrink-0">
-                      <span className="text-xs sm:text-sm font-bold text-primary">{lead.name.split(' ').map(n => n[0]).join('')}</span>
+                      <span className="text-xs sm:text-sm font-bold text-primary">{getInitials(lead.name)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate group-hover/lead:text-primary transition-colors text-sm sm:text-base">{lead.name}</p>

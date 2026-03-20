@@ -9,7 +9,7 @@ import { Search, Loader2, MessageSquare } from 'lucide-react';
 import { messageService } from '@/api/messageService';
 import { employeeService } from '@/api/employeeService';
 import ChatWindow from '@/components/chat/ChatWindow';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const AdminChat = () => {
@@ -104,7 +104,7 @@ const AdminChat = () => {
                         >
                           <Avatar className="h-10 w-10 shrink-0">
                             <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
-                              {emp.name.split(' ').map((n: string) => n[0]).join('')}
+                              {getInitials(emp.name)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">

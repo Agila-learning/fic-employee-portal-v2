@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const User = require('../models/User');
 const Attendance = require('../models/Attendance');
+const Holiday = require('../models/Holiday');
 
 const initCronJobs = () => {
     // Run every day at 3:00 PM
@@ -12,6 +13,9 @@ const initCronJobs = () => {
             // 1. Get all active employees
             const activeEmployees = await User.find({ is_active: { $ne: false }, role: 'employee' });
             
+            const isSunday = new Date().getDay() === 0;
+            const holiday = await Holiday.findOne({ date: today });
+            
             for (const employee of activeEmployees) {
                 // 2. Check if attendance exists for today
                 const attendance = await Attendance.findOne({
@@ -19,15 +23,27 @@ const initCronJobs = () => {
                     date: today
                 });
                 
-                // 3. If no record, mark as absent
+                // 3. Automated marking logic
                 if (!attendance) {
-                    await Attendance.create({
-                        user_id: employee._id,
-                        date: today,
-                        status: 'absent',
-                        notes: 'Auto-marked absent (No check-in by 3 PM)'
-                    });
-                    console.log(`Marked ${employee.name} (${employee.employee_id}) as absent.`);
+                    if (isSunday || holiday) {
+                        // Mark as present for Sundays and Holidays (Inbuilt Present)
+                        await Attendance.create({
+                            user_id: employee._id,
+                            date: today,
+                            status: 'present',
+                            notes: isSunday ? 'Sunday (Inbuilt Present)' : `Holiday: ${holiday.name} (Inbuilt Present)`
+                        });
+                        console.log(`Auto-marked ${employee.name} as present (${isSunday ? 'Sunday' : 'Holiday'}).`);
+                    } else {
+                        // Mark as absent if neither Sunday nor Holiday and no record by 3 PM
+                        await Attendance.create({
+                            user_id: employee._id,
+                            date: today,
+                            status: 'absent',
+                            notes: 'Auto-marked absent (No check-in by 3 PM)'
+                        });
+                        console.log(`Marked ${employee.name} (${employee.employee_id}) as absent.`);
+                    }
                 }
             }
             console.log('Daily Attendance Check completed.');

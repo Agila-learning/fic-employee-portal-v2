@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, RefreshCw, Loader2, Paperclip, Mic, X, Image as ImageIcon, File as FileIcon, Download, Play, Square, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, safeParseDate } from '@/lib/utils';
+import { cn, safeParseDate, getInitials } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface Message {
@@ -219,7 +219,7 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
           <div className="relative">
             <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-lg">
               <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold">
-                {selectedUser.name.split(' ').map(n => n[0]).join('')}
+                {getInitials(selectedUser.name)}
               </AvatarFallback>
             </Avatar>
             <div className="absolute bottom-0 right-0 h-3 w-3 bg-emerald-500 border-2 border-card rounded-full" />

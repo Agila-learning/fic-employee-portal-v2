@@ -31,6 +31,7 @@ import TypewriterPlaceholder from '@/components/ui/TypewriterPlaceholder';
 import { MoreHorizontal, Pencil, Trash2, Eye, Download, Filter, Search, CalendarDays, Users, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { startOfDay, startOfWeek, startOfMonth, isAfter, parseISO, format } from 'date-fns';
+import { getInitials } from '@/lib/utils';
 
 const SEARCH_PLACEHOLDERS = [
   'Search by name...',
@@ -458,7 +459,7 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                        <span className="text-xs font-bold text-primary">{lead.name.split(' ').map(n => n[0]).join('')}</span>
+                        <span className="text-xs font-bold text-primary">{getInitials(lead.name)}</span>
                       </div>
                       <div>
                         <p className="font-medium group-hover:text-primary transition-colors">{lead.name}</p>
@@ -490,10 +491,10 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
                       <div className="flex items-center gap-2">
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
                           <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
-                            {lead.created_by_name?.split(' ').map(n => n[0]).join('') || '?'}
+                            {getInitials(lead.created_by_name)}
                           </span>
                         </div>
-                        <span className="text-muted-foreground">{lead.created_by_name || (typeof lead.created_by === 'object' ? lead.created_by.name : 'Unknown')}</span>
+                        <span className="text-muted-foreground">{lead.created_by_name || (typeof lead.created_by === 'object' && lead.created_by ? (lead.created_by as any).name : 'Unknown')}</span>
                       </div>
                     </TableCell>
                   )}

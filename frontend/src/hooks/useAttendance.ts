@@ -8,7 +8,7 @@ import {
   OFFICE_LOCATIONS,
   WorkLocation
 } from '@/utils/geolocation';
-import { attendanceService } from '@/api/attendanceService';
+import { operationService } from '@/api/operationService';
 
 export type AttendanceStatus = 'present' | 'absent' | 'half_day';
 
@@ -65,22 +65,32 @@ export const useAttendance = () => {
 
       // Fetch admin view if applicable
       if (user.role === 'admin') {
-        const adminData = await attendanceService.getAttendance();
-        setAttendance(adminData.map((a: any) => ({
+        const adminData = await operationService.getAllAttendance();
+        setAttendance((adminData || []).map((a: any) => ({
           ...a,
-          id: a._id,
-          marked_at: a.check_in || a.createdAt || a.created_at || new Date().toISOString(),
+          id: a._id || a.id,
+          marked_at: a.check_in || a.createdAt || a.created_at || (a.date ? new Date(a.date).toISOString() : new Date().toISOString()),
           user_name: a.user_id?.name || 'Unknown'
         })));
       }
 
       // Fetch personal attendance
-      const myData = await attendanceService.getMyAttendance();
-      const mappedMyAttendance = myData.map((a: any) => ({
-        ...a,
-        id: a._id || `virtual-${a.date}`,
-        marked_at: a.check_in || a.createdAt || a.created_at || new Date(a.date).toISOString()
-      }));
+      const myData = await operationService.getMyAttendance();
+      const mappedMyAttendance = (myData || []).map((a: any) => {
+        let markedAt = a.check_in || a.createdAt || a.created_at;
+        if (!markedAt && a.date) {
+          try {
+            markedAt = new Date(a.date).toISOString();
+          } catch (e) {
+            markedAt = new Date().toISOString();
+          }
+        }
+        return {
+          ...a,
+          id: a._id || `virtual-${a.date || Math.random()}`,
+          marked_at: markedAt || new Date().toISOString()
+        };
+      });
       setMyAttendance(mappedMyAttendance);
 
       // Calculate summary and find today's entry
@@ -170,7 +180,7 @@ export const useAttendance = () => {
     }
 
     try {
-      await attendanceService.markAttendance({
+      await operationService.markAttendance({
         date: new Date().toISOString().split('T')[0],
         status,
         leave_reason: status === 'absent' ? leaveReason : null,
@@ -221,7 +231,7 @@ export const useAttendance = () => {
     }
 
     try {
-      const result = await attendanceService.checkOut({ work_location: workLocation, latitude, longitude, location_verified: locationVerified });
+      const result = await operationService.checkOut({ work_location: workLocation, latitude, longitude, location_verified: locationVerified });
       // Immediately update todayAttendance with check_out + duration
       setTodayAttendance(prev => prev ? {
         ...prev,
@@ -249,7 +259,7 @@ export const useAttendance = () => {
       return { error: new Error('Unauthorized') };
     }
     try {
-      await attendanceService.updateAttendance(id, { status, leave_reason: leaveReason, half_day: isHalfDay });
+      await operationService.updateAttendance(id, { status, leave_reason: leaveReason, half_day: isHalfDay });
       toast({ title: 'Success', description: 'Attendance updated' });
       fetchAttendance();
       return { error: null };
@@ -265,7 +275,7 @@ export const useAttendance = () => {
       return { error: new Error('Unauthorized') };
     }
     try {
-      await attendanceService.markAttendance({
+      await operationService.markAttendance({
         user_id: empId,
         status,
         date,
