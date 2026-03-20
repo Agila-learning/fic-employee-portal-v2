@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const { registerUser, loginUser, getUserProfile, updatePassword, getUsers, updateUser, deleteUser } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
@@ -9,7 +9,7 @@ router.get('/profile', protect, getUserProfile);
 router.put('/update-password', protect, updatePassword);
 
 router.route('/')
-    .get(protect, admin, getUsers);
+    .get(protect, getUsers);
 
 router.route('/:id')
     .put(protect, admin, updateUser)

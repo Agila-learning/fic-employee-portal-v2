@@ -1,4 +1,4 @@
-﻿const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const generateToken = (id) => {
@@ -106,6 +106,13 @@ const getUsers = async (req, res) => {
         if (req.query.role && req.query.role !== 'all') {
             filters.role = req.query.role;
         }
+
+        // If the requester is not an admin/md, restrict results to only admins
+        // This allows employees to fetch administrative users to chat with.
+        if (req.user.role !== 'admin' && req.user.role !== 'md') {
+            filters.role = 'admin';
+        }
+
         const users = await User.find(filters).select('-password');
         res.json(users);
     } catch (error) {
