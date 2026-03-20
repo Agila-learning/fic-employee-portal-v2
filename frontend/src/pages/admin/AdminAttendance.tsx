@@ -106,9 +106,21 @@ const AdminAttendance = () => {
     // For summary, if it's a multi-day range, we might need average or per-day breakdown
     // But for the requested "traceability", let's show totals for the selected period
     const safeFilteredAttendance = Array.isArray(filteredAttendance) ? filteredAttendance.filter(a => a) : [];
-    const present = safeFilteredAttendance.filter(a => a.status === 'present' && !a.half_day).length;
-    const halfDay = safeFilteredAttendance.filter(a => a.half_day === true).length;
-    const absent = safeFilteredAttendance.filter(a => a.status === 'absent').length;
+    
+    let present = 0, halfDay = 0, absent = 0;
+    
+    safeFilteredAttendance.forEach(a => {
+      const isSun = new Date(a.date).getDay() === 0;
+      if (isSun) {
+        present++;
+      } else if (a.half_day) {
+        halfDay++;
+      } else if (a.status === 'present') {
+        present++;
+      } else {
+        absent++;
+      }
+    });
 
     return { totalEmployees, present, halfDay, absent };
   };
@@ -116,6 +128,15 @@ const AdminAttendance = () => {
   const summary = getSummary();
 
   const getStatusBadge = (record: Attendance) => {
+    const isSun = new Date(record.date).getDay() === 0;
+    if (isSun) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+          <CalendarIcon className="h-3 w-3" />
+          Sunday
+        </span>
+      );
+    }
     if (record.half_day) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
@@ -157,7 +178,11 @@ const AdminAttendance = () => {
         empMap[uid] = { name, present: 0, halfDay: 0, absent: 0, totalDays: 0 };
       }
       empMap[uid].totalDays++;
-      if (record.half_day) {
+      
+      const isSun = new Date(record.date).getDay() === 0;
+      if (isSun) {
+        empMap[uid].present++;
+      } else if (record.half_day) {
         empMap[uid].halfDay++;
       } else if (record.status === 'present') {
         empMap[uid].present++;
@@ -193,14 +218,15 @@ const AdminAttendance = () => {
     // ===== SHEET 2: All Records (Grouped by Date) =====
     const mapRecord = (record: Attendance) => {
       const name = (record.user_id && typeof record.user_id === 'object' ? (record.user_id as any).name : record.user_name) || 'Unknown';
+      const isSun = new Date(record.date).getDay() === 0;
       return {
         'Employee Name': name,
         'Date': record.date,
         'Day': record.date ? new Date(record.date).toLocaleDateString('en-US', { weekday: 'long' }) : '-',
-        'Status': record.half_day ? 'Half Day' : (record.status === 'present' ? 'Present' : 'Absent'),
+        'Status': isSun ? 'Sunday' : (record.half_day ? 'Half Day' : (record.status === 'present' ? 'Present' : 'Absent')),
         'Work Location': getLocationDisplayName(record.work_location),
         'Marked At': record.marked_at ? new Date(record.marked_at).toLocaleTimeString() : '-',
-        'Leave Reason': record.status === 'absent' ? (record.leave_reason || record.notes || '-') : '-',
+        'Leave Reason': isSun ? '-' : (record.status === 'absent' ? (record.leave_reason || record.notes || '-') : '-'),
         'Location Verified': record.location_verified ? 'Yes' : 'No'
       };
     };
@@ -240,7 +266,7 @@ const AdminAttendance = () => {
         const mapped = mapRecord(record);
         const row = allSheet.addRow(cols.map(c => mapped[c as keyof typeof mapped]));
         let bgColor = 'FFFFFF';
-        if (mapped['Status'] === 'Present') bgColor = 'D5F5E3';
+        if (mapped['Status'] === 'Present' || mapped['Status'] === 'Sunday') bgColor = 'D5F5E3';
         else if (mapped['Status'] === 'Half Day') bgColor = 'FEF9E7';
         else if (mapped['Status'] === 'Absent') bgColor = 'FADBD8';
         for (let c = 1; c <= 8; c++) {
@@ -265,7 +291,11 @@ const AdminAttendance = () => {
       if (!employeeStats[uid]) {
         employeeStats[uid] = { name, present: 0, halfDay: 0, absent: 0 };
       }
-      if (record.half_day) {
+      
+      const isSun = new Date(record.date).getDay() === 0;
+      if (isSun) {
+        employeeStats[uid].present++;
+      } else if (record.half_day) {
         employeeStats[uid].halfDay++;
       } else if (record.status === 'present') {
         employeeStats[uid].present++;

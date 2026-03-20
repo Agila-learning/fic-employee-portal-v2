@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { utilityService } from '@/api/utilityService';
 
-export type HolidayType = 'govt' | 'festival';
+export type HolidayType = 'public' | 'optional';
 
 export interface Holiday {
   id: string;

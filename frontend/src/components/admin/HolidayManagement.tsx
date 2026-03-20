@@ -35,7 +35,7 @@ const HolidayManagement = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState('');
   const [name, setName] = useState('');
-  const [type, setType] = useState<HolidayType>('govt');
+  const [type, setType] = useState<HolidayType>('public');
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -50,7 +50,7 @@ const HolidayManagement = () => {
     if (!result.error) {
       setDate('');
       setName('');
-      setType('govt');
+      setType('public');
       setIsOpen(false);
     }
   };
@@ -110,8 +110,8 @@ const HolidayManagement = () => {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="govt">Government</SelectItem>
-                    <SelectItem value="festival">Festival</SelectItem>
+                    <SelectItem value="public">Government</SelectItem>
+                    <SelectItem value="optional">Festival</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -179,12 +179,12 @@ const HolidayManagement = () => {
                             <Badge
                               variant="outline"
                               className={
-                                holiday.type === 'govt'
+                                holiday.type === 'public'
                                   ? 'border-primary/50 text-primary bg-primary/10'
                                   : 'border-warning/50 text-warning bg-warning/10'
                               }
                             >
-                              {holiday.type === 'govt' ? 'Government' : 'Festival'}
+                              {holiday.type === 'public' ? 'Government' : 'Festival'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -232,7 +232,7 @@ const HolidayManagement = () => {
                           <TableCell>{holiday.name}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="border-muted text-muted-foreground">
-                              {holiday.type === 'govt' ? 'Government' : 'Festival'}
+                              {holiday.type === 'public' ? 'Government' : 'Festival'}
                             </Badge>
                           </TableCell>
                           <TableCell>

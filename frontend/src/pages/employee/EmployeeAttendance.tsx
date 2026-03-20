@@ -95,9 +95,15 @@ const EmployeeAttendance = () => {
                               : '-')}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={record.status === 'present' ? 'default' : 'outline'} className={record.status === 'present' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}>
-                              {record.status}
-                            </Badge>
+                            {record.date && new Date(record.date).getDay() === 0 ? (
+                              <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400">
+                                Sunday
+                              </Badge>
+                            ) : (
+                              <Badge variant={record.status === 'present' ? 'default' : 'outline'} className={record.status === 'present' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}>
+                                {record.status}
+                              </Badge>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
