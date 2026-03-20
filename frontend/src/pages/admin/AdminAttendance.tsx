@@ -488,7 +488,7 @@ const AdminAttendance = () => {
                             <TableCell className="font-semibold">
                               <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
-                                  {userName.split(' ').map(n=>n[0]).join('').substring(0,2)}
+                                  {(userName || '').split(' ').map(n=>n[0]).join('').substring(0,2)}
                                 </div>
                                 {userName}
                               </div>

@@ -207,7 +207,7 @@ const EmployeeReports = () => {
                               <p className="text-sm text-muted-foreground">-</p>
                             ) : (
                               <ol className="list-decimal pl-4 text-sm space-y-1 mt-1">
-                                {report.morning_description.split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line: string, i: number) => {
+                                {(report.morning_description || '').split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line: string, i: number) => {
                                   const cleanedLine = line.trim().replace(/^\d+[\.\)\-\s]+/, '');
                                   return cleanedLine ? <li key={i}>{cleanedLine}</li> : null;
                                 })}
@@ -220,7 +220,7 @@ const EmployeeReports = () => {
                               <p className="text-sm text-muted-foreground">-</p>
                             ) : (
                               <ol className="list-decimal pl-4 text-sm space-y-1 mt-1">
-                                {report.afternoon_description.split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line: string, i: number) => {
+                                {(report.afternoon_description || '').split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line: string, i: number) => {
                                   const cleanedLine = line.trim().replace(/^\d+[\.\)\-\s]+/, '');
                                   return cleanedLine ? <li key={i}>{cleanedLine}</li> : null;
                                 })}

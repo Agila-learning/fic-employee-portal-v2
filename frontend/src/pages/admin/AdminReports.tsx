@@ -449,7 +449,7 @@ const AdminReports = () => {
                               <span className="text-muted-foreground">-</span>
                             ) : (
                               <ol className="list-decimal pl-4 text-xs space-y-1 text-muted-foreground">
-                                {report.morning_description.split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line, i) => {
+                                {(report.morning_description || '').split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line, i) => {
                                   // Clean up existing numbering if present at start (e.g. "1. ", "1) ")
                                   const cleanedLine = line.trim().replace(/^\d+[\.\)\-\s]+/, '');
                                   return cleanedLine ? <li key={i}>{cleanedLine}</li> : null;
@@ -462,7 +462,7 @@ const AdminReports = () => {
                               <span className="text-muted-foreground">-</span>
                             ) : (
                               <ol className="list-decimal pl-4 text-xs space-y-1 text-muted-foreground">
-                                {report.afternoon_description.split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line, i) => {
+                                {(report.afternoon_description || '').split(/(?:\r?\n|(?<=[.?!])\s+(?=[A-Z0-9]))/).filter(Boolean).map((line, i) => {
                                   // Clean up existing numbering if present at start
                                   const cleanedLine = line.trim().replace(/^\d+[\.\)\-\s]+/, '');
                                   return cleanedLine ? <li key={i}>{cleanedLine}</li> : null;
