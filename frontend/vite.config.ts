@@ -17,8 +17,19 @@ export default defineConfig(({ mode }) => ({
   plugins: [react()],
   build: {
     sourcemap: false,
-    chunkSizeWarningLimit: 1000,
-    cssCodeSplit: false,
+    chunkSizeWarningLimit: 1500,
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['framer-motion', 'recharts'],
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'date-vendor': ['date-fns'],
+          'pdf-vendor': ['jspdf', 'html2canvas', 'exceljs'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
