@@ -100,13 +100,20 @@ const AdminPayroll = () => {
       return;
     }
 
-    setIsAutoCalculating(true);
-    const emp = activeEmployees.find(e => e.user_id === selectedEmployee || (e as any)._id === selectedEmployee);
     const targetMonth = parseInt(month);
     const targetYear = parseInt(year);
     const selectedDate = new Date(targetYear, targetMonth - 1, 1);
-    
+    const now = new Date();
+    const currentMonthFirstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    if (selectedDate > currentMonthFirstDay) {
+      toast.error('Cannot calculate payroll for a future month!');
+      return;
+    }
+
+    setIsAutoCalculating(true);
     try {
+      const emp = activeEmployees.find(e => e.user_id === selectedEmployee || (e as any)._id === selectedEmployee);
       // 1. Fetch Attendance
       const attendance = await operationService.getAllAttendance({ 
         user_id: selectedEmployee,

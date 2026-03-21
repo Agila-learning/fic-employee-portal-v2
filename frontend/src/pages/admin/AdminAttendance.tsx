@@ -483,7 +483,7 @@ const AdminAttendance = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            key={record.id}
+                            key={record._id || record.id}
                           >
                             <TableCell className="font-semibold">
                               <div className="flex items-center gap-3">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,7 +31,7 @@ const AttendanceEditDialog = ({ attendance, open, onOpenChange, onSave }: Attend
   const handleSave = async () => {
     if (!attendance) return;
     setSaving(true);
-    const result = await onSave(attendance.id, status, leaveReason, isHalfDay);
+    const result = await onSave(attendance._id || attendance.id, status, leaveReason, isHalfDay);
     setSaving(false);
     if (!result.error) {
       onOpenChange(false);
@@ -43,6 +43,9 @@ const AttendanceEditDialog = ({ attendance, open, onOpenChange, onSave }: Attend
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Attendance</DialogTitle>
+          <DialogDescription>
+            Update the attendance status and notes for this employee's record.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">

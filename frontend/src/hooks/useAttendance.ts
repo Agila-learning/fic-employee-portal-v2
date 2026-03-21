@@ -13,6 +13,7 @@ import { operationService } from '@/api/operationService';
 export type AttendanceStatus = 'present' | 'absent' | 'half_day';
 
 export interface Attendance {
+  _id?: string;
   id: string;
   user_id: string;
   date: string;

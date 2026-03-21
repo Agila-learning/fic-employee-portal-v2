@@ -93,7 +93,7 @@ const AdminMarkAttendanceDialog = ({
         <DialogHeader>
           <DialogTitle>Mark Employee Attendance</DialogTitle>
           <DialogDescription>
-            Manually mark attendance for an employee (bypasses time and GPS restrictions)
+            Manually mark attendance for an employee (bypasses time and GPS restrictions).
           </DialogDescription>
         </DialogHeader>
 
