@@ -32,7 +32,7 @@ const LeaveRequestForm = () => {
     <Card className="border-border/50 overflow-hidden animate-fade-in">
       <CardHeader className="border-b border-border/50 bg-muted/30 pb-3">
         <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-          <Calendar as CalendarIcon className="h-5 w-5 text-orange-500" />
+          <CalendarIcon className="h-5 w-5 text-orange-500" />
           Request Leave
         </CardTitle>
       </CardHeader>
@@ -49,7 +49,7 @@ const LeaveRequestForm = () => {
                     !date && 'text-muted-foreground'
                   )}
                 >
-                  <Calendar as CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   {date ? format(date, 'PPP') : 'Pick a date'}
                 </Button>
               </PopoverTrigger>

@@ -579,7 +579,7 @@ const LeadForm = ({
       <div className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50 text-xs sm:text-sm">
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
           <div className="flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+            <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
             <span className="text-muted-foreground">Created:</span>
           </div>
           <div className="ml-5 sm:ml-0">

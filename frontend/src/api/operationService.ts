@@ -130,5 +130,20 @@ export const operationService = {
     getAllAttendance: async (filters?: any) => {
         const response = await apiClient.get('/operations/attendance', { params: filters });
         return response.data;
+    },
+
+    markAttendance: async (attendanceData: any) => {
+        const response = await apiClient.post('/operations/attendance', attendanceData);
+        return response.data;
+    },
+
+    checkOut: async (checkOutData: any) => {
+        const response = await apiClient.patch('/operations/attendance/checkout', checkOutData);
+        return response.data;
+    },
+
+    updateAttendance: async (id: string, attendanceData: any) => {
+        const response = await apiClient.put(`/operations/attendance/${id}`, attendanceData);
+        return response.data;
     }
 };

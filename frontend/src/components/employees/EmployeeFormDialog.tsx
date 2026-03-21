@@ -16,7 +16,10 @@ interface EmployeeFormDialogProps {
 
 const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: EmployeeFormDialogProps & { onSuccess?: () => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', employee_id: '', is_active: true });
+  const [formData, setFormData] = useState({ 
+    name: '', email: '', employee_id: '', is_active: true, 
+    base_salary: '', incentive_per_success: '' 
+  });
 
   useEffect(() => {
     if (employee && open) {
@@ -24,7 +27,9 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
         name: employee.name,
         email: employee.email,
         employee_id: employee.employee_id || '',
-        is_active: employee.is_active ?? true
+        is_active: employee.is_active ?? true,
+        base_salary: (employee as any).base_salary || '',
+        incentive_per_success: (employee as any).incentive_per_success || ''
       });
     }
   }, [employee, open]);
@@ -41,7 +46,9 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
         name: formData.name,
         email: formData.email,
         employee_id: formData.employee_id || null,
-        is_active: formData.is_active
+        is_active: formData.is_active,
+        base_salary: formData.base_salary ? parseFloat(formData.base_salary) : null,
+        incentive_per_success: formData.incentive_per_success ? parseFloat(formData.incentive_per_success) : null
       });
 
       toast.success('Employee updated successfully');
@@ -63,6 +70,17 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
           <div className="space-y-2"><Label>Full Name *</Label><Input value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))} placeholder="Enter full name" /></div>
           <div className="space-y-2"><Label>Email *</Label><Input type="email" value={formData.email} onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))} placeholder="email@company.com" /></div>
           <div className="space-y-2"><Label>Employee ID</Label><Input value={formData.employee_id} onChange={(e) => setFormData(p => ({ ...p, employee_id: e.target.value }))} placeholder="EMP001" /></div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Base Monthly Salary (₹)</Label>
+              <Input type="number" value={formData.base_salary} onChange={(e) => setFormData(p => ({ ...p, base_salary: e.target.value }))} placeholder="25000" />
+            </div>
+            <div className="space-y-2">
+              <Label>Incentive per Success Item (₹)</Label>
+              <Input type="number" value={formData.incentive_per_success} onChange={(e) => setFormData(p => ({ ...p, incentive_per_success: e.target.value }))} placeholder="100" />
+            </div>
+          </div>
           <div className="flex items-center justify-between rounded-lg border border-border p-4">
             <div><Label className="font-medium">Account Status</Label><p className="text-sm text-muted-foreground">{formData.is_active ? 'Employee can login' : 'Employee cannot login'}</p></div>
             <Switch checked={formData.is_active} onCheckedChange={(checked) => setFormData(p => ({ ...p, is_active: checked }))} />

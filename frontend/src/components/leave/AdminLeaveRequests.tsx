@@ -1,11 +1,10 @@
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, CheckCircle, XCircle, UserCircle, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Calendar, Clock, CheckCircle, XCircle, UserCircle } from 'lucide-react';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 const statusConfig = {
   pending: { icon: Clock, label: 'Pending', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
@@ -14,145 +13,145 @@ const statusConfig = {
 };
 
 const AdminLeaveRequests = () => {
-  const { leaveRequests, isLoading, updateLeaveStatus, deleteLeaveRequest } = useLeaveRequests();
+  const { leaveRequests, isLoading, updateLeaveStatus } = useLeaveRequests();
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this leave request?')) return;
-    const ok = await deleteLeaveRequest(id);
-    if (ok) toast.success('Leave request deleted');
-  };
-
-  const pendingRequests = leaveRequests.filter(r => r.status === 'pending');
-  const processedRequests = leaveRequests.filter(r => r.status !== 'pending');
+  const pendingRequests = leaveRequests.filter(req => req.status === 'pending');
+  const processedRequests = leaveRequests.filter(req => req.status !== 'pending');
 
   if (isLoading) {
     return (
-      <Card className="border-border/50">
-        <CardContent className="p-6 text-center text-muted-foreground">Loading leave requests...</CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in">
       {/* Pending Requests */}
-      <Card className="border-border/50 overflow-hidden animate-fade-in">
-        <CardHeader className="border-b border-border/50 bg-muted/30 pb-3">
-          <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-            <Clock className="h-5 w-5 text-amber-500" />
-            Pending Leave Requests
-            {pendingRequests.length > 0 && (
-              <Badge className="ml-auto bg-amber-500 text-white">{pendingRequests.length}</Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {pendingRequests.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground text-sm">
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Clock className="h-5 w-5 text-amber-500" />
+          <h2 className="text-xl font-bold">Pending Requests</h2>
+          {pendingRequests.length > 0 && (
+            <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30">
+              {pendingRequests.length}
+            </Badge>
+          )}
+        </div>
+
+        {pendingRequests.length === 0 ? (
+          <Card className="border-border/50 border-dashed bg-muted/30">
+            <CardContent className="py-8 text-center text-muted-foreground">
               No pending leave requests
-            </div>
-          ) : (
-            <div className="divide-y divide-border/50">
-              {pendingRequests.map((req) => (
-                <div key={req.id} className="p-4 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 shrink-0">
-                      <UserCircle className="h-5 w-5 text-amber-600" />
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {pendingRequests.map(req => (
+              <Card key={req.id} className="border-border/50 hover:shadow-md transition-shadow">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <UserCircle className="h-6 w-6 text-primary" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-sm">{req.employee_name}</p>
-                        <Badge variant="outline" className="text-xs">
-                          {format(new Date(req.leave_date), 'PPP')}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">{req.reason}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Requested on {format(new Date(req.created_at), 'PPP')}
+                    <div>
+                      <h3 className="font-semibold text-sm">{req.employee_name || 'Anonymous'}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {req.leave_date ? format(new Date(req.leave_date), 'PPP') : 'Invalid Date'}
                       </p>
                     </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-green-600 border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 gap-1"
-                        onClick={() => updateLeaveStatus(req.id, 'approved')}
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="hidden sm:inline">Approve</span>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 gap-1"
-                        onClick={() => updateLeaveStatus(req.id, 'rejected')}
-                      >
-                        <XCircle className="h-4 w-4" />
-                        <span className="hidden sm:inline">Reject</span>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-gray-500 hover:text-red-600 hover:bg-red-50"
-                        onClick={() => handleDelete(req.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
+                  <div className="p-3 bg-muted/50 rounded-lg text-sm italic">
+                    "{req.reason}"
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      onClick={() => updateLeaveStatus(req.id, 'approved')}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={() => updateLeaveStatus(req.id, 'rejected')}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Reject
+                    </Button>
+                  </div>
+                  
+                  <p className="text-[10px] text-muted-foreground text-center">
+                    Requested on {req.created_at ? format(new Date(req.created_at), 'PPP') : 'N/A'}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Processed Requests */}
-      {processedRequests.length > 0 && (
-        <Card className="border-border/50 overflow-hidden animate-fade-in">
-          <CardHeader className="border-b border-border/50 bg-muted/30 pb-3">
+      <section className="space-y-4">
+        <Card className="border-border/50">
+          <CardHeader className="border-b border-border/50 bg-muted/20">
             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-              <Calendar as CalendarIcon className="h-5 w-5 text-blue-500" />
+              <Calendar className="h-5 w-5 text-blue-500" />
               Processed Requests
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-border/50">
-              {processedRequests.map((req) => {
-                const config = statusConfig[req.status];
-                const StatusIcon = config.icon;
-                return (
-                  <div key={req.id} className="flex items-center gap-3 p-3 sm:p-4 hover:bg-muted/30 transition-colors">
-                    <div className={cn('p-2 rounded-lg', config.className)}>
-                      <StatusIcon className="h-4 w-4" />
+            {processedRequests.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                No processed requests yet
+              </div>
+            ) : (
+              <div className="divide-y divide-border/50">
+                {processedRequests.map(req => {
+                  const status = req.status as keyof typeof statusConfig;
+                  const config = statusConfig[status] || statusConfig.pending;
+                  const Icon = config.icon;
+                  return (
+                    <div key={req.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 hover:bg-muted/10 transition-colors">
+                      <div className="flex-1 flex items-center gap-3">
+                        <div className={cn('p-2 rounded-lg', config.className)}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{req.employee_name || 'Anonymous'}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {req.leave_date ? format(new Date(req.leave_date), 'PPP') : 'N/A'} — {req.reason}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3 text-xs">
+                        <div className="text-right">
+                          <p className="text-muted-foreground">Reviewed on</p>
+                          <p className="font-medium">
+                            {req.reviewed_at ? format(new Date(req.reviewed_at), 'PP') : '-'}
+                          </p>
+                        </div>
+                        <Badge className={cn('px-2 py-0.5', config.className)}>
+                          {config.label}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{req.employee_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(req.leave_date), 'PPP')} — {req.reason}
-                      </p>
-                    </div>
-                    <Badge className={cn('text-xs shrink-0', config.className)}>
-                      {config.label}
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
-                      onClick={() => handleDelete(req.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
+      </section>
     </div>
   );
 };
 
 export default AdminLeaveRequests;
-

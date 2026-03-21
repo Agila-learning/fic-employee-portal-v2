@@ -21,8 +21,9 @@ const StatsCard = ({ title, value, icon: Icon, trend, className, iconClassName, 
   const [displayValue, setDisplayValue] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   
-  const numericValue = typeof value === 'number' ? value : parseInt(value.toString().replace(/\D/g, '')) || 0;
-  const isPercentage = typeof value === 'string' && value.includes('%');
+  const safeValue = value ?? 0;
+  const numericValue = typeof safeValue === 'number' ? safeValue : parseInt(safeValue.toString().replace(/\D/g, '')) || 0;
+  const isPercentage = typeof safeValue === 'string' && safeValue.includes('%');
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), delay);

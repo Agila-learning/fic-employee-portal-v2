@@ -99,7 +99,7 @@ const EmployeeTasks = () => {
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{task.description || '-'}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 text-xs">
-                            <Calendar as CalendarIcon className="h-3 w-3" />
+                            <CalendarIcon className="h-3 w-3" />
                             {safeFormatDate(task.due_date)}
                           </div>
                         </TableCell>

@@ -69,7 +69,12 @@ const AdminDashboard = () => {
     const absent = filtered.filter(a => a.status === 'absent').length;
     const halfDay = filtered.filter(a => a.status === 'half_day').length;
     
-    return { present, absent, halfDay, total: employees.length };
+    return { 
+      present, 
+      absent, 
+      halfDay, 
+      total: employees.filter(e => e?.role === 'employee').length 
+    };
   }, [attendance, attendanceRange, employees]);
 
   const activeEmployees = employees.filter(e => e.is_active !== false);
@@ -79,15 +84,15 @@ const AdminDashboard = () => {
   const successLeads = leads.filter(l => l.status === 'success').length;
   const pendingLeads = leads.filter(l => ['nc1', 'nc2', 'nc3', 'follow_up'].includes(l.status)).length;
 
-  // Payment stage counts
-  const registrationDone = leads.filter(l => l.payment_stage === 'registration_done').length;
-  const initialPaymentDone = leads.filter(l => l.payment_stage === 'initial_payment_done').length;
-  const fullPaymentDone = leads.filter(l => l.payment_stage === 'full_payment_done').length;
+  // Payment stage counts (with safety checks)
+  const registrationDone = leads.filter(l => l?.payment_stage === 'registration_done').length;
+  const initialPaymentDone = leads.filter(l => l?.payment_stage === 'initial_payment_done').length;
+  const fullPaymentDone = leads.filter(l => l?.payment_stage === 'full_payment_done').length;
 
   // Domain-wise payment counts
-  const itPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'it').length;
-  const nonItPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'non_it').length;
-  const bankingPaidCount = leads.filter(l => l.payment_stage === 'full_payment_done' && l.interested_domain === 'banking').length;
+  const itPaidCount = leads.filter(l => l?.payment_stage === 'full_payment_done' && l?.interested_domain === 'it').length;
+  const nonItPaidCount = leads.filter(l => l?.payment_stage === 'full_payment_done' && l?.interested_domain === 'non_it').length;
+  const bankingPaidCount = leads.filter(l => l?.payment_stage === 'full_payment_done' && l?.interested_domain === 'banking').length;
 
   // Helper to compare lead owner fields (assigned_to or created_by) vs user_id
   const matchEmployee = (field: any, empUserId: string) => {
@@ -120,70 +125,108 @@ const AdminDashboard = () => {
     return targetValues.map(v => v.toLowerCase()).includes(lowerStatus);
   };
 
-  // Calculate conversion rate based on employee success conversions only
-  const totalEmployeeSuccess = employees.reduce((acc, emp) => {
-    return acc + leads.filter(l =>
-      (matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)) &&
-      isStatus(l.status, ['success'])
-    ).length;
-  }, 0);
-  const totalEmployeeLeads = employees.reduce((acc, emp) => {
-    return acc + leads.filter(l =>
-      matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)
-    ).length;
-  }, 0);
-  const conversionRate = totalEmployeeLeads > 0 ? Math.round((totalEmployeeSuccess / totalEmployeeLeads) * 100) : 0;
+  // Optimized calculation for lead stats (O(N+M))
+  const { totalEmployeeSuccess, totalEmployeeLeads, conversionRate } = useMemo(() => {
+    if (!employees.length || !leads.length) {
+      return { totalEmployeeSuccess: 0, totalEmployeeLeads: 0, conversionRate: 0 };
+    }
 
-  const statusDistribution = STATUS_OPTIONS_ADMIN.map(status => ({
+    // Map to quickly check if a user ID belongs to an employee we care about
+    const employeeIds = new Set(employees.map(e => (e.user_id || e._id || e.id)?.toString()).filter(Boolean));
+    
+    let success = 0;
+    let total = 0;
+
+    leads.forEach(l => {
+      const assignedId = (typeof l.assigned_to === 'object' ? (l.assigned_to?.id || l.assigned_to?._id) : l.assigned_to)?.toString();
+      const creatorId = (typeof l.created_by === 'object' ? (l.created_by?.id || l.created_by?._id) : l.created_by)?.toString();
+      
+      const isEmployeeLead = (assignedId && employeeIds.has(assignedId)) || (creatorId && employeeIds.has(creatorId));
+      
+      if (isEmployeeLead) {
+        total++;
+        if (isStatus(l.status, ['success'])) {
+          success++;
+        }
+      }
+    });
+
+    const rate = total > 0 ? Math.round((success / total) * 100) : 0;
+    return { totalEmployeeSuccess: success, totalEmployeeLeads: total, conversionRate: rate };
+  }, [employees, leads]);
+
+  const statusDistribution = useMemo(() => STATUS_OPTIONS_ADMIN.map(status => ({
     ...status,
     count: leads.filter(l => isStatus(l.status, [status.value])).length
-  })).sort((a, b) => b.count - a.count);
+  })).sort((a, b) => b.count - a.count), [leads]);
 
-  const employeePerformance = activeEmployees.map(emp => ({
-    ...emp,
-    successCount: leads.filter(l =>
-      (matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)) &&
-      isStatus(l.status, ['success'])
-    ).length,
-    converted: leads.filter(l =>
-      (matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)) &&
-      isStatus(l.status, ['converted', 'success'])
-    ).length,
-    total: leads.filter(l =>
-      matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)
-    ).length
-  }))
+  const employeePerformance = useMemo(() => {
+    if (!activeEmployees.length) return [];
+    
+    return activeEmployees.map(emp => {
+      const empId = (emp.user_id || emp._id || emp.id)?.toString();
+      const empLeads = leads.filter(l => matchEmployee(l.assigned_to, empId) || matchEmployee(l.created_by, empId));
+      
+      return {
+        ...emp,
+        successCount: empLeads.filter(l => isStatus(l.status, ['success'])).length,
+        converted: empLeads.filter(l => isStatus(l.status, ['converted', 'success'])).length,
+        total: empLeads.length
+      };
+    })
     .sort((a, b) => b.converted === a.converted ? b.total - a.total : b.converted - a.converted)
     .slice(0, 5);
+  }, [activeEmployees, leads]);
 
   // Weekly top performers
-  const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const weekLabel = `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
-  const weeklyPerformance = activeEmployees.map(emp => {
-    const weeklyLeads = leads.filter(l =>
-      (matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)) &&
-      isStatus(l.status, ['converted', 'success']) &&
-      l.updated_at && isWithinInterval(parseISO(l.updated_at), { start: weekStart, end: weekEnd })
-    );
-    return { ...emp, weeklySuccess: weeklyLeads.length, total: leads.filter(l => matchEmployee(l.assigned_to, emp.user_id) || matchEmployee(l.created_by, emp.user_id)).length };
-  })
-    .filter(e => e.weeklySuccess > 0)
-    .sort((a, b) => b.weeklySuccess === a.weeklySuccess ? b.total - a.total : b.weeklySuccess - a.weeklySuccess)
-    .slice(0, 5);
+  const { weeklyPerformance, weekLabel } = useMemo(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+    const label = `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`;
+    
+    if (!activeEmployees.length || !leads.length) {
+      return { weeklyPerformance: [], weekLabel: label };
+    }
 
-  const topPerformerCount = employeePerformance.filter(e => e.converted > 0).length;
+    const performance = activeEmployees.map(emp => {
+      const empId = (emp.user_id || emp._id || emp.id)?.toString();
+      const weeklyLeads = leads.filter(l => {
+        if (!(matchEmployee(l.assigned_to, empId) || matchEmployee(l.created_by, empId))) return false;
+        if (!isStatus(l.status, ['converted', 'success'])) return false;
+        if (!l.updated_at) return false;
+        try {
+          const date = parseISO(l.updated_at);
+          return isWithinInterval(date, { start: weekStart, end: weekEnd });
+        } catch {
+          return false;
+        }
+      });
+      
+      return { 
+        ...emp, 
+        weeklySuccess: weeklyLeads.length, 
+        total: leads.filter(l => matchEmployee(l.assigned_to, empId) || matchEmployee(l.created_by, empId)).length 
+      };
+    })
+      .filter(e => e.weeklySuccess > 0)
+      .sort((a, b) => b.weeklySuccess === a.weeklySuccess ? b.total - a.total : b.weeklySuccess - a.weeklySuccess)
+      .slice(0, 5);
+      
+    return { weeklyPerformance: performance, weekLabel: label };
+  }, [activeEmployees, leads]);
+
+  const topPerformerCount = useMemo(() => employeePerformance.filter(e => e.converted > 0).length, [employeePerformance]);
 
   // Get recent leads
-  const recentLeads = [...leads]
+  const recentLeads = useMemo(() => [...leads]
     .filter(l => l.updated_at)
     .sort((a, b) => {
       const dateA = new Date(a.updated_at || 0).getTime();
       const dateB = new Date(b.updated_at || 0).getTime();
       return dateB - dateA;
     })
-    .slice(0, 5);
+    .slice(0, 5), [leads]);
 
   return (
     <DashboardLayout requiredRole="admin">
@@ -335,9 +378,9 @@ const AdminDashboard = () => {
                   <span className="font-bold">{attendanceStats.halfDay}</span>
                 </div>
                 <div className="h-2 w-full bg-muted rounded-full overflow-hidden flex">
-                  <div className="h-full bg-emerald-500" style={{ width: `${(attendanceStats.present / attendanceStats.total) * 100}%` }} />
-                  <div className="h-full bg-amber-500" style={{ width: `${(attendanceStats.halfDay / attendanceStats.total) * 100}%` }} />
-                  <div className="h-full bg-rose-500" style={{ width: `${(attendanceStats.absent / attendanceStats.total) * 100}%` }} />
+                  <div className="h-full bg-emerald-500" style={{ width: attendanceStats.total > 0 ? `${(attendanceStats.present / attendanceStats.total) * 100}%` : '0%' }} />
+                  <div className="h-full bg-amber-500" style={{ width: attendanceStats.total > 0 ? `${(attendanceStats.halfDay / attendanceStats.total) * 100}%` : '0%' }} />
+                  <div className="h-full bg-rose-500" style={{ width: attendanceStats.total > 0 ? `${(attendanceStats.absent / attendanceStats.total) * 100}%` : '0%' }} />
                 </div>
                 <p className="text-[10px] text-center text-muted-foreground italic">Total Strength: {attendanceStats.total}</p>
               </div>
@@ -561,8 +604,21 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Leave Requests Management */}
-        <AdminLeaveRequests />
+        {/* Leave Requests Management Section */}
+        <div className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CalendarIcon className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-bold">Leave Requests</h2>
+          </div>
+          {/* Robust guard for the component */}
+          <div className="bg-card rounded-xl border border-border/50 overflow-hidden min-h-[100px]">
+            {activeEmployeeCount > 0 ? (
+              <AdminLeaveRequests />
+            ) : (
+              <div className="p-12 text-center text-muted-foreground">Initializing employee data...</div>
+            )}
+          </div>
+        </div>
       </motion.div>
 
       {/* View Lead Dialog */}

@@ -11,9 +11,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { operationService } from '@/api/operationService';
 import { toast } from 'sonner';
-import { FileText, Eye, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PayslipTemplate from '@/components/payroll/PayslipTemplate';
+import { leadService } from '@/api/leadService';
+import { parseISO, isSameMonth, startOfMonth, endOfMonth } from 'date-fns';
+import { Loader2, Sparkles, Eye, Trash2 } from 'lucide-react';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -29,6 +31,7 @@ const AdminPayroll = () => {
   const [payslips, setPayslips] = useState<any[]>([]);
   const [viewPayslip, setViewPayslip] = useState<any | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoCalculating, setIsAutoCalculating] = useState(false);
 
   const [form, setForm] = useState({
     designation: '', department: '', basicSalary: '', hra: '',
@@ -43,13 +46,15 @@ const AdminPayroll = () => {
 
   const handleEmployeeSelect = async (userId: string) => {
     setSelectedEmployee(userId);
+    const emp = activeEmployees.find(e => e.user_id === userId || (e as any)._id === userId);
+    
     try {
       const data = await operationService.getLatestPayslip(userId);
       if (data) {
         setForm({
           designation: data.designation || '',
           department: data.department || '',
-          basicSalary: data.basic_salary?.toString() || '',
+          basicSalary: emp?.base_salary?.toString() || data.basic_salary?.toString() || '',
           hra: data.hra?.toString() || '',
           conveyanceAllowance: data.conveyance_allowance?.toString() || '',
           medicalAllowance: data.medical_allowance?.toString() || '',
@@ -71,17 +76,82 @@ const AdminPayroll = () => {
           daysWorked: data.days_worked?.toString() || '30',
           leaveDays: data.leave_days?.toString() || '0',
         });
-        toast.info('Previous payslip details loaded');
+        toast.info('Default details from previous payslip loaded');
+      } else if (emp) {
+        // Fallback to employee defaults if no payslip exists
+        setForm(prev => ({
+          ...prev,
+          basicSalary: emp.base_salary?.toString() || '',
+        }));
       }
     } catch (error) {
-      setForm({
-        designation: '', department: '', basicSalary: '', hra: '',
-        conveyanceAllowance: '', medicalAllowance: '', specialAllowance: '',
-        otherEarnings: '', pfEmployee: '', pfEmployer: '', esiEmployee: '',
-        esiEmployer: '', professionalTax: '', tds: '', otherDeductions: '',
-        ctc: '', bankName: '', bankAccountNumber: '', panNumber: '',
-        uanNumber: '', totalWorkingDays: '30', daysWorked: '30', leaveDays: '0',
+       if (emp) {
+        setForm(prev => ({
+          ...prev,
+          basicSalary: emp.base_salary?.toString() || '',
+        }));
+      }
+    }
+  };
+
+  const calculateAutoPayroll = async () => {
+    if (!selectedEmployee) {
+      toast.error('Select an employee first');
+      return;
+    }
+
+    setIsAutoCalculating(true);
+    const emp = activeEmployees.find(e => e.user_id === selectedEmployee || (e as any)._id === selectedEmployee);
+    const targetMonth = parseInt(month);
+    const targetYear = parseInt(year);
+    const selectedDate = new Date(targetYear, targetMonth - 1, 1);
+    
+    try {
+      // 1. Fetch Attendance
+      const attendance = await operationService.getAllAttendance({ 
+        user_id: selectedEmployee,
+        month: targetMonth,
+        year: targetYear
       });
+      
+      const totalDaysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+      const presentCount = attendance.filter((a: any) => a.status === 'present').length;
+      const halfDayCount = attendance.filter((a: any) => a.status === 'half_day').length;
+      const daysWorked = presentCount + (halfDayCount * 0.5);
+      
+      // 2. Fetch Leads for Incentive
+      const allLeads = await leadService.getLeads();
+      const userLeads = allLeads.filter((l: any) => 
+        (l.assigned_to === selectedEmployee || l.created_by === selectedEmployee) &&
+        l.status === 'success' &&
+        l.updated_at && isSameMonth(parseISO(l.updated_at), selectedDate)
+      );
+      
+      const successCount = userLeads.length;
+      const incentivePerSuccess = (emp as any)?.incentive_per_success || 0;
+      const totalIncentive = successCount * incentivePerSuccess;
+      
+      // 3. Pro-rate Salary
+      const baseSalary = (emp as any)?.base_salary || 0;
+      const calculatedSalary = totalDaysInMonth > 0 
+        ? Math.round((daysWorked / totalDaysInMonth) * baseSalary) 
+        : baseSalary;
+
+      setForm(prev => ({
+        ...prev,
+        totalWorkingDays: totalDaysInMonth.toString(),
+        daysWorked: daysWorked.toString(),
+        leaveDays: (totalDaysInMonth - daysWorked).toString(),
+        basicSalary: calculatedSalary.toString(),
+        otherEarnings: totalIncentive > 0 ? totalIncentive.toString() : prev.otherEarnings
+      }));
+
+      toast.success('Successfully calculated from attendance & leads!');
+    } catch (error) {
+      console.error('Calculation error:', error);
+      toast.error('Failed to auto-calculate stats');
+    } finally {
+      setIsAutoCalculating(false);
     }
   };
 
@@ -216,6 +286,21 @@ const AdminPayroll = () => {
               <div className="space-y-2">
                 <Label>Year</Label>
                 <Input type="number" value={year} onChange={e => setYear(e.target.value)} className="bg-background/50 border-border/50" />
+              </div>
+              <div className="space-y-2 flex items-end">
+                <Button 
+                  onClick={calculateAutoPayroll} 
+                  disabled={isAutoCalculating || !selectedEmployee}
+                  variant="outline"
+                  className="w-full border-primary/30 hover:border-primary hover:bg-primary/5 text-primary gap-2"
+                >
+                  {isAutoCalculating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  Auto-Calculate
+                </Button>
               </div>
             </div>
 

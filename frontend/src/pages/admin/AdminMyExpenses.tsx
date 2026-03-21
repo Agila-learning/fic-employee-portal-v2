@@ -274,7 +274,7 @@ const AdminMyExpenses = () => {
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                        <Calendar as CalendarIcon className="mr-2 h-3 w-3" /> {format(expDate, 'PPP')}
+                        <CalendarIcon className="mr-2 h-3 w-3" /> {format(expDate, 'PPP')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -350,7 +350,7 @@ const AdminMyExpenses = () => {
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="w-full justify-start text-xs border-border/50">
-                        <Calendar as CalendarIcon className="mr-2 h-3 w-3" /> {format(credDate, 'PPP')}
+                        <CalendarIcon className="mr-2 h-3 w-3" /> {format(credDate, 'PPP')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
