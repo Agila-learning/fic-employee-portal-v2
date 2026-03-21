@@ -102,7 +102,26 @@ const Sidebar = () => {
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
-  const links = user?.role === 'admin' ? adminLinks : employeeLinks;
+  const mdLinks = [
+    { to: '/employee', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
+    { to: '/admin/announcements', icon: Megaphone, label: 'Announcements' },
+    { to: '/admin/tasks', icon: ClipboardList, label: 'Tasks' },
+    { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
+    { to: '/employee/leads', icon: FileSpreadsheet, label: 'My Leads' },
+    { to: '/employee/followups', icon: CalendarClock, label: 'Follow-ups' },
+    { to: '/employee/attendance', icon: CalendarCheck, label: 'Attendance' },
+    { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  const getLinks = () => {
+    if (user?.role === 'admin') return adminLinks;
+    if (user?.role === 'md') return mdLinks;
+    return employeeLinks;
+  };
+
+  const links = getLinks();
 
   return (
     <>

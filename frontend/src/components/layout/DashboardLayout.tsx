@@ -23,8 +23,8 @@ const DashboardLayout = ({ children, requiredRole }: DashboardLayoutProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Admin can access both dashboards, but employees (and now MD) can only access employee dashboard
-  if (requiredRole === 'admin' && user.role !== 'admin') {
+  // Admin and MD can access admin pages
+  if (requiredRole === 'admin' && user.role !== 'admin' && user.role !== 'md') {
     return <Navigate to="/employee" replace />;
   }
 

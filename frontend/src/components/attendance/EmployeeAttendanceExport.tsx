@@ -138,7 +138,16 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
           'Day': format(date, 'EEEE'),
           'Status': status,
           'Work Location': (record as any)?.work_location || '-',
-          'Marked At': record ? format(new Date(record.marked_at), 'hh:mm a') : '-',
+          'Marked At': (() => {
+            if (!record?.marked_at) return '-';
+            try {
+              const d = new Date(record.marked_at);
+              if (isNaN(d.getTime())) return '-';
+              return format(d, 'hh:mm a');
+            } catch (e) {
+              return '-';
+            }
+          })(),
           'Location Verified': record?.location_verified ? 'Yes' : (isSundayDate || holidayInfo ? 'N/A' : 'No'),
           'Remarks': remarks || '-',
         });

@@ -139,7 +139,8 @@ const AdminPayroll = () => {
       const totalIncentive = successCount * incentivePerSuccess;
       
       // 3. Pro-rate Salary
-      const baseSalary = (emp as any)?.base_salary || 0;
+      const baseSalary = (emp as any)?.monthly_salary || (emp as any)?.base_salary || 0;
+      const totalDaysInMonth = new Date(targetYear, targetMonth, 0).getDate();
       const calculatedSalary = totalDaysInMonth > 0 
         ? Math.round((daysWorked / totalDaysInMonth) * baseSalary) 
         : baseSalary;
@@ -150,7 +151,8 @@ const AdminPayroll = () => {
         daysWorked: daysWorked.toString(),
         leaveDays: (totalDaysInMonth - daysWorked).toString(),
         basicSalary: calculatedSalary.toString(),
-        otherEarnings: totalIncentive.toString()
+        otherEarnings: totalIncentive.toString(),
+        totalEarnings: (calculatedSalary + totalIncentive).toString()
       }));
 
       toast.success('Successfully calculated from attendance & leads!');

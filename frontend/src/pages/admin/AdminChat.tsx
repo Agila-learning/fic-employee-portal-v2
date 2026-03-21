@@ -59,7 +59,7 @@ const AdminChat = () => {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <MessageSquare className="h-6 w-6 text-primary" /> Chat
           </h1>
-          <p className="text-muted-foreground text-sm">Chat with employees individually</p>
+          <p className="text-muted-foreground text-sm">Chat with other employees and administration</p>
         </div>
 
         <Card className="flex-1 overflow-hidden border-none shadow-xl bg-background/50 backdrop-blur-sm">

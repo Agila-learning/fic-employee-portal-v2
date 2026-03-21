@@ -387,8 +387,8 @@ const createHoliday = async (req, res) => {
         const { name, date } = req.body;
         const holiday = await Holiday.create({ ...req.body, created_by: req.user._id });
         
-        // Mark all employees as present for this holiday
-        const employees = await User.find({ role: 'employee' });
+        // Mark all employees and MDs as present for this holiday
+        const employees = await User.find({ role: { $in: ['employee', 'md'] } });
         const holidayDate = new Date(date).toLocaleDateString('en-CA');
         
         for (const emp of employees) {
