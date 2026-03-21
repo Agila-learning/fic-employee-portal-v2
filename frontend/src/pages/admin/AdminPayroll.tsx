@@ -122,8 +122,8 @@ const AdminPayroll = () => {
       });
       
       const totalDaysInMonth = new Date(targetYear, targetMonth, 0).getDate();
-      const presentCount = attendance.filter((a: any) => a.status === 'present').length;
-      const halfDayCount = attendance.filter((a: any) => a.status === 'half-day').length;
+      const presentCount = attendance.filter((a: any) => a.status === 'present' && !a.half_day).length;
+      const halfDayCount = attendance.filter((a: any) => a.status === 'half_day' || a.half_day === true).length;
       const daysWorked = presentCount + (halfDayCount * 0.5);
       
       // 2. Fetch Leads for Incentive
@@ -140,7 +140,6 @@ const AdminPayroll = () => {
       
       // 3. Pro-rate Salary
       const baseSalary = (emp as any)?.monthly_salary || (emp as any)?.base_salary || 0;
-      const totalDaysInMonth = new Date(targetYear, targetMonth, 0).getDate();
       const calculatedSalary = totalDaysInMonth > 0 
         ? Math.round((daysWorked / totalDaysInMonth) * baseSalary) 
         : baseSalary;
