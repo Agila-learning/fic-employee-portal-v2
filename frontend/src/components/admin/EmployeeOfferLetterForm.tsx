@@ -12,6 +12,28 @@ import { format } from 'date-fns';
 const EmployeeOfferLetterForm = () => {
   const { toast } = useToast();
   const printRef = useRef<HTMLDivElement>(null);
+
+  const downloadAsWord = () => {
+    if (!printRef.current) return;
+    
+    const content = printRef.current.innerHTML;
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+            "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+            "xmlns='http://www.w3.org/TR/REC-html40'>"+
+            "<head><meta charset='utf-8'><title>Offer Letter</title></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + content + footer;
+    
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const fileLink = document.createElement("a");
+    document.body.appendChild(fileLink);
+    fileLink.href = source;
+    fileLink.download = `Offer_Letter_${formData.candidateName || 'Employee'}.doc`;
+    fileLink.click();
+    document.body.removeChild(fileLink);
+    
+    toast({ title: 'Success', description: 'Offer Letter downloaded as Word' });
+  };
   
   const [formData, setFormData] = useState({
     candidateName: '',
@@ -109,7 +131,7 @@ const EmployeeOfferLetterForm = () => {
           <CardContent className="p-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="candidateName">Candidate Full Name</Label>
+                <Label htmlFor="candidateName">Employee Full Name</Label>
                 <Input 
                   id="candidateName" 
                   placeholder="e.g. John Doe" 
@@ -118,7 +140,7 @@ const EmployeeOfferLetterForm = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="candidateAddress">Candidate Residence Address</Label>
+                <Label htmlFor="candidateAddress">Employee Residence Address</Label>
                 <Input 
                   id="candidateAddress" 
                   placeholder="Address for communication" 
@@ -263,6 +285,10 @@ const EmployeeOfferLetterForm = () => {
               <Printer className="h-4 w-4" />
               Print / Save as PDF
             </Button>
+            <Button onClick={downloadAsWord} variant="outline" className="flex-1 gap-2 h-12 border-amber-600 text-amber-600 hover:bg-amber-50">
+              <Download className="h-4 w-4" />
+              Download as Word
+            </Button>
           </div>
         )}
       </div>
@@ -284,23 +310,22 @@ const EmployeeOfferLetterForm = () => {
                 <img src={ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
               </div>
 
-              {/* 1. Header & Company Branding (Tightened) */}
               <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
                 <div className="flex items-center gap-4">
                   <img src={ficLogo} alt="Logo" className="h-[70px] w-[70px] object-contain" />
                   <div>
                     <h1 className="text-3xl font-black text-slate-900 leading-none tracking-tighter">FORGE INDIA CONNECT</h1>
                     <p className="text-[10px] font-bold tracking-[0.3em] text-amber-600 mt-1 uppercase">Connecting Talent with Opportunity</p>
+                    <div className="mt-2 text-[8px] font-bold text-slate-500 flex gap-4 uppercase tracking-tighter">
+                      <span>CIN: U47912TZ2025PTC035121</span>
+                      <span>GST: 33AAGCF4763Q1Z3</span>
+                      <span>MOB: +91 6369506416</span>
+                    </div>
                   </div>
                 </div>
                 <div className="text-right text-[9px] leading-relaxed text-slate-700 max-w-[220px]">
                   <p className="font-bold text-slate-900 uppercase underline">Corporate Headquarters:</p>
                   <p className="font-medium">{formData.officeAddress || 'RK Towers, Krishnagiri, Tamil Nadu'}</p>
-                  <div className="mt-1 border-t border-slate-200 pt-1">
-                    <p><span className="font-bold text-slate-900 uppercase">CIN:</span> U47912TZ2025PTC035121</p>
-                    <p><span className="font-bold text-slate-900 uppercase">GST:</span> 33AAGCF4763Q1Z3</p>
-                    <p><span className="font-bold text-slate-900">MOB:</span> +91 6369506416</p>
-                  </div>
                 </div>
               </div>
 
@@ -310,10 +335,9 @@ const EmployeeOfferLetterForm = () => {
                 <p className="text-[9px] mt-1 text-slate-400 font-bold uppercase italic tracking-widest">Confidential Employment Document</p>
               </div>
 
-              {/* 2. Candidate & Offer Reference */}
               <div className="grid grid-cols-2 gap-0 mb-8 pb-4 border-b border-slate-100">
                 <div className="space-y-1">
-                  <p className="font-bold text-slate-400 uppercase text-[8px] tracking-widest">Candidate Information:</p>
+                  <p className="font-bold text-slate-400 uppercase text-[8px] tracking-widest">Employee Information:</p>
                   <p className="font-black text-base text-slate-900 leading-none">{formData.candidateName || '[Name Needed]'}</p>
                   <p className="text-[10.5px] text-slate-600 font-medium leading-tight max-w-[280px]">{formData.candidateAddress || '[Full Address]'}</p>
                 </div>
@@ -414,7 +438,7 @@ const EmployeeOfferLetterForm = () => {
               {/* Professional Footer (Overhauled) */}
               <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
                 <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
-                  <p>Page 1 of 3 | {formData.candidateName || 'Candidate Copy'}</p>
+                  <p>Page 1 of 3 | {formData.candidateName || 'Employee Copy'}</p>
                   <p>Email: info@forgeindiaconnect.com</p>
                 </div>
                 <div className="text-right">
@@ -496,8 +520,8 @@ const EmployeeOfferLetterForm = () => {
                   <p>Contact: +91 6369506416</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] font-black text-slate-900 uppercase">Forge India Connect Pvt Ltd</p>
-                  <p className="text-[8px] text-amber-600 font-bold italic">Official Appointment Reference</p>
+                  <p>info@forgeindiaconnect.com</p>
+                  <p className="text-[9px] font-black text-slate-900 uppercase leading-none">Forge India Connect Pvt Ltd</p>
                 </div>
               </div>
             </div>
@@ -559,11 +583,11 @@ const EmployeeOfferLetterForm = () => {
                       </div>
                     </div>
 
-                    {/* Candidate */}
+                    {/* Employee */}
                     <div className="space-y-12">
                       <div className="border-t-2 border-slate-900 pt-2 text-right">
                         <p className="font-black text-slate-900 text-[11px] uppercase leading-none">{formData.candidateName || '[Selected Name]'}</p>
-                        <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-1">Accepting Candidate Signature</p>
+                        <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-1">Accepting Employee Signature</p>
                         <div className="mt-6 space-y-1 text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
                           <p>Date: _____/_____/_________</p>
                           <p>Place: _____________________</p>
@@ -584,7 +608,7 @@ const EmployeeOfferLetterForm = () => {
               {/* Final Page Footer */}
               <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
                 <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5 text-left">
-                  <p>info@forgeindiaconnect.com | Page 3 of 3</p>
+                  <p>info@forgeindiaconnect.com | www.forgeindiaconnect.com | Page 3 of 3</p>
                   <p>Official HQ: Krishnagiri, Tamil Nadu</p>
                 </div>
                 <div className="text-right">
@@ -598,6 +622,10 @@ const EmployeeOfferLetterForm = () => {
       </div>
 
       <style>{`
+        @page {
+          size: auto;
+          margin: 0;
+        }
         @media print {
           body * {
             visibility: hidden;
