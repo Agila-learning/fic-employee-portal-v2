@@ -26,11 +26,14 @@ interface EmployeeAttendanceExportProps {
 
 interface AttendanceRecord {
   id: string;
+  _id?: string;
   date: string;
-  status: 'present' | 'absent';
+  status: 'present' | 'absent' | 'half_day' | 'half-day' | 'on-leave';
   half_day: boolean | null;
   leave_reason: string | null;
-  marked_at: string;
+  check_in?: string;
+  createdAt?: string;
+  marked_at?: string;
   location_verified: boolean | null;
 }
 
@@ -48,7 +51,7 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
   const getAttendanceForDateRange = async (employeeId: string, from: Date, to: Date) => {
     try {
       const filters = {
-        userId: employeeId,
+        user_id: employeeId,
         startDate: format(from, 'yyyy-MM-dd'),
         endDate: format(to, 'yyyy-MM-dd')
       };
@@ -139,9 +142,10 @@ const EmployeeAttendanceExport = ({ employees, holidays }: EmployeeAttendanceExp
           'Status': status,
           'Work Location': (record as any)?.work_location || '-',
           'Marked At': (() => {
-            if (!record?.marked_at) return '-';
+            const timeSource = record?.check_in || record?.createdAt || record?.marked_at;
+            if (!timeSource) return '-';
             try {
-              const d = new Date(record.marked_at);
+              const d = new Date(timeSource);
               if (isNaN(d.getTime())) return '-';
               return format(d, 'hh:mm a');
             } catch (e) {
