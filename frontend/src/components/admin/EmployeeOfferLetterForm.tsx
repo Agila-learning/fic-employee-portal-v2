@@ -18,11 +18,13 @@ const EmployeeOfferLetterForm = () => {
     candidateAddress: '',
     designation: '',
     department: 'Sales & Operations',
+    employmentType: 'Full-time',
     workMode: 'Onsite',
     location: '',
     officeAddress: '',
     roles: '1. Lead generation and market analysis\n2. Partnership development and client acquisition\n3. Ensuring sustainable business growth through target-driven execution',
     joiningDate: '',
+    offerValidity: '7',
     shiftTimings: '9:30 AM - 6:30 PM',
     reportingManager: '',
     ctc: '',
@@ -70,6 +72,7 @@ const EmployeeOfferLetterForm = () => {
     const specialAllowance = Math.max(0, monthlyCTC - currentTotal);
 
     const totalDeductions = pfEmployee + esiEmployee;
+    const inHand = monthlyCTC - pfEmployer - esiEmployer - totalDeductions;
 
     setCalculations({
       monthlyCTC,
@@ -82,7 +85,7 @@ const EmployeeOfferLetterForm = () => {
       esiEmployee,
       pfEmployer,
       esiEmployer,
-      netTakeHome: monthlyCTC - pfEmployer - esiEmployer - totalDeductions
+      netTakeHome: inHand
     });
     
     toast({ title: 'Success', description: 'Salary components calculated' });
@@ -139,14 +142,13 @@ const EmployeeOfferLetterForm = () => {
                 <Label htmlFor="department">Department</Label>
                 <Input 
                   id="department" 
-                  placeholder="e.g. Digital Marketing" 
                   value={formData.department}
                   onChange={(e) => setFormData({...formData, department: e.target.value})}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="location">Work Location (Base City)</Label>
                 <select 
@@ -159,16 +161,28 @@ const EmployeeOfferLetterForm = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="workMode">Employment Type / Mode</Label>
+                <Label htmlFor="employmentType">Employment Type</Label>
+                <select 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={formData.employmentType}
+                  onChange={(e) => setFormData({...formData, employmentType: e.target.value})}
+                >
+                  <option value="Full-time">Full-time</option>
+                  <option value="Probationary">Probationary</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Internship">Internship</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="workMode">Work Mode</Label>
                 <select 
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={formData.workMode}
                   onChange={(e) => setFormData({...formData, workMode: e.target.value})}
                 >
-                  <option value="Onsite">Full-time Onsite</option>
+                  <option value="Onsite">Onsite</option>
                   <option value="Hybrid">Hybrid</option>
                   <option value="Remote">Remote</option>
-                  <option value="Internship">Internship</option>
                 </select>
               </div>
             </div>
@@ -178,13 +192,12 @@ const EmployeeOfferLetterForm = () => {
               <Textarea 
                 id="roles" 
                 rows={3} 
-                placeholder="Enter roles line by line..." 
                 value={formData.roles}
                 onChange={(e) => setFormData({...formData, roles: e.target.value})}
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="joiningDate">Joining Date</Label>
                 <Input 
@@ -198,7 +211,6 @@ const EmployeeOfferLetterForm = () => {
                 <Label htmlFor="shiftTimings">Shift Timings</Label>
                 <Input 
                   id="shiftTimings" 
-                  placeholder="e.g. 9:30 AM - 6:30 PM" 
                   value={formData.shiftTimings}
                   onChange={(e) => setFormData({...formData, shiftTimings: e.target.value})}
                 />
@@ -207,9 +219,17 @@ const EmployeeOfferLetterForm = () => {
                 <Label htmlFor="reportingManager">Reporting Manager</Label>
                 <Input 
                   id="reportingManager" 
-                  placeholder="Name of manager" 
                   value={formData.reportingManager}
                   onChange={(e) => setFormData({...formData, reportingManager: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="offerValidity">Offer Validity (Days)</Label>
+                <Input 
+                  id="offerValidity" 
+                  type="number"
+                  value={formData.offerValidity}
+                  onChange={(e) => setFormData({...formData, offerValidity: e.target.value})}
                 />
               </div>
             </div>
@@ -256,200 +276,303 @@ const EmployeeOfferLetterForm = () => {
             <p className="max-w-xs mt-2">Fill the form and calculate salary to see the professional offer letter template.</p>
           </div>
         ) : (
-          <div className="bg-white text-black p-0 shadow-2xl rounded-sm min-h-[1400px] border-[12px] border-double border-slate-900 offer-letter-container overflow-hidden flex flex-col">
-            {/* Side Border Stripes */}
-            <div className="absolute left-1 top-0 bottom-0 w-1 bg-amber-500 opacity-30"></div>
-            <div className="absolute right-1 top-0 bottom-0 w-1 bg-amber-500 opacity-30"></div>
+          <div className="bg-white text-black p-0 shadow-2xl rounded-sm offer-letter-container flex flex-col font-serif">
+            {/* Page 1: Introduction & Basic Terms */}
+            <div className="p-12 min-h-[1100px] flex flex-col relative border-[12px] border-double border-slate-900 mb-8 page-break">
+              {/* Side Border Stripes */}
+              <div className="absolute left-1 top-0 bottom-0 w-1 bg-amber-500 opacity-20 print:hidden"></div>
+              <div className="absolute right-1 top-0 bottom-0 w-1 bg-amber-500 opacity-20 print:hidden"></div>
 
-            <div className="p-8 flex-1 flex flex-col">
-              {/* 1. Header & Company Details */}
-              <div className="flex justify-between items-center border-b-2 border-slate-900 pb-4 mb-6">
-                <div className="flex items-center gap-4">
-                  <img src={ficLogo} alt="Logo" className="h-20 w-20 object-contain" />
+              {/* 1. Header & Company Branding */}
+              <div className="flex justify-between items-center border-b-2 border-slate-900 pb-4 mb-8">
+                <div className="flex items-center gap-5">
+                  <img src={ficLogo} alt="Logo" className="h-24 w-24 object-contain" />
                   <div>
-                    <h1 className="text-3xl font-black text-slate-900 leading-none tracking-tighter">FORGE INDIA CONNECT</h1>
-                    <p className="text-[11px] font-bold tracking-[0.3em] text-amber-600 mt-1 uppercase">Connecting Talent with Opportunity</p>
-                    <p className="text-[10px] text-slate-500 font-bold">PRIVATE LIMITED</p>
+                    <h1 className="text-4xl font-black text-slate-900 leading-none tracking-tighter">FORGE INDIA CONNECT</h1>
+                    <p className="text-[12px] font-bold tracking-[0.4em] text-amber-600 mt-1 uppercase">Connecting Talent with Opportunity</p>
+                    <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Private Limited | CIN: [Optional CIN]</p>
                   </div>
                 </div>
-                <div className="text-right text-[10px] leading-tight text-slate-700">
-                  <p className="font-bold text-slate-900 uppercase mb-1">Corporate Headquarters:</p>
-                  <p>{formData.officeAddress || 'Tamil Nadu, India'}</p>
-                  <p className="mt-2"><span className="font-bold text-slate-900">GSTIN:</span> 33AAGCF4763Q1Z3</p>
-                  <p><span className="font-bold text-slate-900">MOB:</span> +91 85085...[Your Mobile]</p>
+                <div className="text-right text-[10px] leading-relaxed text-slate-700 max-w-[200px]">
+                  <p className="font-bold text-slate-900 uppercase mb-1 underline">Registered Headquarters:</p>
+                  <p className="font-medium italic">{formData.officeAddress || 'Tamil Nadu, India'}</p>
+                  <div className="mt-2 border-t border-slate-200 pt-1">
+                    <p><span className="font-bold text-slate-900">GSTIN:</span> 33AAGCF4763Q1Z3</p>
+                    <p><span className="font-bold text-slate-900">MOB:</span> +91 85085...[Your Mobile]</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Document Title */}
-              <div className="text-center mb-6">
-                <h2 className="inline-block border-y-2 border-slate-900 py-1 px-8 text-lg font-black tracking-widest uppercase">Letter of Appointment</h2>
+              {/* Subject Line */}
+              <div className="text-center mb-8">
+                <h2 className="inline-block border-y-2 border-slate-900 py-1.5 px-12 text-xl font-black tracking-[0.2em] uppercase bg-slate-50">Letter of Appointment</h2>
+                <p className="text-[10px] mt-2 text-slate-500 font-bold uppercase italic">Strictly Confidential & Personal</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-0 mb-6 border-b border-slate-200 pb-4">
-                {/* 2. Candidate Details */}
-                <div className="space-y-1 text-[11px]">
-                  <p className="font-bold text-slate-500 uppercase text-[9px]">Issued to:</p>
-                  <p className="font-black text-sm text-slate-900">{formData.candidateName || '[Candidate Name]'}</p>
-                  <p className="text-slate-600 max-w-[250px]">{formData.candidateAddress || '[Candidate Address]'}</p>
+              {/* 2. Candidate & Offer Reference */}
+              <div className="grid grid-cols-2 gap-0 mb-10 pb-6 border-b border-slate-100">
+                <div className="space-y-1.5">
+                  <p className="font-bold text-slate-400 uppercase text-[9px] tracking-widest">Issued to Candidate:</p>
+                  <p className="font-black text-lg text-slate-900 leading-none">{formData.candidateName || '[Selected Name]'}</p>
+                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed max-w-[300px]">{formData.candidateAddress || '[Candidate Full Communication Address]'}</p>
                 </div>
-                <div className="text-right space-y-1 text-[11px]">
-                  <p className="font-bold text-slate-500 uppercase text-[9px]">Reference Details:</p>
-                  <p><span className="font-bold text-slate-900">Date:</span> {format(new Date(), 'dd MMMM yyyy')}</p>
-                  <p><span className="font-bold text-slate-900">ID:</span> FIC/OL/{new Date().getFullYear()}/{Math.floor(1000 + Math.random() * 9000)}</p>
+                <div className="text-right space-y-1.5 text-[11px] font-medium text-slate-700">
+                  <p className="font-bold text-slate-400 uppercase text-[9px] tracking-widest">Offer Reference:</p>
+                  <p><span className="font-bold text-slate-900">Issue Date:</span> {format(new Date(), 'dd MMMM yyyy')}</p>
+                  <p><span className="font-bold text-slate-900">Offer Ref No:</span> FIC/HR/OL/{new Date().getFullYear()}/{Math.floor(1000 + Math.random() * 9000)}</p>
+                  <p><span className="font-bold text-red-600 italic">Offer Validity: {formData.offerValidity} Working Days</span></p>
                 </div>
               </div>
 
-              {/* Main Content Sections */}
-              <div className="space-y-5 text-[10.5px] leading-[1.3] text-slate-800">
+              {/* Content Body */}
+              <div className="space-y-6 text-[12px] leading-relaxed text-slate-800 text-justify">
+                <p>Dear <span className="font-black text-slate-900">{formData.candidateName.split(' ')[0]}</span>,</p>
                 
-                {/* 3 & 4. Job & Joining Details */}
-                <div className="grid grid-cols-2 gap-6 bg-slate-50 p-3 rounded-md border border-slate-200">
-                  <div>
-                    <h3 className="font-bold text-slate-900 border-b border-slate-300 mb-2 pb-1 uppercase tracking-wider text-[9px]">3. Employment Details</h3>
-                    <div className="space-y-1">
-                      <p><span className="text-slate-500">Designation:</span> <span className="font-bold">{formData.designation || '[TBD]'}</span></p>
-                      <p><span className="text-slate-500">Department:</span> <span className="font-bold">{formData.department}</span></p>
-                      <p><span className="text-slate-500">Reporting To:</span> <span className="font-bold">{formData.reportingManager || '[TBD]'}</span></p>
-                      <p><span className="text-slate-500">Location:</span> <span className="font-bold">{formData.location || '[TBD]'} ({formData.workMode})</span></p>
+                <p>
+                  Following your recent interaction with our talent acquisition team and your successful technical evaluation, we are pleased to offer you the position of <span className="font-black border-b border-slate-900 uppercase">{formData.designation || '[TBD]'}</span> in the <span className="font-bold italic">{formData.department}</span> department at <span className="font-black text-slate-900">Forge India Connect Private Limited</span>.
+                </p>
+
+                {/* 1 & 2. Employment Terms */}
+                <div>
+                  <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-3 tracking-widest text-[11px]">1. Final Offer & Position Details</h3>
+                  <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded border border-slate-200">
+                    <div className="space-y-2">
+                      <p><span className="text-slate-500 font-bold uppercase text-[9px]">Designation:</span> <br/><span className="font-black text-slate-900">{formData.designation}</span></p>
+                      <p><span className="text-slate-500 font-bold uppercase text-[9px]">Employment Type:</span> <br/><span className="font-black text-slate-900">{formData.employmentType}</span></p>
+                      <p><span className="text-slate-500 font-bold uppercase text-[9px]">Reporting To:</span> <br/><span className="font-black text-slate-900">{formData.reportingManager}</span></p>
                     </div>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 border-b border-slate-300 mb-2 pb-1 uppercase tracking-wider text-[9px]">4. Joining Logistics</h3>
-                    <div className="space-y-1">
-                      <p><span className="text-slate-500">Date of Joining:</span> <span className="font-bold">{formData.joiningDate ? format(new Date(formData.joiningDate), 'dd MMMM yyyy') : '[TBD]'}</span></p>
-                      <p><span className="text-slate-500">Working Hours:</span> <span className="font-bold">{formData.shiftTimings}</span></p>
-                      <p><span className="text-slate-500">Shift Type:</span> <span className="font-bold">Standard Day Shift</span></p>
+                    <div className="space-y-2">
+                      <p><span className="text-slate-500 font-bold uppercase text-[9px]">Effective Joining Date:</span> <br/><span className="font-black text-slate-900 underline decoration-amber-500">{formData.joiningDate ? format(new Date(formData.joiningDate), 'eeee, dd MMMM yyyy') : '[Date Pending]'}</span></p>
+                      <p><span className="text-slate-500 font-bold uppercase text-[9px]">Work Mode/Location:</span> <br/><span className="font-black text-slate-900">{formData.location} ({formData.workMode})</span></p>
+                      <p><span className="text-slate-500 font-bold uppercase text-[9px]">Operating Hours:</span> <br/><span className="font-black text-slate-900">{formData.shiftTimings}</span></p>
                     </div>
                   </div>
                 </div>
 
-                {/* 5. Compensation */}
-                <div className="space-y-2">
-                  <h3 className="font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <span className="bg-slate-900 text-white px-1 text-[10px]">5</span> Compensation Structure
-                  </h3>
-                  <table className="w-full border-collapse border border-slate-300">
-                    <thead className="bg-slate-100 text-[9px] uppercase font-bold text-slate-700">
+                {/* 3. Compensation Overview */}
+                <div className="space-y-3">
+                  <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 tracking-widest text-[11px]">2. Remuneration & Benefits Structure</h3>
+                  <p className="text-[11px]">Your total Fixed Cost to Company (CTC) shall be <span className="font-black text-slate-900">INR {(parseFloat(formData.ctc)).toLocaleString()} per annum</span>. The comprehensive monthly remuneration breakdown is as follows:</p>
+                  
+                  <table className="w-full border-collapse border border-slate-400">
+                    <thead className="bg-slate-900 text-white text-[10px] uppercase font-black">
                       <tr>
-                        <th className="border border-slate-300 p-1.5 text-left w-1/2">Components</th>
-                        <th className="border border-slate-300 p-1.5 text-right w-1/4">Monthly (INR)</th>
-                        <th className="border border-slate-300 p-1.5 text-right w-1/4">Annual (INR)</th>
+                        <th className="border border-slate-400 p-2 text-left w-1/2">Component (Statutory & Fixed)</th>
+                        <th className="border border-slate-400 p-2 text-right">Monthly (INR)</th>
+                        <th className="border border-slate-400 p-2 text-right">Annual (INR)</th>
                       </tr>
                     </thead>
-                    <tbody className="text-[10px]">
+                    <tbody className="text-[11px] font-medium">
                       <tr>
-                        <td className="border border-slate-300 p-1.5">Basic Salary (50% of CTC)</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{calculations.basic.toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.basic * 12).toLocaleString()}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-slate-300 p-1.5">House Rent Allowance (HRA)</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{calculations.hra.toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.hra * 12).toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2">A. Basic Salary (50% of CTC)</td>
+                        <td className="border border-slate-300 p-2 text-right">{calculations.basic.toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2 text-right">{(calculations.basic * 12).toLocaleString()}</td>
                       </tr>
                       <tr>
-                        <td className="border border-slate-300 p-1.5">Fixed Allowances (Medical & Conveyance)</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.medical + calculations.conveyance).toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{((calculations.medical + calculations.conveyance) * 12).toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2">House Rent Allowance (HRA)</td>
+                        <td className="border border-slate-300 p-2 text-right">{calculations.hra.toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2 text-right">{(calculations.hra * 12).toLocaleString()}</td>
                       </tr>
                       <tr>
-                        <td className="border border-slate-300 p-1.5">Special Allowance</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{calculations.specialAllowance.toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.specialAllowance * 12).toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2 text-slate-500">Fixed Statutory Allowances (Medical/Conv)</td>
+                        <td className="border border-slate-300 p-2 text-right text-slate-500">{(calculations.medical + calculations.conveyance).toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2 text-right text-slate-500">{((calculations.medical + calculations.conveyance) * 12).toLocaleString()}</td>
                       </tr>
-                      <tr className="bg-slate-50 font-bold border-t-2 border-slate-900">
-                        <td className="border border-slate-300 p-1.5">Gross Total Earnings (A)</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.basic + calculations.hra + calculations.medical + calculations.conveyance + calculations.specialAllowance).toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{((calculations.basic + calculations.hra + calculations.medical + calculations.conveyance + calculations.specialAllowance) * 12).toLocaleString()}</td>
+                      <tr className="bg-slate-50">
+                        <td className="border border-slate-300 p-2 italic">Employer Contributions (Statutory PF/ESI)</td>
+                        <td className="border border-slate-300 p-2 text-right italic">{(calculations.pfEmployer + calculations.esiEmployer).toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2 text-right italic">{((calculations.pfEmployer + calculations.esiEmployer) * 12).toLocaleString()}</td>
                       </tr>
                       <tr>
-                        <td className="border border-slate-300 p-1.5 text-slate-500 italic">Employer Statutory Contributions (PF & ESI) (B)</td>
-                        <td className="border border-slate-300 p-1.5 text-right text-slate-500">{(calculations.pfEmployer + calculations.esiEmployer).toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right text-slate-500">{((calculations.pfEmployer + calculations.esiEmployer) * 12).toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2">Balanced Special Allowance</td>
+                        <td className="border border-slate-300 p-2 text-right">{calculations.specialAllowance.toLocaleString()}</td>
+                        <td className="border border-slate-300 p-2 text-right">{(calculations.specialAllowance * 12).toLocaleString()}</td>
                       </tr>
-                      <tr className="bg-slate-900 text-white font-black">
-                        <td className="border border-slate-600 p-1.5 uppercase">Annual Total CTC (A + B)</td>
-                        <td className="border border-slate-600 p-1.5 text-right">INR {calculations.monthlyCTC.toLocaleString()}</td>
-                        <td className="border border-slate-600 p-1.5 text-right">INR {(parseFloat(formData.ctc)).toLocaleString()}</td>
+                      <tr className="bg-slate-100 font-black border-t-2 border-slate-900">
+                        <td className="border border-slate-400 p-2 uppercase">Total Annual Fixed CTC</td>
+                        <td className="border border-slate-400 p-2 text-right">INR {calculations.monthlyCTC.toLocaleString()}</td>
+                        <td className="border border-slate-400 p-2 text-right">INR {(parseFloat(formData.ctc)).toLocaleString()}</td>
                       </tr>
                     </tbody>
                   </table>
-                  <p className="text-[9px] italic text-slate-500">* Payment Cycle: 1st of every month. Standard deductions (PF, ESI, Tax) applicable as per Govt norms.</p>
+                  <div className="bg-amber-100 p-3 rounded-sm border-2 border-amber-600 text-center font-black text-slate-900">
+                    Estimated Net In-Hand Salary: <span className="text-lg">INR {calculations.netTakeHome.toLocaleString()}</span> / month
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter mt-1 italic">(Subject to Standard TDS and Statutory Deductions)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Page Footer */}
+              <div className="mt-auto pt-8 flex justify-between items-end border-t border-slate-200">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Appointment Letter | Page [01/03]</p>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-900 uppercase">Forge India Connect Pvt Ltd</p>
+                  <p className="text-[9px] text-amber-600 font-bold italic">"Excellence In Every Connection"</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Page 2: Roles, Probation, Clauses */}
+            <div className="p-12 min-h-[1100px] flex flex-col relative border-[12px] border-double border-slate-900 mb-8 page-break">
+              
+              {/* 6. Roles & Responsibilities */}
+              <div className="space-y-6 text-[12px] leading-relaxed text-slate-800">
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 tracking-widest text-[11px]">3. Key Roles, Responsibilities & Expectations</h3>
+                <div className="bg-slate-50 p-6 rounded border border-slate-200 text-justify">
+                  <p className="mb-4 font-bold italic underline">As a {formData.designation}, you shall be primarily responsible for the following:</p>
+                  <ul className="space-y-2 list-none pl-2">
+                    {formData.roles.split('\n').map((line, i) => (
+                      <li key={i} className="flex gap-3">
+                        <span className="text-amber-600 font-black">▶</span>
+                        <span className="font-medium text-slate-700">{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-6 text-[11px] font-bold text-slate-500 italic opacity-80">
+                    Note: Your roles and responsibilities may evolve as per the organizational requirements and business objectives determined by the management from time to time.
+                  </p>
                 </div>
 
-                {/* 6. Roles & Responsibilities */}
-                <div>
-                  <h3 className="font-bold text-slate-900 uppercase underline decoration-amber-500 decoration-2 underline-offset-4 mb-2">6. Key Roles & Responsibilities</h3>
-                  <div className="bg-amber-50/50 p-3 rounded border-r-4 border-amber-500">
-                    <p className="text-[10px] text-slate-700 leading-relaxed font-medium">
-                      {formData.roles.split('\n').map((line, i) => (
-                        <span key={i} className="block mb-1">✓ {line}</span>
-                      ))}
+                {/* 4 & 5. Probation & Leave */}
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <h3 className="font-black text-slate-900 uppercase text-[10px] underline tracking-widest">4. Probation & Confirmation</h3>
+                    <p className="text-[11px] text-justify font-medium">
+                      You will be on a <span className="font-black text-slate-900">Probation Period of three (03) calendar months</span> from your actual date of joining. Management reserves the right to extend the probation based on periodic performance evaluations. Upon successful completion of probation and receipt of a formal confirmation letter, your employment status will transition to 'Permanent'.
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="font-black text-slate-900 uppercase text-[10px] underline tracking-widest">5. Leave & Absence Policy</h3>
+                    <p className="text-[11px] text-justify font-medium">
+                      <span className="font-black text-slate-900">Entitlement:</span> You are entitled to 01 Casual/Sick leave per month (Total 12 annually). Leaves must be applied for at least 48 hours in advance via the company portal.
+                      <br/><br/>
+                      <span className="font-black text-slate-900 font-black">LOP/Absconding:</span> Unauthorized absence for more than 3 consecutive days will be considered 'Loss of Pay' (LOP) and may lead to disciplinary action including termination on grounds of absconding.
                     </p>
                   </div>
                 </div>
 
-                {/* 7 & 8. Terms, Probation & Leave */}
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <h3 className="font-bold border-l-2 border-slate-900 pl-2 uppercase text-[9px]">7. Terms & Probation</h3>
-                    <p className="text-[10px] text-slate-600">
-                      There will be a <span className="font-bold">three (03) month probation period</span> from your DOJ. Confirmation will be based on performance review by Management.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-bold border-l-2 border-slate-900 pl-2 uppercase text-[9px]">8. Leave & Holiday Policy</h3>
-                    <p className="text-[10px] text-slate-600">
-                      Monthly 01 Casual/Sick leave (Total 12 annually) + Paid Public holidays as per company calendar.
-                    </p>
-                  </div>
+                {/* 6. Legal & Security Compliance */}
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 mt-6 tracking-widest text-[11px]">6. Confidentiality & Intellectual Property</h3>
+                <div className="space-y-3 text-[11px] text-justify bg-slate-100 p-5 rounded border-l-4 border-slate-900">
+                  <p>
+                    <span className="font-black underline uppercase">Non-Disclosure:</span> During your tenure and after cessation of employment, you shall maintain absolute confidentiality regarding all Proprietary Information, Client Data, Trade Secrets, and Strategic Intellectual Property of <span className="font-bold">Forge India Connect Pvt Ltd</span>. Any breach of this clause will lead to immediate summary dismissal and legal action.
+                  </p>
+                  <p>
+                    <span className="font-black underline uppercase">Ownership of Work:</span> Any work products, software code, research, or creative material produced by you during your employment shall be the exclusive property of the company.
+                  </p>
                 </div>
 
-                {/* 9, 10, 11. Security, Termination & Conduct */}
-                <div className="space-y-3 bg-slate-900 text-slate-300 p-4 rounded-lg">
-                  <div className="grid grid-cols-3 gap-4 text-[9px]">
-                    <div>
-                      <p className="font-bold text-white mb-1 uppercase tracking-tighter underline">9. Confidentiality</p>
-                      <p className="opacity-80">Strict adherence to Data Protection and Non-Disclosure of client/company data is mandatory.</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-white mb-1 uppercase tracking-tighter underline">10. Termination</p>
-                      <p className="opacity-80">Requires 30 days notice or equivalent salary. Management reserves rights for instant dismissal on misconduct.</p>
-                    </div>
-                    <div>
-                      <p className="font-bold text-white mb-1 uppercase tracking-tighter underline">11. Code of Conduct</p>
-                      <p className="opacity-80">Professionalism and compliance with all HR rules as mentioned in company handbook is required.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 12. Acceptance */}
-                <div className="pt-4 mt-auto">
-                  <p className="font-bold text-center mb-6 uppercase text-[10px] tracking-widest text-slate-500">12. Execution & Acceptance</p>
-                  <div className="grid grid-cols-2 gap-12 mt-4 px-4">
-                    <div className="space-y-12">
-                      <div className="border-t border-slate-900 pt-2 flex flex-col gap-1 items-start">
-                        <p className="font-black text-slate-900 text-[11px] uppercase">Mr. Sandeep</p>
-                        <p className="text-[9px] text-slate-500 font-bold leading-none">Chief Executive Officer (CEO)</p>
-                        <p className="text-[10px] mt-4">Verified by: <span className="font-bold">Mr. Karthik (MD)</span></p>
-                      </div>
-                    </div>
-                    <div className="space-y-12">
-                      <div className="border-t border-slate-900 pt-2 text-right">
-                        <p className="font-black text-slate-900 text-[11px] uppercase leading-none">{formData.candidateName || '[Selected Name]'}</p>
-                        <p className="text-[9px] text-slate-500 font-bold uppercase mt-1">Candidate Signature</p>
-                        <p className="text-[9px] mt-4 italic text-slate-400">Accepted on: _____________________</p>
-                      </div>
-                    </div>
-                  </div>
+                {/* 7. Termination & Notice Period */}
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 mt-6 tracking-widest text-[11px]">7. Notice Period & Termination of Services</h3>
+                <div className="space-y-3 text-[11px] text-justify font-medium">
+                  <p>
+                    Either party may terminate this employment agreement by providing a <span className="font-black underline text-slate-900">Notice Period of 30 Calendar Days</span> or payment of Gross Monthly Salary in lieu of notice.
+                  </p>
+                  <p className="bg-red-50 p-2 text-red-800 border-l-2 border-red-800 italic">
+                    Management reserves the right to terminate your services without notice or compensation on grounds of gross misconduct, fraud, persistent performance failure, or breach of company code of conduct.
+                  </p>
                 </div>
 
               </div>
 
-              {/* Footer Stamp */}
-              <div className="mt-8 border-t border-slate-100 py-2 text-center">
-                <p className="text-[9px] font-black text-slate-900 tracking-[0.4em] uppercase">Forge India Connect Private Limited</p>
-                <p className="text-[8px] text-amber-600 font-bold italic">"Excellence In Every Connection"</p>
+              {/* Page Footer */}
+              <div className="mt-auto pt-8 flex justify-between items-end border-t border-slate-200">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Appointment Letter | Page [02/03]</p>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-900 uppercase">Forge India Connect Pvt Ltd</p>
+                  <p className="text-[9px] text-amber-600 font-bold italic">"Excellence In Every Connection"</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Page 3: IT Policy, BGV & Acceptance */}
+            <div className="p-12 min-h-[1100px] flex flex-col relative border-[12px] border-double border-slate-900 mb-0">
+              
+              <div className="space-y-6 text-[12px] leading-relaxed text-slate-800">
+                
+                {/* 8. IT & Data Policy */}
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 tracking-widest text-[11px]">8. Information Technology & Resource Usage Policy</h3>
+                <div className="space-y-2 text-[11px] text-justify font-medium">
+                  <p>
+                    Candidates are required to strictly adhere to the company's IT Policy. Systems provided are for business purposes only. Multi-factor authentication (MFA) and Access Control protocols must be followed. Unauthorized downloading of external software or sharing of organizational data via personal email is strictly prohibited and monitored.
+                  </p>
+                </div>
+
+                {/* 9. Background Verification */}
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 tracking-widest text-[11px]">9. Background & Reference Verification</h3>
+                <div className="space-y-2 text-[11px] text-justify font-medium">
+                  <p>
+                    This offer is contingent upon clear reports from our internal Background Verification (BGV) process. Any falsification of details regarding education, previous experience, or salary history will result in immediate withdrawal of the offer or termination of employment if joined.
+                  </p>
+                </div>
+
+                {/* 10. Non-Compete & Non-Solicitation */}
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 tracking-widest text-[11px]">10. Non-Compete & Non-Solicitation Agreement</h3>
+                <div className="space-y-2 text-[11px] text-justify font-medium bg-slate-50 p-4 border rounded">
+                  <p>
+                    You agree that for a period of 12 months post-cessation of employment, you shall not directly or indirectly:
+                    <br/>
+                    a. Join any direct competitor of <span className="font-bold">Forge India Connect Pvt Ltd</span>.
+                    <br/>
+                    b. Solicit or attempt to recruit any employee or client of the company.
+                  </p>
+                </div>
+
+                <p className="mt-8 font-black text-center text-[13px] uppercase tracking-[0.2em] border-y-2 border-slate-900 py-2">Declaration & Final Acceptance</p>
+
+                {/* 11 & 12. Execution & Signatures */}
+                <div className="space-y-8 pt-6">
+                  <p className="font-medium text-[11.5px] text-justify italic">
+                    "I, <span className="font-black underline">{formData.candidateName || '[Selected Name]'}</span>, have read, understood, and hereby accept the terms and conditions set forth in this Appointment Letter. I confirm that I will join the organization on the mentioned date and shall adhere to all organizational policies and standards of conduct."
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-16 px-4 pt-10">
+                    {/* Management Signature */}
+                    <div className="space-y-16">
+                      <div className="border-t-2 border-slate-900 pt-3 relative">
+                        <p className="font-black text-slate-900 text-[12px] uppercase">Mr. SANDEEP</p>
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest leading-none">Chief Executive Officer (CEO)</p>
+                        <div className="mt-6 flex flex-col gap-1 items-start">
+                          <p className="text-[10px] font-bold text-slate-400">Verified by:</p>
+                          <p className="font-black text-slate-900 text-[11px] uppercase">Mr. KARTHIK (MD)</p>
+                          <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Managing Director</p>
+                        </div>
+                        {/* Company Stamp Placeholder */}
+                        <div className="absolute -top-16 left-0 opacity-10 font-black text-slate-900 text-3xl border-4 border-slate-900 p-2 rounded transform -rotate-12 select-none pointer-events-none">
+                          OFFER APPROVED
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Candidate Acceptance */}
+                    <div className="space-y-16">
+                      <div className="border-t-2 border-slate-900 pt-3 text-right">
+                        <p className="font-black text-slate-900 text-[12px] uppercase leading-none">{formData.candidateName || '[Selected Name]'}</p>
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Candidate Signature</p>
+                        <div className="mt-8 space-y-2 text-[10px] text-slate-400 font-bold">
+                          <p>Acceptance Date: _____________________</p>
+                          <p>Place: _____________________________</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Digital Acceptance Option */}
+                <div className="mt-8 border-2 border-dashed border-amber-300 p-4 rounded text-center bg-amber-50/30">
+                  <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest underline decoration-amber-500 underline-offset-4 mb-1">Electronic Acceptance Signature Block</p>
+                  <p className="text-[9px] text-slate-500 italic">This document is electronically verifiable. By signing above, you agree to the binding nature of the digital contract under the Information Technology Act, 2000.</p>
+                </div>
+
+              </div>
+
+              {/* Page Footer */}
+              <div className="mt-auto pt-8 flex justify-between items-end border-t border-slate-200">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Appointment Letter | Page [03/03]</p>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-900 uppercase">Forge India Connect Pvt Ltd</p>
+                  <p className="text-[9px] text-amber-600 font-bold italic italic">"Connecting Talent with Opportunity"</p>
+                </div>
               </div>
             </div>
           </div>
@@ -465,19 +588,42 @@ const EmployeeOfferLetterForm = () => {
             visibility: visible;
           }
           .offer-letter-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
             box-shadow: none !important;
             border: none !important;
             padding: 0 !important;
-            height: auto !important;
-            min-height: 0 !important;
+            display: block !important;
           }
-          .print:hidden {
-            display: none !important;
+          .page-break {
+            page-break-after: always !important;
+            break-after: page !important;
+            border: none !important;
+            margin-bottom: 0 !important;
+            padding: 30px !important;
+            min-height: 297mm !important; /* A4 height approx */
           }
+          .offer-letter-container {
+            border: none !important;
+          }
+          .bg-slate-900 {
+            -webkit-print-color-adjust: exact;
+            background-color: #0f172a !important;
+            color: white !important;
+          }
+          .bg-amber-100 {
+            -webkit-print-color-adjust: exact;
+            background-color: #fef3c7 !important;
+          }
+           .bg-slate-50 {
+            -webkit-print-color-adjust: exact;
+            background-color: #f8fafc !important;
+          }
+        }
+        .font-black {
+          font-weight: 900;
         }
         .offer-letter-container {
           background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
