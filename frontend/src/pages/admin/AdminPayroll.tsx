@@ -143,7 +143,7 @@ const AdminPayroll = () => {
         daysWorked: daysWorked.toString(),
         leaveDays: (totalDaysInMonth - daysWorked).toString(),
         basicSalary: calculatedSalary.toString(),
-        otherEarnings: totalIncentive > 0 ? totalIncentive.toString() : prev.otherEarnings
+        otherEarnings: totalIncentive.toString()
       }));
 
       toast.success('Successfully calculated from attendance & leads!');

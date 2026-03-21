@@ -24,5 +24,10 @@ export const messageService = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return response.data;
+  },
+
+  deleteMessage: async (id: string) => {
+    const response = await apiClient.delete(`/messages/${id}`);
+    return response.data;
   }
 };

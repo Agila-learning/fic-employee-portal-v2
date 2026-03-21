@@ -140,7 +140,17 @@ const markAttendance = async (req, res) => {
     try {
         const { date, status, location, notes, user_id, half_day, latitude, longitude, location_verified, work_location, face_photo } = req.body;
         const targetUserId = (req.user.role === 'admin' && user_id) ? user_id : req.user._id;
-        const targetDate = date || new Date().toISOString().split('T')[0];
+        const targetDate = date || new Date().toLocaleDateString('en-CA');
+
+        // Check if today is a holiday
+        const holiday = await Holiday.findOne({ date: { $lte: new Date(targetDate), $gte: new Date(targetDate) } });
+        // Since Holiday model might store dates differently, let's be more robust
+        const allHolidays = await Holiday.find({});
+        const isHoliday = allHolidays.find(h => new Date(h.date).toLocaleDateString('en-CA') === targetDate);
+        
+        if (isHoliday && req.user.role !== 'admin') {
+            return res.status(400).json({ message: `Today is a holiday: ${isHoliday.name}. Attendance is automatically marked.` });
+        }
 
         const attendance = await Attendance.findOneAndUpdate(
             { user_id: targetUserId, date: targetDate },
@@ -178,11 +188,14 @@ const getMyAttendance = async (req, res) => {
         for (let i = 0; i < 60; i++) {
             const d = new Date();
             d.setDate(now.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = d.toLocaleDateString('en-CA');
             
             if (!existingDates.has(dateStr)) {
                 const dayOfWeek = d.getDay(); // 0 = Sunday
-                const isHoliday = holidays.find(h => h.date.toISOString().split('T')[0] === dateStr);
+                const isHoliday = holidays.find(h => {
+                    const hDate = new Date(h.date).toLocaleDateString('en-CA');
+                    return hDate === dateStr;
+                });
                 
                 if (dayOfWeek === 0 || isHoliday) {
                     enhancedAttendance.push({
@@ -376,7 +389,7 @@ const createHoliday = async (req, res) => {
         
         // Mark all employees as present for this holiday
         const employees = await User.find({ role: 'employee' });
-        const holidayDate = new Date(date).toISOString().split('T')[0];
+        const holidayDate = new Date(date).toLocaleDateString('en-CA');
         
         for (const emp of employees) {
             await Attendance.findOneAndUpdate(
@@ -384,7 +397,7 @@ const createHoliday = async (req, res) => {
                 { 
                     status: 'present', 
                     notes: `Holiday: ${name}`,
-                    isVirtual: false // Mark as real record in DB
+                    isVirtual: false
                 },
                 { upsert: true }
             );

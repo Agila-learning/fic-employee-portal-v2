@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, RefreshCw, Loader2, Paperclip, Mic, X, Image as ImageIcon, File as FileIcon, Download, Play, Square, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Send, RefreshCw, Loader2, Paperclip, Mic, X, Image as ImageIcon, File as FileIcon, Download, Play, Square, MessageSquare, ArrowLeft, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, safeParseDate, getInitials } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -159,6 +159,17 @@ const ChatWindow = ({ selectedUser, onBack }: ChatWindowProps) => {
     }
   };
 
+  const handleDeleteMessage = async (id: string) => {
+    if (!window.confirm('Delete this message?')) return;
+    try {
+      await messageService.deleteMessage(id);
+      setMessages(prev => prev.filter(m => m._id !== id));
+      toast.success('Message deleted');
+    } catch (error) {
+      toast.error('Failed to delete message');
+    }
+  };
+
   const renderMessageContent = (msg: Message) => {
     switch (msg.messageType) {
       case 'image':
@@ -298,6 +309,15 @@ const ChatWindow = ({ selectedUser, onBack }: ChatWindowProps) => {
                         !isStartOfGroup && (isMe ? "rounded-tr-2xl" : "rounded-tl-2xl"),
                         !isEndOfGroup && (isMe ? "rounded-br-sm" : "rounded-bl-sm")
                       )}>
+                        {!isRecording && isMe && (
+                          <button 
+                            onClick={() => handleDeleteMessage(msg._id)}
+                            className="absolute -left-8 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground/0 group-hover:text-destructive/70 hover:text-destructive transition-all duration-200"
+                            title="Delete message"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                         {renderMessageContent(msg)}
                         
                         <div className={cn(

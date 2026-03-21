@@ -111,20 +111,31 @@ const AdminChat = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-bold truncate">{emp.name}</p>
+                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                              <p className="text-sm font-bold truncate text-foreground">{emp.name}</p>
                               {chatInfo && (
-                                <span className="text-[10px] text-muted-foreground">
-                                  {format(new Date(chatInfo.lastMessageTime), 'HH:mm')}
+                                <span className="text-[10px] whitespace-nowrap text-muted-foreground font-medium">
+                                  {format(new Date(chatInfo.lastMessageTime), 'hh:mm a')}
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center justify-between gap-2">
-                              <p className="text-xs text-muted-foreground truncate">
-                                {chatInfo ? chatInfo.lastMessage : (emp.department || 'Employee')}
-                              </p>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] text-primary/70 font-bold uppercase tracking-wider truncate mb-0.5">
+                                  {emp.department || emp.role || 'Employee'}
+                                </p>
+                                {chatInfo ? (
+                                  <p className="text-xs text-muted-foreground truncate leading-relaxed">
+                                    {chatInfo.lastMessage}
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground/40 italic truncate">
+                                    No messages yet
+                                  </p>
+                                )}
+                              </div>
                               {chatInfo?.unreadCount > 0 && (
-                                <div className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-bold shadow-sm">
+                                <div className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-bold shadow-lg animate-in zoom-in duration-300">
                                   {chatInfo.unreadCount}
                                 </div>
                               )}

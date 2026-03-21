@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { sendMessage, getMessages, getChatList } = require('../controllers/messageController');
+const { sendMessage, getMessages, getChatList, deleteMessage } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 const { upload, requireCloudinary } = require('../utils/cloudinary');
 
 router.post('/send', protect, sendMessage);
 router.get('/history/:otherUserId', protect, getMessages);
 router.get('/list', protect, getChatList);
+router.delete('/:id', protect, deleteMessage);
 
 // Upload endpoint for chat attachments
 router.post('/upload', protect, requireCloudinary, upload.single('file'), (req, res) => {

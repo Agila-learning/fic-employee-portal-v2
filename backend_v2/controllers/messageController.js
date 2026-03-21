@@ -120,3 +120,23 @@ exports.getChatList = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Delete a message
+exports.deleteMessage = async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.id);
+        if (!message) {
+            return res.status(404).json({ message: 'Message not found' });
+        }
+
+        // Only sender or admin can delete
+        if (message.sender.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to delete this message' });
+        }
+
+        await Message.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: 'Message deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
