@@ -65,7 +65,10 @@ const EmployeeChat = () => {
         <Card className="flex-1 overflow-hidden border-none shadow-xl bg-background/50 backdrop-blur-sm">
           <CardContent className="p-0 flex h-full">
             {/* Sidebar (Fixed for Employee - only Admin) */}
-            <div className="w-full md:w-80 border-r flex flex-col bg-muted/10">
+            <div className={cn(
+              "w-full md:w-80 border-r flex flex-col bg-muted/10",
+              adminUser && "hidden md:flex" // Hide sidebar on mobile if admin is found to show chat directly
+            )}>
               <div className="p-4 border-b font-semibold text-sm text-muted-foreground uppercase tracking-wider">
                 Admin Support
               </div>
@@ -105,7 +108,10 @@ const EmployeeChat = () => {
             </div>
 
             {/* Chat Area */}
-            <div className="hidden md:flex flex-1">
+            <div className={cn(
+              "flex flex-1",
+              !adminUser && "hidden md:flex" // Hide chat area on mobile if no admin target
+            )}>
               <ChatWindow selectedUser={adminUser} />
             </div>
           </CardContent>

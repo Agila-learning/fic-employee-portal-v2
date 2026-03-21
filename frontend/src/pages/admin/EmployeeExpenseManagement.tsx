@@ -19,7 +19,11 @@ import { createWorkbook, setColumnWidths, applyHeaderStyle, downloadWorkbook } f
 import { ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { CATEGORIES } from './AdminExpenses';
 
-const EmployeeExpenseManagement = () => {
+interface EmployeeExpenseManagementProps {
+  roleFilter?: 'employee' | 'admin' | 'md' | 'all';
+}
+
+const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseManagementProps) => {
   const { user } = useAuth();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [credits, setCredits] = useState<any[]>([]);
@@ -171,27 +175,57 @@ const EmployeeExpenseManagement = () => {
 
   // Merged, sorted list of ALL employee transactions (excluding admin's own)
   const allTransactions = useMemo(() => {
-    const safeExp = Array.isArray(expenses) ? expenses.filter(e => e && e.user_id?._id !== user?.id).map(e => ({ ...e, type: 'expense' })) : [];
-    const safeCreds = Array.isArray(credits) ? credits.filter(c => c && c.user_id?._id !== user?.id).map(c => ({ ...c, type: 'credit' })) : [];
+    const safeExp = Array.isArray(expenses) ? expenses.filter(e => {
+      if (!e) return false;
+      const isExcludeMe = e.user_id?._id !== user?.id;
+      if (!isExcludeMe) return false;
+      
+      if (roleFilter === 'all') return true;
+      const targetRole = e.user_id?.role || (e as any).role || 'employee';
+      return targetRole === roleFilter;
+    }).map(e => ({ ...e, type: 'expense' })) : [];
+    
+    const safeCreds = Array.isArray(credits) ? credits.filter(c => {
+      if (!c) return false;
+      const isExcludeMe = c.user_id?._id !== user?.id;
+      if (!isExcludeMe) return false;
+      
+      if (roleFilter === 'all') return true;
+      const targetRole = c.user_id?.role || (c as any).role || 'employee';
+      return targetRole === roleFilter;
+    }).map(c => ({ ...c, type: 'credit' })) : [];
     
     return [...safeExp, ...safeCreds].sort((a, b) => new Date(b?.expense_date || b?.credit_date || 0).getTime() - new Date(a?.expense_date || a?.credit_date || 0).getTime());
-  }, [expenses, credits, user]);
+  }, [expenses, credits, user, roleFilter]);
 
   const stats = useMemo(() => {
-    const safeExpenses = Array.isArray(expenses) ? expenses.filter(e => e) : [];
-    const safeCredits = Array.isArray(credits) ? credits.filter(c => c) : [];
-    const pendingCount = safeExpenses.filter(e => e.approval_status === 'pending' && e.user_id?._id !== user?.id).length;
-    const totalApprovedExp = safeExpenses.filter(e => e.approval_status === 'approved' && e.user_id?._id !== user?.id).reduce((s, e) => s + Number(e.amount || 0), 0);
-    const totalCredited = safeCredits.filter(c => c.user_id?._id !== user?.id).reduce((s, c) => s + Number(c.amount || 0), 0);
+    const safeExpenses = Array.isArray(expenses) ? expenses.filter(e => {
+        if (!e || e.user_id?._id === user?.id) return false;
+        if (roleFilter !== 'all' && (e.user_id?.role || (e as any).role || 'employee') !== roleFilter) return false;
+        return true;
+    }) : [];
+    const safeCredits = Array.isArray(credits) ? credits.filter(c => {
+        if (!c || c.user_id?._id === user?.id) return false;
+        if (roleFilter !== 'all' && (c.user_id?.role || (c as any).role || 'employee') !== roleFilter) return false;
+        return true;
+    }) : [];
+    
+    const pendingCount = safeExpenses.filter(e => e.approval_status === 'pending').length;
+    const totalApprovedExp = safeExpenses.filter(e => e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
+    const totalCredited = safeCredits.reduce((s, c) => s + Number(c.amount || 0), 0);
     return { pendingCount, totalApprovedExp, totalCredited };
-  }, [expenses, credits, user]);
+  }, [expenses, credits, user, roleFilter]);
 
   const utilizationData = useMemo(() => {
     const safeEmps = Array.isArray(employeeList) ? employeeList : [];
     const safeExp = Array.isArray(expenses) ? expenses : [];
     const safeCreds = Array.isArray(credits) ? credits : [];
     
-    return safeEmps.filter(emp => emp && emp._id !== user?.id).map(emp => {
+    return safeEmps.filter(emp => {
+      if (!emp || emp._id === user?.id) return false;
+      if (roleFilter !== 'all' && (emp.role || (emp as any).role || 'employee') !== roleFilter) return false;
+      return true;
+    }).map(emp => {
       const exp = safeExp.filter(e => {
         if (!e) return false;
         const uid = e.user_id?._id || e.user_id;
@@ -291,10 +325,18 @@ const EmployeeExpenseManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(Array.isArray(expenses) ? expenses : []).filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id).length === 0 ? (
+                  {(Array.isArray(expenses) ? expenses : []).filter(e => {
+                    if (!e || e.approval_status !== 'pending' || e.user_id?._id === user?.id) return false;
+                    if (roleFilter !== 'all' && (e.user_id?.role || (e as any).role || 'employee') !== roleFilter) return false;
+                    return true;
+                  }).length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
                   ) : (Array.isArray(expenses) ? expenses : [])
-                    .filter(e => e && e.approval_status === 'pending' && e.user_id?._id !== user?.id)
+                    .filter(e => {
+                        if (!e || e.approval_status !== 'pending' || e.user_id?._id === user?.id) return false;
+                        if (roleFilter !== 'all' && (e.user_id?.role || (e as any).role || 'employee') !== roleFilter) return false;
+                        return true;
+                    })
                     .sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime())
                     .map(e => (
                     <TableRow key={e?._id} className="group hover:bg-muted/50 transition-colors">
@@ -351,7 +393,11 @@ const EmployeeExpenseManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(Array.isArray(employeeList) ? employeeList : []).filter(emp => emp && emp._id !== user?.id).map(emp => {
+                  {(Array.isArray(employeeList) ? employeeList : []).filter(emp => {
+                    if (!emp || emp._id === user?.id) return false;
+                    if (roleFilter !== 'all' && (emp.role || (emp as any).role || 'employee') !== roleFilter) return false;
+                    return true;
+                  }).map(emp => {
                     const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
                     const empCred = (Array.isArray(credits) ? credits : []).filter(c => c && (c.user_id?._id === emp._id || c.user_id === emp._id)).reduce((s, c) => s + Number(c.amount || 0), 0);
                     const balance = empCred - empExp;

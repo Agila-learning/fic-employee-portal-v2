@@ -377,7 +377,25 @@ const getHolidays = async (req, res) => {
 
 const createHoliday = async (req, res) => {
     try {
+        const { name, date } = req.body;
         const holiday = await Holiday.create({ ...req.body, created_by: req.user._id });
+        
+        // Mark all employees as present for this holiday
+        const employees = await User.find({ role: 'employee' });
+        const holidayDate = new Date(date).toISOString().split('T')[0];
+        
+        for (const emp of employees) {
+            await Attendance.findOneAndUpdate(
+                { user_id: emp._id, date: holidayDate },
+                { 
+                    status: 'present', 
+                    notes: `Holiday: ${name}`,
+                    isVirtual: false // Mark as real record in DB
+                },
+                { upsert: true }
+            );
+        }
+        
         res.status(201).json(holiday);
     } catch (error) {
         res.status(400).json({ message: error.message });

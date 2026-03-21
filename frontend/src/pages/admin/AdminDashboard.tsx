@@ -90,9 +90,18 @@ const AdminDashboard = () => {
   const fullPaymentDone = leads.filter(l => l?.payment_stage === 'full_payment_done').length;
 
   // Domain-wise payment counts
-  const itPaidCount = leads.filter(l => l?.payment_stage === 'full_payment_done' && l?.interested_domain === 'it').length;
-  const nonItPaidCount = leads.filter(l => l?.payment_stage === 'full_payment_done' && l?.interested_domain === 'non_it').length;
-  const bankingPaidCount = leads.filter(l => l?.payment_stage === 'full_payment_done' && l?.interested_domain === 'banking').length;
+  const itPaidCount = leads.filter(l => 
+    l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' && 
+    l?.interested_domain?.toLowerCase().trim() === 'it'
+  ).length;
+  const nonItPaidCount = leads.filter(l => 
+    l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' && 
+    l?.interested_domain?.toLowerCase().trim() === 'non_it'
+  ).length;
+  const bankingPaidCount = leads.filter(l => 
+    l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' && 
+    l?.interested_domain?.toLowerCase().trim() === 'banking'
+  ).length;
 
   // Helper to compare lead owner fields (assigned_to or created_by) vs user_id
   const matchEmployee = (field: any, empUserId: string) => {

@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import PayslipTemplate from '@/components/payroll/PayslipTemplate';
 import { leadService } from '@/api/leadService';
 import { parseISO, isSameMonth, startOfMonth, endOfMonth } from 'date-fns';
-import { Loader2, Sparkles, Eye, Trash2 } from 'lucide-react';
+import { Loader2, Sparkles, Eye, Trash2, FileText } from 'lucide-react';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -54,7 +54,7 @@ const AdminPayroll = () => {
         setForm({
           designation: data.designation || '',
           department: data.department || '',
-          basicSalary: emp?.base_salary?.toString() || data.basic_salary?.toString() || '',
+          basicSalary: (emp as any)?.base_salary?.toString() || data.basic_salary?.toString() || '',
           hra: data.hra?.toString() || '',
           conveyanceAllowance: data.conveyance_allowance?.toString() || '',
           medicalAllowance: data.medical_allowance?.toString() || '',
@@ -81,14 +81,14 @@ const AdminPayroll = () => {
         // Fallback to employee defaults if no payslip exists
         setForm(prev => ({
           ...prev,
-          basicSalary: emp.base_salary?.toString() || '',
+          basicSalary: (emp as any).base_salary?.toString() || '',
         }));
       }
     } catch (error) {
        if (emp) {
         setForm(prev => ({
           ...prev,
-          basicSalary: emp.base_salary?.toString() || '',
+          basicSalary: (emp as any).base_salary?.toString() || '',
         }));
       }
     }

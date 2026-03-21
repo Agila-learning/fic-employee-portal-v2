@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, RefreshCw, Loader2, Paperclip, Mic, X, Image as ImageIcon, File as FileIcon, Download, Play, Square, MessageSquare } from 'lucide-react';
+import { Send, RefreshCw, Loader2, Paperclip, Mic, X, Image as ImageIcon, File as FileIcon, Download, Play, Square, MessageSquare, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, safeParseDate, getInitials } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -30,9 +30,10 @@ interface ChatWindowProps {
     name: string;
     role: string;
   } | null;
+  onBack?: () => void;
 }
 
-const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
+const ChatWindow = ({ selectedUser, onBack }: ChatWindowProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -216,6 +217,16 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
       {/* Header */}
       <div className="flex items-center justify-between border-b p-4 bg-muted/30 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-3">
+          {onBack && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden h-8 w-8 rounded-full" 
+              onClick={onBack}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
           <div className="relative">
             <Avatar className="h-10 w-10 border-2 border-primary/20 shadow-lg">
               <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold">
@@ -291,9 +302,9 @@ const ChatWindow = ({ selectedUser }: ChatWindowProps) => {
                         
                         <div className={cn(
                           "flex items-center gap-1 mt-1 justify-end",
-                          isMe ? "text-primary-foreground/60" : "text-muted-foreground/60"
+                          isMe ? "text-primary-foreground/80" : "text-muted-foreground/80"
                         )}>
-                          <span className="text-[9px] font-medium uppercase">
+                          <span className="text-[9px] font-semibold uppercase">
                             {format(currentMsgDate, 'hh:mm a')}
                           </span>
                           {isMe && (

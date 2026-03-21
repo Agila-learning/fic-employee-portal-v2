@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { IndianRupee } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ChatWindow from '@/components/chat/ChatWindow';
+import { cn, getInitials } from '@/lib/utils';
 import AdminMyExpenses from './AdminMyExpenses';
 import EmployeeExpenseManagement from './EmployeeExpenseManagement';
 
@@ -33,9 +35,10 @@ const AdminExpenses = () => {
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
+          <TabsList className={cn("grid w-full grid-cols-2", user?.role === 'md' && "sm:w-[600px] grid-cols-3", user?.role === 'admin' && "sm:w-[400px] grid-cols-2")}>
             <TabsTrigger value="my-expenses">My Expenses</TabsTrigger>
             <TabsTrigger value="employee-expenses">Employee Expenses</TabsTrigger>
+            {user?.role === 'md' && <TabsTrigger value="md-expenses">MD Expenses</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="my-expenses" className="mt-6">
@@ -43,8 +46,14 @@ const AdminExpenses = () => {
           </TabsContent>
 
           <TabsContent value="employee-expenses" className="mt-6">
-            <EmployeeExpenseManagement />
+            <EmployeeExpenseManagement roleFilter="employee" />
           </TabsContent>
+
+          {user?.role === 'md' && (
+            <TabsContent value="md-expenses" className="mt-6">
+              <EmployeeExpenseManagement roleFilter="md" />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </DashboardLayout>

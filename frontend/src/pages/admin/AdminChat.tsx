@@ -65,7 +65,10 @@ const AdminChat = () => {
         <Card className="flex-1 overflow-hidden border-none shadow-xl bg-background/50 backdrop-blur-sm">
           <CardContent className="p-0 flex h-full">
             {/* Sidebar List */}
-            <div className="w-full md:w-80 border-r flex flex-col bg-muted/10">
+            <div className={cn(
+              "w-full md:w-80 border-r flex flex-col bg-muted/10",
+              selectedUser && "hidden md:flex"
+            )}>
               <div className="p-4 border-b">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -136,8 +139,14 @@ const AdminChat = () => {
             </div>
 
             {/* Chat Area */}
-            <div className="hidden md:flex flex-1">
-              <ChatWindow selectedUser={selectedUser} />
+            <div className={cn(
+              "flex flex-1",
+              !selectedUser && "hidden md:flex"
+            )}>
+              <ChatWindow 
+                selectedUser={selectedUser} 
+                onBack={() => setSelectedUser(null)}
+              />
             </div>
           </CardContent>
         </Card>
