@@ -91,15 +91,15 @@ const AdminDashboard = () => {
 
   // Domain-wise payment counts
   const itPaidCount = leads.filter(l => 
-    l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' && 
+    (l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' || l?.status === 'success') && 
     l?.interested_domain?.toLowerCase().trim() === 'it'
   ).length;
   const nonItPaidCount = leads.filter(l => 
-    l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' && 
+    (l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' || l?.status === 'success') && 
     l?.interested_domain?.toLowerCase().trim() === 'non_it'
   ).length;
   const bankingPaidCount = leads.filter(l => 
-    l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' && 
+    (l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' || l?.status === 'success') && 
     l?.interested_domain?.toLowerCase().trim() === 'banking'
   ).length;
 

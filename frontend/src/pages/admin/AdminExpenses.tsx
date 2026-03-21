@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { IndianRupee } from 'lucide-react';
+import { IndianRupee, BarChart3 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChatWindow from '@/components/chat/ChatWindow';
@@ -35,10 +37,10 @@ const AdminExpenses = () => {
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={cn("grid w-full grid-cols-2", user?.role === 'md' && "sm:w-[600px] grid-cols-3", user?.role === 'admin' && "sm:w-[400px] grid-cols-2")}>
+          <TabsList className={cn("grid w-full grid-cols-2", user?.role === 'admin' && "sm:w-[600px] grid-cols-3")}>
             <TabsTrigger value="my-expenses">My Expenses</TabsTrigger>
             <TabsTrigger value="employee-expenses">Employee Expenses</TabsTrigger>
-            {user?.role === 'md' && <TabsTrigger value="md-expenses">MD Expenses</TabsTrigger>}
+            {user?.role === 'admin' && <TabsTrigger value="md-expenses">MD Expenses</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="my-expenses" className="mt-6">
@@ -49,9 +51,25 @@ const AdminExpenses = () => {
             <EmployeeExpenseManagement roleFilter="employee" />
           </TabsContent>
 
-          {user?.role === 'md' && (
+          {user?.role === 'admin' && (
             <TabsContent value="md-expenses" className="mt-6">
-              <EmployeeExpenseManagement roleFilter="md" />
+              <div className="space-y-6">
+                <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden p-6 text-center">
+                   <div className="flex flex-col items-center gap-4 py-8">
+                      <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                      >
+                        <BarChart3 className="h-12 w-12 text-primary/40" />
+                      </motion.div>
+                      <h3 className="text-lg font-semibold">MD Expense Analytics</h3>
+                      <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                        Real-time visualization of MD operational costs and budget utilization.
+                      </p>
+                   </div>
+                </Card>
+                <EmployeeExpenseManagement roleFilter="md" />
+              </div>
             </TabsContent>
           )}
         </Tabs>

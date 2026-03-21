@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Calendar, Clock, CheckCircle, XCircle, UserCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle, XCircle, UserCircle } from 'lucide-react';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -102,7 +102,7 @@ const AdminLeaveRequests = () => {
         <Card className="border-border/50">
           <CardHeader className="border-b border-border/50 bg-muted/20">
             <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-500" />
+              <CalendarIcon className="h-5 w-5 text-blue-500" />
               Processed Requests
             </CardTitle>
           </CardHeader>

@@ -116,7 +116,7 @@ const AdminPayroll = () => {
       
       const totalDaysInMonth = new Date(targetYear, targetMonth, 0).getDate();
       const presentCount = attendance.filter((a: any) => a.status === 'present').length;
-      const halfDayCount = attendance.filter((a: any) => a.status === 'half_day').length;
+      const halfDayCount = attendance.filter((a: any) => a.status === 'half-day').length;
       const daysWorked = presentCount + (halfDayCount * 0.5);
       
       // 2. Fetch Leads for Incentive

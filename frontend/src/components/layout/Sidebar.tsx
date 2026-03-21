@@ -102,7 +102,7 @@ const Sidebar = () => {
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
-  const links = (user?.role === 'admin' || user?.role === 'md') ? adminLinks : employeeLinks;
+  const links = user?.role === 'admin' ? adminLinks : employeeLinks;
 
   return (
     <>
