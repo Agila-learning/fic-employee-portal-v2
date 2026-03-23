@@ -28,16 +28,16 @@ const COMPANIES = {
     footerText: 'Official HQ: Krishnagiri, Tamil Nadu'
   },
   'Antigraviity': {
-    name: 'ANTIGRAVIITY',
+    name: 'Antigraviity technologies Pvt. Ltd',
     shortName: 'Antigraviity',
     logo: null, // User can upload
     tagline: 'Delivering Modern Digital Solutions',
-    cin: 'U72900KA2024PTC123456', // Placeholder
+    cin: 'U62011TN2026PTC188212',
     gst: '29ABCDE1234F1Z5', // Placeholder
     mobile: '+91 9876543210', // Placeholder
     email: 'info@antigraviity.com',
     website: 'www.antigraviity.com',
-    address: 'Bangalore / Chennai',
+    address: 'Excel coworking, 2nd floor, Nagarbhavi, Papareddypalya, Bangalore',
     profile: 'is an IT services startup based in Bangalore and Chennai, founded by Mr. Sandeep. The company specializes in delivering modern digital solutions to businesses.',
     services: [
       'Web Development: Designing and developing modern, responsive, and scalable websites.',
@@ -395,30 +395,47 @@ const EmployeeOfferLetterForm = () => {
                 <img src={formData.customLogo || companyData.logo || ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
               </div>
 
-              <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
-                <div className="flex items-center gap-4">
-                  <img src={formData.customLogo || companyData.logo || ficLogo} alt="Logo" className="h-[70px] w-[70px] object-contain" />
-                  <div>
-                    <h1 className="text-3xl font-black text-slate-900 leading-none tracking-tighter uppercase">{companyData.name}</h1>
-                    <p className="text-[10px] font-bold tracking-[0.3em] text-amber-600 mt-1 uppercase">{formData.tagline || companyData.tagline}</p>
-                    <div className="mt-2 text-[8px] font-bold text-slate-500 flex gap-4 uppercase tracking-tighter">
-                      <span>CIN: {companyData.cin}</span>
-                      <span>GST: {companyData.gst}</span>
-                      <span>MOB: {companyData.mobile}</span>
+              {selectedCompany === 'Antigraviity' ? (
+                <div className="flex flex-col items-center mb-8">
+                  <img src={formData.customLogo || companyData.logo || ficLogo} alt="Logo" className="h-[90px] w-auto object-contain mb-4" />
+                  <h1 className="text-3xl font-bold text-slate-800 tracking-tight leading-none">{companyData.name}</h1>
+                  <p className="text-[10px] font-bold text-amber-600 mt-2 uppercase tracking-widest">CIN : {companyData.cin}</p>
+                  <div className="w-full border-b-2 border-blue-400/30 mt-4 mb-6"></div>
+                  
+                  <p className="text-xl font-serif italic text-amber-600 font-bold mb-6">"{formData.tagline || companyData.tagline}"</p>
+                  
+                  <div className="text-center w-full max-w-[600px] border-y-2 border-slate-900 py-2.5 mb-1 bg-white">
+                    <h2 className="text-2xl font-black tracking-[0.3em] uppercase text-slate-900">Letter of Appointment</h2>
+                  </div>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase italic tracking-widest mb-6">Confidential Employment Document</p>
+                </div>
+              ) : (
+                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
+                  <div className="flex items-center gap-4">
+                    <img src={formData.customLogo || companyData.logo || ficLogo} alt="Logo" className="h-[70px] w-[70px] object-contain" />
+                    <div>
+                      <h1 className="text-3xl font-black text-slate-900 leading-none tracking-tighter uppercase">{companyData.name}</h1>
+                      <p className="text-[10px] font-bold tracking-[0.3em] text-amber-600 mt-1 uppercase">{formData.tagline || companyData.tagline}</p>
+                      <div className="mt-2 text-[8px] font-bold text-slate-500 flex gap-4 uppercase tracking-tighter">
+                        <span>CIN: {companyData.cin}</span>
+                        <span>GST: {companyData.gst}</span>
+                        <span>MOB: {companyData.mobile}</span>
+                      </div>
                     </div>
                   </div>
+                  <div className="text-right text-[9px] leading-relaxed text-slate-700 max-w-[220px]">
+                    <p className="font-bold text-slate-900 uppercase underline">Corporate Headquarters:</p>
+                    <p className="font-medium">{formData.officeAddress || companyData.address}</p>
+                  </div>
                 </div>
-                <div className="text-right text-[9px] leading-relaxed text-slate-700 max-w-[220px]">
-                  <p className="font-bold text-slate-900 uppercase underline">Corporate Headquarters:</p>
-                  <p className="font-medium">{formData.officeAddress || companyData.address}</p>
-                </div>
-              </div>
+              )}
 
-              {/* Subject Line */}
-              <div className="text-center mb-6">
-                <h2 className="inline-block border-y-2 border-slate-900 py-1.5 px-12 text-xl font-black tracking-[0.2em] uppercase bg-slate-50">Letter of Appointment</h2>
-                <p className="text-[9px] mt-1 text-slate-400 font-bold uppercase italic tracking-widest">Confidential Employment Document</p>
-              </div>
+              {selectedCompany !== 'Antigraviity' && (
+                <div className="text-center mb-6">
+                  <h2 className="inline-block border-y-2 border-slate-900 py-1.5 px-12 text-xl font-black tracking-[0.2em] uppercase bg-slate-50">Letter of Appointment</h2>
+                  <p className="text-[9px] mt-1 text-slate-400 font-bold uppercase italic tracking-widest">Confidential Employment Document</p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-0 mb-8 pb-4 border-b border-slate-100">
                 <div className="space-y-1">
@@ -531,16 +548,26 @@ const EmployeeOfferLetterForm = () => {
               </div>
 
               {/* Professional Footer (Overhauled) */}
-              <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
-                <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
-                  <p>Page 1 of 3 | {formData.candidateName || 'Employee Copy'}</p>
-                  <p>Email: {companyData.email}</p>
+              {selectedCompany === 'Antigraviity' ? (
+                <div className="mt-auto pt-4 flex flex-col items-center">
+                  <div className="w-full border-t border-blue-400/50 mb-3"></div>
+                  <div className="flex justify-center gap-12 text-[10px] text-blue-600 font-medium w-full px-6">
+                    <p>Website: <span className="underline decoration-blue-200">{companyData.website}</span></p>
+                    <p>Address: <span className="underline decoration-blue-200">{companyData.address}</span></p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-slate-900 uppercase">{companyData.name}</p>
-                  <p className="text-[9px] text-amber-600 font-bold uppercase tracking-widest italic">{companyData.website}</p>
+              ) : (
+                <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
+                  <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
+                    <p>Page 1 of 3 | {formData.candidateName || 'Employee Copy'}</p>
+                    <p>Email: {companyData.email}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-slate-900 uppercase">{companyData.name}</p>
+                    <p className="text-[9px] text-amber-600 font-bold uppercase tracking-widest italic">{companyData.website}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Page 2: Responsibilities, Legal & Compliance */}
@@ -609,16 +636,26 @@ const EmployeeOfferLetterForm = () => {
               </div>
 
               {/* Professional Footer */}
-              <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
-                <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
-                  <p>Page 2 of 3 | {companyData.website}</p>
-                  <p>Contact: {companyData.mobile}</p>
+              {selectedCompany === 'Antigraviity' ? (
+                <div className="mt-auto pt-4 flex flex-col items-center">
+                  <div className="w-full border-t border-blue-400/50 mb-3"></div>
+                  <div className="flex justify-center gap-12 text-[10px] text-blue-600 font-medium w-full px-6">
+                    <p>Website: <span className="underline decoration-blue-200">{companyData.website}</span></p>
+                    <p>Address: <span className="underline decoration-blue-200">{companyData.address}</span></p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p>{companyData.email}</p>
-                  <p className="text-[9px] font-black text-slate-900 uppercase leading-none">{companyData.name}</p>
+              ) : (
+                <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
+                  <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
+                    <p>Page 2 of 3 | {companyData.website}</p>
+                    <p>Contact: {companyData.mobile}</p>
+                  </div>
+                  <div className="text-right">
+                    <p>{companyData.email}</p>
+                    <p className="text-[9px] font-black text-slate-900 uppercase leading-none">{companyData.name}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Page 3: IT, BGV & Acceptance */}
@@ -701,16 +738,26 @@ const EmployeeOfferLetterForm = () => {
               </div>
 
               {/* Final Page Footer */}
-              <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
-                <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5 text-left">
-                  <p>{companyData.email} | {companyData.website} | Page 3 of 3</p>
-                  <p>{companyData.footerText}</p>
+              {selectedCompany === 'Antigraviity' ? (
+                <div className="mt-auto pt-4 flex flex-col items-center">
+                  <div className="w-full border-t border-blue-400/50 mb-3"></div>
+                  <div className="flex justify-center gap-12 text-[10px] text-blue-600 font-medium w-full px-6">
+                    <p>Website: <span className="underline decoration-blue-200">{companyData.website}</span></p>
+                    <p>Address: <span className="underline decoration-blue-200">{companyData.address}</span></p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-[9px] font-black text-slate-900 uppercase leading-none">{companyData.name}</p>
-                  <p className="text-[8px] text-amber-600 font-bold italic">"{formData.tagline || companyData.tagline}"</p>
+              ) : (
+                <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
+                  <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5 text-left">
+                    <p>{companyData.email} | {companyData.website} | Page 3 of 3</p>
+                    <p>{companyData.footerText}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] font-black text-slate-900 uppercase leading-none">{companyData.name}</p>
+                    <p className="text-[8px] text-amber-600 font-bold italic">"{formData.tagline || companyData.tagline}"</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}
