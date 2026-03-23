@@ -47,7 +47,7 @@ const COMPANIES = {
       'Custom IT Solutions: Tailored software solutions based on business needs.'
     ],
     ceo: 'Mr. SANDEEP',
-    md: 'Mr. KARTHIK',
+    md: null,
     footerText: 'HQ: Bangalore | Chennai'
   }
 };
@@ -59,21 +59,62 @@ const EmployeeOfferLetterForm = () => {
   const downloadAsWord = () => {
     if (!printRef.current) return;
     
+    // Improved styles for Word conversion
+    const styles = `
+      <style>
+        body { font-family: 'Times New Roman', Times, serif; }
+        .page-break { 
+          page-break-after: always; 
+          margin-bottom: 20pt; 
+          border-bottom: 1px solid #eee;
+          padding: 20pt;
+        }
+        h1 { font-size: 24pt; color: #1e293b; font-weight: bold; text-align: center; }
+        h2 { font-size: 18pt; color: #1e293b; font-weight: bold; text-align: center; border-bottom: 1px solid #1e293b; padding-bottom: 5pt; }
+        h3 { font-size: 11pt; color: #0f172a; font-weight: bold; border-left: 4px solid #f59e0b; padding-left: 8pt; margin-top: 15pt; text-transform: uppercase; }
+        p { font-size: 10.5pt; line-height: 1.5; text-align: justify; }
+        .text-amber-600 { color: #d97706; }
+        .text-blue-600 { color: #2563eb; }
+        .font-black { font-weight: 900; }
+        .font-bold { font-weight: bold; }
+        .uppercase { text-transform: uppercase; }
+        .italic { font-style: italic; }
+        .underline { text-decoration: underline; }
+        table { width: 100%; border-collapse: collapse; margin: 10pt 0; }
+        th, td { border: 1px solid #e2e8f0; padding: 6pt; text-align: left; }
+        th { background-color: #f8fafc; font-weight: bold; }
+        .bg-slate-50 { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 10pt; border-radius: 4pt; margin: 10pt 0; }
+        .flex-col-center { text-align: center; }
+      </style>
+    `;
+
     const content = printRef.current.innerHTML;
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
-            "xmlns:w='urn:schemas-microsoft-com:office:word' "+
-            "xmlns='http://www.w3.org/TR/REC-html40'>"+
-            "<head><meta charset='utf-8'><title>Offer Letter</title></head><body>";
+    const header = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+            xmlns:w='urn:schemas-microsoft-com:office:word' 
+            xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>Offer Letter - ${formData.candidateName}</title>
+        ${styles}
+      </head>
+      <body>
+    `;
     const footer = "</body></html>";
     const sourceHTML = header + content + footer;
     
-    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
-    const fileLink = document.createElement("a");
-    document.body.appendChild(fileLink);
-    fileLink.href = source;
-    fileLink.download = `Offer_Letter_${formData.candidateName || 'Employee'}.doc`;
-    fileLink.click();
-    document.body.removeChild(fileLink);
+    const blob = new Blob(['\ufeff', sourceHTML], {
+      type: 'application/msword'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Offer_Letter_${formData.candidateName.replace(/\s+/g, '_')}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     
     toast({ title: 'Success', description: 'Offer Letter downloaded as Word' });
   };
@@ -96,6 +137,7 @@ const EmployeeOfferLetterForm = () => {
     selectedCompany: 'Forge India Connect',
     customLogo: '',
     tagline: '',
+    additionalPoints: '',
   });
 
   const selectedCompany = formData.selectedCompany as keyof typeof COMPANIES;
@@ -301,6 +343,17 @@ const EmployeeOfferLetterForm = () => {
                 rows={3} 
                 value={formData.roles}
                 onChange={(e) => setFormData({...formData, roles: e.target.value})}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="additionalPoints">Additional Points / Terms (Optional)</Label>
+              <Textarea 
+                id="additionalPoints" 
+                rows={3} 
+                placeholder="Add any extra terms or points to appear at the end"
+                value={formData.additionalPoints}
+                onChange={(e) => setFormData({...formData, additionalPoints: e.target.value})}
               />
             </div>
 
@@ -633,6 +686,15 @@ const EmployeeOfferLetterForm = () => {
                   </p>
                 </div>
 
+                {formData.additionalPoints && (
+                  <div className="space-y-2">
+                    <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mt-4 tracking-widest text-[10px]">9. Additional Agreed Terms</h3>
+                    <div className="bg-slate-50 p-4 border rounded text-[10.5px] font-medium leading-relaxed whitespace-pre-wrap">
+                      {formData.additionalPoints}
+                    </div>
+                  </div>
+                )}
+
               </div>
 
               {/* Professional Footer */}
@@ -704,14 +766,16 @@ const EmployeeOfferLetterForm = () => {
                   <div className="grid grid-cols-2 gap-16 pt-8 pb-4">
                     {/* Management */}
                     <div className="space-y-12">
-                      <div className="border-t-2 border-slate-900 pt-2 relative">
+                      <div className="pt-2 relative">
                         <p className="font-black text-slate-900 text-[11px] uppercase leading-none">{companyData.ceo}</p>
                         <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest leading-none mt-1">Chief Executive Officer (CEO)</p>
-                        <div className="mt-4 flex flex-col gap-0.5 items-start bg-slate-50 p-2 rounded border border-dashed border-slate-200">
-                          <p className="text-[8px] font-bold text-slate-400 italic">Auth Verification:</p>
-                          <p className="font-black text-slate-900 text-[10px] uppercase">{companyData.md}</p>
-                          <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Managing Director</p>
-                        </div>
+                        {companyData.md && (
+                          <div className="mt-4 flex flex-col gap-0.5 items-start bg-slate-50 p-2 rounded border border-dashed border-slate-200">
+                            <p className="text-[8px] font-bold text-slate-400 italic">Auth Verification:</p>
+                            <p className="font-black text-slate-900 text-[10px] uppercase">{companyData.md}</p>
+                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Managing Director</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -730,10 +794,12 @@ const EmployeeOfferLetterForm = () => {
                 </div>
 
                 {/* Digitally Signed Tag (Tightened) */}
-                <div className="mt-6 border-2 border-dashed border-amber-300 p-3 rounded text-center bg-amber-50/20">
-                  <p className="text-[9px] font-black text-amber-800 uppercase tracking-widest mb-0.5">e-Verifiable Appointment Contract</p>
-                  <p className="text-[8px] text-slate-400 font-bold leading-none italic uppercase">Valid for Payroll & HR Operations across all FIC Corporate Units</p>
-                </div>
+                {selectedCompany !== 'Antigraviity' && (
+                  <div className="mt-6 border-2 border-dashed border-amber-300 p-3 rounded text-center bg-amber-50/20">
+                    <p className="text-[9px] font-black text-amber-800 uppercase tracking-widest mb-0.5">e-Verifiable Appointment Contract</p>
+                    <p className="text-[8px] text-slate-400 font-bold leading-none italic uppercase">Valid for Payroll & HR Operations across all FIC Corporate Units</p>
+                  </div>
+                )}
 
               </div>
 
@@ -765,7 +831,7 @@ const EmployeeOfferLetterForm = () => {
 
       <style>{`
         @page {
-          size: auto;
+          size: A4;
           margin: 0;
         }
         @media print {
@@ -779,7 +845,7 @@ const EmployeeOfferLetterForm = () => {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100% !important;
+            width: 210mm !important;
             box-shadow: none !important;
             border: none !important;
             padding: 0 !important;
@@ -789,9 +855,13 @@ const EmployeeOfferLetterForm = () => {
             page-break-after: always !important;
             break-after: page !important;
             border: none !important;
-            margin-bottom: 0 !important;
-            padding: 20px !important;
-            min-height: 296mm !important;
+            margin: 0 !important;
+            padding: 15mm !important;
+            height: 297mm !important;
+            width: 210mm !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            overflow: hidden !important;
           }
           .offer-letter-container {
             border: none !important;
@@ -813,6 +883,9 @@ const EmployeeOfferLetterForm = () => {
         .page-break {
           background-image: radial-gradient(#cbd5e1 0.4px, transparent 0.4px);
           background-size: 15px 15px;
+          height: 1050px;
+          width: 794px; /* A4 width in pixels at 96dpi */
+          margin: 0 auto 20px auto;
         }
       `}</style>
     </div>
