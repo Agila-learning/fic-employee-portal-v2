@@ -9,6 +9,49 @@ import { useToast } from '@/hooks/use-toast';
 import ficLogo from '@/assets/fic-logo.jpeg';
 import { format } from 'date-fns';
 
+const COMPANIES = {
+  'Forge India Connect': {
+    name: 'FORGE INDIA CONNECT PVT LTD',
+    shortName: 'Forge India Connect',
+    logo: ficLogo,
+    tagline: 'Connecting Talent with Opportunity',
+    cin: 'U47912TZ2025PTC035121',
+    gst: '33AAGCF4763Q1Z3',
+    mobile: '+91 6369506416',
+    email: 'info@forgeindiaconnect.com',
+    website: 'www.forgeindiaconnect.com',
+    address: 'RK Towers, Rayakottai road, Opposite to HP Petrol Bunk, Wahab Nager, Krishnagiri-635002',
+    profile: 'is a professionally driven and rapidly growing organization established with a clear vision of connecting talent with opportunity and supporting businesses with reliable and result-oriented solutions. Over the past five years, the company has steadily built its presence across multiple domains including Business Development, Staffing & Payroll Management. Our mission is to bridge the gap between human potential and industry requirements through innovation, ethics, and excellence.',
+    services: [], // Added for type consistency
+    ceo: 'Mr. SANDEEP',
+    md: 'Mr. KARTHIK (MD)',
+    footerText: 'Official HQ: Krishnagiri, Tamil Nadu'
+  },
+  'Antigraviity': {
+    name: 'ANTIGRAVIITY',
+    shortName: 'Antigraviity',
+    logo: null, // User can upload
+    tagline: 'Delivering Modern Digital Solutions',
+    cin: 'U72900KA2024PTC123456', // Placeholder
+    gst: '29ABCDE1234F1Z5', // Placeholder
+    mobile: '+91 9876543210', // Placeholder
+    email: 'info@antigraviity.com',
+    website: 'www.antigraviity.com',
+    address: 'Bangalore / Chennai',
+    profile: 'is an IT services startup based in Bangalore and Chennai, founded by Mr. Sandeep. The company specializes in delivering modern digital solutions to businesses.',
+    services: [
+      'Web Development: Designing and developing modern, responsive, and scalable websites.',
+      'App Development: Building user-friendly mobile applications for Android and iOS platforms.',
+      'Digital Marketing: Providing SEO, social media marketing, and online branding solutions.',
+      'UI/UX Design: Creating intuitive and visually appealing user interfaces and experiences.',
+      'Custom IT Solutions: Tailored software solutions based on business needs.'
+    ],
+    ceo: 'Mr. SANDEEP',
+    md: 'Mr. KARTHIK',
+    footerText: 'HQ: Bangalore | Chennai'
+  }
+};
+
 const EmployeeOfferLetterForm = () => {
   const { toast } = useToast();
   const printRef = useRef<HTMLDivElement>(null);
@@ -50,7 +93,24 @@ const EmployeeOfferLetterForm = () => {
     shiftTimings: '9:30 AM - 6:30 PM',
     reportingManager: '',
     ctc: '',
+    selectedCompany: 'Forge India Connect',
+    customLogo: '',
+    tagline: '',
   });
+
+  const selectedCompany = formData.selectedCompany as keyof typeof COMPANIES;
+  const companyData = COMPANIES[selectedCompany];
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, customLogo: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const locations = ['Bangalore', 'Krishnagiri', 'Thirupattur', 'Chennai'];
 
@@ -125,10 +185,35 @@ const EmployeeOfferLetterForm = () => {
           <CardHeader className="border-b bg-muted/30">
             <CardTitle className="flex items-center gap-2 text-xl">
               <Calculator className="h-5 w-5 text-primary" />
-              Employee Details & CTC
+              Offer Configuration
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="selectedCompany">Select Company</Label>
+                <select 
+                  id="selectedCompany"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={formData.selectedCompany}
+                  onChange={(e) => setFormData({...formData, selectedCompany: e.target.value})}
+                >
+                  <option value="Forge India Connect">Forge India Connect Pvt Ltd</option>
+                  <option value="Antigraviity">Antigraviity (IT Services Startup)</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="logoUpload">Logo (Optional Upload)</Label>
+                <Input 
+                  id="logoUpload" 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="cursor-pointer"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="candidateName">Employee Full Name</Label>
@@ -307,25 +392,25 @@ const EmployeeOfferLetterForm = () => {
             <div className="p-12 min-h-[1050px] flex flex-col relative border-[12px] border-double border-slate-900 mb-8 page-break">
               {/* Page Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
-                <img src={ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
+                <img src={formData.customLogo || companyData.logo || ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
               </div>
 
               <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6">
                 <div className="flex items-center gap-4">
-                  <img src={ficLogo} alt="Logo" className="h-[70px] w-[70px] object-contain" />
+                  <img src={formData.customLogo || companyData.logo || ficLogo} alt="Logo" className="h-[70px] w-[70px] object-contain" />
                   <div>
-                    <h1 className="text-3xl font-black text-slate-900 leading-none tracking-tighter">FORGE INDIA CONNECT</h1>
-                    <p className="text-[10px] font-bold tracking-[0.3em] text-amber-600 mt-1 uppercase">Connecting Talent with Opportunity</p>
+                    <h1 className="text-3xl font-black text-slate-900 leading-none tracking-tighter uppercase">{companyData.name}</h1>
+                    <p className="text-[10px] font-bold tracking-[0.3em] text-amber-600 mt-1 uppercase">{formData.tagline || companyData.tagline}</p>
                     <div className="mt-2 text-[8px] font-bold text-slate-500 flex gap-4 uppercase tracking-tighter">
-                      <span>CIN: U47912TZ2025PTC035121</span>
-                      <span>GST: 33AAGCF4763Q1Z3</span>
-                      <span>MOB: +91 6369506416</span>
+                      <span>CIN: {companyData.cin}</span>
+                      <span>GST: {companyData.gst}</span>
+                      <span>MOB: {companyData.mobile}</span>
                     </div>
                   </div>
                 </div>
                 <div className="text-right text-[9px] leading-relaxed text-slate-700 max-w-[220px]">
                   <p className="font-bold text-slate-900 uppercase underline">Corporate Headquarters:</p>
-                  <p className="font-medium">{formData.officeAddress || 'RK Towers, Krishnagiri, Tamil Nadu'}</p>
+                  <p className="font-medium">{formData.officeAddress || companyData.address}</p>
                 </div>
               </div>
 
@@ -344,7 +429,7 @@ const EmployeeOfferLetterForm = () => {
                 <div className="text-right space-y-1 text-[10px] font-medium text-slate-700">
                   <p className="font-bold text-slate-400 uppercase text-[8px] tracking-widest">Reference Details:</p>
                   <p><span className="font-bold text-slate-900 uppercase">Date of Issue:</span> {format(new Date(), 'dd MMMM yyyy')}</p>
-                  <p><span className="font-bold text-slate-900 uppercase">Offer ID:</span> FIC/HR/AP/{new Date().getFullYear()}/{Math.floor(1000 + Math.random() * 9000)}</p>
+                  <p><span className="font-bold text-slate-900 uppercase">Offer ID:</span> {selectedCompany === 'Antigraviity' ? 'ANT' : 'FIC'}/HR/AP/{new Date().getFullYear()}/{Math.floor(1000 + Math.random() * 9000)}</p>
                   <p><span className="font-bold text-amber-600 italic">Validity: {formData.offerValidity} Days</span></p>
                 </div>
               </div>
@@ -354,7 +439,7 @@ const EmployeeOfferLetterForm = () => {
                 <p>Dear <span className="font-black text-slate-900 uppercase tracking-tighter">{formData.candidateName.split(' ')[0]}</span>,</p>
                 
                 <p>
-                  We are pleased to offer you the formal appointment for the position of <span className="font-black border-b border-slate-900 uppercase text-slate-900">{formData.designation || '[TBD]'}</span> in the <span className="font-bold italic">{formData.department}</span> division at <span className="font-black text-slate-900">Forge India Connect Private Limited</span>.
+                  We are pleased to offer you the formal appointment for the position of <span className="font-black border-b border-slate-900 uppercase text-slate-900">{formData.designation || '[TBD]'}</span> in the <span className="font-bold italic">{formData.department}</span> division at <span className="font-black text-slate-900">{companyData.name}</span>.
                 </p>
 
                 {/* 1. Company Profile */}
@@ -362,8 +447,18 @@ const EmployeeOfferLetterForm = () => {
                   <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">1. Company Overview & Vision</h3>
                   <div className="bg-slate-50 p-4 rounded border border-slate-200 text-[10.5px] text-justify leading-relaxed">
                     <p>
-                      <span className="font-bold">Forge India Connect Private Limited</span> is a professionally driven and rapidly growing organization established with a clear vision of connecting talent with opportunity and supporting businesses with reliable and result-oriented solutions. Over the past five years, the company has steadily built its presence across multiple domains including Business Development, Staffing & Payroll Management. Our mission is to bridge the gap between human potential and industry requirements through innovation, ethics, and excellence.
+                      <span className="font-bold">{companyData.name}</span> {companyData.profile}
                     </p>
+                    {selectedCompany === 'Antigraviity' && companyData.services && (
+                      <div className="mt-2 space-y-1">
+                        <p className="font-bold text-[9px] uppercase tracking-tighter text-slate-500">Key Services:</p>
+                        <ul className="list-disc pl-4 space-y-0.5">
+                          {companyData.services.map((service, idx) => (
+                            <li key={idx} className="text-[9.5px]">{service}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -439,11 +534,11 @@ const EmployeeOfferLetterForm = () => {
               <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
                 <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
                   <p>Page 1 of 3 | {formData.candidateName || 'Employee Copy'}</p>
-                  <p>Email: info@forgeindiaconnect.com</p>
+                  <p>Email: {companyData.email}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-black text-slate-900 uppercase">Forge India Connect Pvt Ltd</p>
-                  <p className="text-[9px] text-amber-600 font-bold uppercase tracking-widest italic">www.forgeindiaconnect.com</p>
+                  <p className="text-[10px] font-black text-slate-900 uppercase">{companyData.name}</p>
+                  <p className="text-[9px] text-amber-600 font-bold uppercase tracking-widest italic">{companyData.website}</p>
                 </div>
               </div>
             </div>
@@ -452,7 +547,7 @@ const EmployeeOfferLetterForm = () => {
             <div className="p-12 min-h-[1050px] flex flex-col relative border-[12px] border-double border-slate-900 mb-8 page-break">
               {/* Page Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
-                <img src={ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
+                <img src={formData.customLogo || companyData.logo || ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
               </div>
 
               {/* 4. Roles & Responsibilities */}
@@ -496,7 +591,7 @@ const EmployeeOfferLetterForm = () => {
                     <span className="font-black underline uppercase">Non-Disclosure Agreement:</span> You shall maintain absolute secrecy of all organizational data, proprietary software, client lists, and strategic insights. Any breach will result in immediate termination and legal prosecution for damages.
                   </p>
                   <p>
-                    <span className="font-black underline uppercase">Asset Protection:</span> All creative, technical, or strategic outputs produced by you remain the exclusive property of <span className="font-bold">Forge India Connect</span>.
+                    <span className="font-black underline uppercase">Asset Protection:</span> All creative, technical, or strategic outputs produced by you remain the exclusive property of <span className="font-bold">{companyData.shortName}</span>.
                   </p>
                 </div>
 
@@ -516,12 +611,12 @@ const EmployeeOfferLetterForm = () => {
               {/* Professional Footer */}
               <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
                 <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
-                  <p>Page 2 of 3 | www.forgeindiaconnect.com</p>
-                  <p>Contact: +91 6369506416</p>
+                  <p>Page 2 of 3 | {companyData.website}</p>
+                  <p>Contact: {companyData.mobile}</p>
                 </div>
                 <div className="text-right">
-                  <p>info@forgeindiaconnect.com</p>
-                  <p className="text-[9px] font-black text-slate-900 uppercase leading-none">Forge India Connect Pvt Ltd</p>
+                  <p>{companyData.email}</p>
+                  <p className="text-[9px] font-black text-slate-900 uppercase leading-none">{companyData.name}</p>
                 </div>
               </div>
             </div>
@@ -530,7 +625,7 @@ const EmployeeOfferLetterForm = () => {
             <div className="p-12 min-h-[1050px] flex flex-col relative border-[12px] border-double border-slate-900 mb-0">
               {/* Page Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
-                <img src={ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
+                <img src={formData.customLogo || companyData.logo || ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
               </div>
               
               <div className="space-y-6 text-[11.5px] leading-snug text-slate-800">
@@ -555,7 +650,7 @@ const EmployeeOfferLetterForm = () => {
                 <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">11. Non-Solicitation & Ethical Conduct</h3>
                 <div className="bg-slate-50 p-4 border rounded text-[10.5px] font-medium italic opacity-90 text-justify">
                   <p>
-                    "Upon cessation of employment, you shall not solicit clients, vendors, or employees of Forge India Connect for a period of one (01) year. Ethical conduct and non-compromise on brand integrity is expected during and after your tenure."
+                    "Upon cessation of employment, you shall not solicit clients, vendors, or employees of {companyData.shortName} for a period of one (01) year. Ethical conduct and non-compromise on brand integrity is expected during and after your tenure."
                   </p>
                 </div>
 
@@ -573,11 +668,11 @@ const EmployeeOfferLetterForm = () => {
                     {/* Management */}
                     <div className="space-y-12">
                       <div className="border-t-2 border-slate-900 pt-2 relative">
-                        <p className="font-black text-slate-900 text-[11px] uppercase leading-none">Mr. SANDEEP</p>
+                        <p className="font-black text-slate-900 text-[11px] uppercase leading-none">{companyData.ceo}</p>
                         <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest leading-none mt-1">Chief Executive Officer (CEO)</p>
                         <div className="mt-4 flex flex-col gap-0.5 items-start bg-slate-50 p-2 rounded border border-dashed border-slate-200">
                           <p className="text-[8px] font-bold text-slate-400 italic">Auth Verification:</p>
-                          <p className="font-black text-slate-900 text-[10px] uppercase">Mr. KARTHIK (MD)</p>
+                          <p className="font-black text-slate-900 text-[10px] uppercase">{companyData.md}</p>
                           <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Managing Director</p>
                         </div>
                       </div>
@@ -608,12 +703,12 @@ const EmployeeOfferLetterForm = () => {
               {/* Final Page Footer */}
               <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
                 <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5 text-left">
-                  <p>info@forgeindiaconnect.com | www.forgeindiaconnect.com | Page 3 of 3</p>
-                  <p>Official HQ: Krishnagiri, Tamil Nadu</p>
+                  <p>{companyData.email} | {companyData.website} | Page 3 of 3</p>
+                  <p>{companyData.footerText}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] font-black text-slate-900 uppercase leading-none">Forge India Connect Pvt Ltd</p>
-                  <p className="text-[8px] text-amber-600 font-bold italic">"Excellence In Every Connection"</p>
+                  <p className="text-[9px] font-black text-slate-900 uppercase leading-none">{companyData.name}</p>
+                  <p className="text-[8px] text-amber-600 font-bold italic">"{formData.tagline || companyData.tagline}"</p>
                 </div>
               </div>
             </div>
