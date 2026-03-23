@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +15,7 @@ import { employeeService } from '@/api/employeeService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Download, TrendingDown, TrendingUp, Wallet, Users, Clock, Trash2, IndianRupee, BarChart3, Loader2, Pencil, X } from 'lucide-react';
-import { cn, safeParseDate } from '@/lib/utils';
+import { cn, safeParseDate, getInitials } from '@/lib/utils';
 import { createWorkbook, setColumnWidths, applyHeaderStyle, downloadWorkbook } from '@/utils/excelExport';
 import { ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { CATEGORIES } from './AdminExpenses';
@@ -41,6 +42,13 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
   const [editGivenBy, setEditGivenBy] = useState('');
   const [editRole, setEditRole] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [typeFilter, setTypeFilter] = useState<'all' | 'credit' | 'expense'>('all');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'day' | 'week' | 'month'>('all');
 
   const fetchAll = async () => {
     setLoading(true);
@@ -173,48 +181,76 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
     toast.success('Report downloaded');
   };
 
-  // Merged, sorted list of ALL employee transactions (excluding admin's own)
+  // Merged, filtered and sorted list of ALL employee transactions (excluding admin's own)
   const allTransactions = useMemo(() => {
-    const safeExp = Array.isArray(expenses) ? expenses.filter(e => {
+    let filteredExp = Array.isArray(expenses) ? expenses.filter(e => {
       if (!e) return false;
       const isExcludeMe = e.user_id?._id !== user?.id;
       if (!isExcludeMe) return false;
       
-      if (roleFilter === 'all') return true;
-      const targetRole = e.user_id?.role || (e as any).role || 'employee';
-      return targetRole === roleFilter;
+      if (roleFilter !== 'all' && (e.user_id?.role || 'employee') !== roleFilter) return false;
+      return true;
     }).map(e => ({ ...e, type: 'expense' })) : [];
     
-    const safeCreds = Array.isArray(credits) ? credits.filter(c => {
+    let filteredCreds = Array.isArray(credits) ? credits.filter(c => {
       if (!c) return false;
       const isExcludeMe = c.user_id?._id !== user?.id;
       if (!isExcludeMe) return false;
       
-      if (roleFilter === 'all') return true;
-      const targetRole = c.user_id?.role || (c as any).role || 'employee';
-      return targetRole === roleFilter;
+      if (roleFilter !== 'all' && (c.user_id?.role || 'employee') !== roleFilter) return false;
+      return true;
     }).map(c => ({ ...c, type: 'credit' })) : [];
     
-    return [...safeExp, ...safeCreds].sort((a, b) => new Date(b?.expense_date || b?.credit_date || 0).getTime() - new Date(a?.expense_date || a?.credit_date || 0).getTime());
-  }, [expenses, credits, user, roleFilter]);
+    let combined = [...filteredExp, ...filteredCreds];
+
+    // Apply Type Filter
+    if (typeFilter !== 'all') {
+      combined = combined.filter(t => t.type === typeFilter);
+    }
+
+    // Apply Search Filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      combined = combined.filter(t => 
+        (t.user_id?.name || '').toLowerCase().includes(q) || 
+        (t.description || '').toLowerCase().includes(q) ||
+        (t.category || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Apply Date Filter
+    if (startDate) {
+      combined = combined.filter(t => new Date(t.expense_date || t.credit_date) >= startDate);
+    }
+    if (endDate) {
+      const endOfDay = new Date(endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      combined = combined.filter(t => new Date(t.expense_date || t.credit_date) <= endOfDay);
+    }
+    
+    return combined.sort((a, b) => new Date(b?.expense_date || b?.credit_date || 0).getTime() - new Date(a?.expense_date || a?.credit_date || 0).getTime());
+  }, [expenses, credits, user, roleFilter, typeFilter, searchQuery, startDate, endDate]);
 
   const stats = useMemo(() => {
-    const safeExpenses = Array.isArray(expenses) ? expenses.filter(e => {
-        if (!e || e.user_id?._id === user?.id) return false;
-        if (roleFilter !== 'all' && (e.user_id?.role || (e as any).role || 'employee') !== roleFilter) return false;
-        return true;
-    }) : [];
-    const safeCredits = Array.isArray(credits) ? credits.filter(c => {
-        if (!c || c.user_id?._id === user?.id) return false;
-        if (roleFilter !== 'all' && (c.user_id?.role || (c as any).role || 'employee') !== roleFilter) return false;
-        return true;
-    }) : [];
+    const filteredTransactions = allTransactions;
+    const pendingCount = Array.isArray(expenses) ? expenses.filter(e => 
+      e.approval_status === 'pending' && 
+      e.user_id?._id !== user?.id && 
+      (roleFilter === 'all' || e.user_id?.role === roleFilter)
+    ).length : 0;
+
+    const totalApprovedExp = filteredTransactions
+      .filter(t => t.type === 'expense' && t.approval_status === 'approved')
+      .reduce((s, t) => s + Number(t.amount || 0), 0);
+      
+    const totalCredited = filteredTransactions
+      .filter(t => t.type === 'credit')
+      .reduce((s, t) => s + Number(t.amount || 0), 0);
+
+    const activeEmployeesCount = new Set(filteredTransactions.map(t => t.user_id?._id)).size;
     
-    const pendingCount = safeExpenses.filter(e => e.approval_status === 'pending').length;
-    const totalApprovedExp = safeExpenses.filter(e => e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
-    const totalCredited = safeCredits.reduce((s, c) => s + Number(c.amount || 0), 0);
-    return { pendingCount, totalApprovedExp, totalCredited };
-  }, [expenses, credits, user, roleFilter]);
+    return { pendingCount, totalApprovedExp, totalCredited, activeEmployeesCount };
+  }, [allTransactions, expenses, user, roleFilter]);
 
   const utilizationData = useMemo(() => {
     const safeEmps = Array.isArray(employeeList) ? employeeList : [];
@@ -250,6 +286,7 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
     const groups: { [date: string]: any[] } = {};
     allTransactions.forEach(item => {
       const date = item.expense_date || item.credit_date;
+      if (!date) return;
       const dateStr = format(safeParseDate(date), 'yyyy-MM-dd');
       if (!groups[dateStr]) groups[dateStr] = [];
       groups[dateStr].push(item);
@@ -260,48 +297,177 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
     }));
   }, [allTransactions]);
 
+  const dailyStats = useMemo(() => {
+    const groups: { [date: string]: { credits: number, expenses: number, count: number } } = {};
+    allTransactions.forEach(item => {
+      const date = item.expense_date || item.credit_date;
+      if (!date) return;
+      const dateStr = format(safeParseDate(date), 'yyyy-MM-dd');
+      if (!groups[dateStr]) groups[dateStr] = { credits: 0, expenses: 0, count: 0 };
+      if (item.type === 'credit') {
+        groups[dateStr].credits += Number(item.amount || 0);
+      } else if (item.approval_status === 'approved') {
+        groups[dateStr].expenses += Number(item.amount || 0);
+      }
+      groups[dateStr].count += 1;
+    });
+    return Object.keys(groups).sort((a, b) => a.localeCompare(b)).map(date => ({
+      date: format(safeParseDate(date), 'dd MMM'),
+      fullDate: date,
+      credits: groups[date].credits,
+      expenses: groups[date].expenses,
+      net: groups[date].credits - groups[date].expenses
+    }));
+  }, [allTransactions]);
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="space-y-6"
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col gap-6">
+        {/* Filters and Search */}
+        <div className="bg-card/30 backdrop-blur-md p-4 rounded-xl border border-border/50 flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1 space-y-1.5 w-full">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Search Transactions</label>
+            <div className="relative">
+              <Input 
+                placeholder="Search employee, category, description..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-background/50 border-border/50 h-10 text-sm"
+              />
+              <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground opacity-50" />
+            </div>
+          </div>
+          
+          <div className="w-full md:w-[150px] space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Type</label>
+            <Select value={typeFilter} onValueChange={(v: any) => setTypeFilter(v)}>
+              <SelectTrigger className="bg-background/50 border-border/50 h-10 text-sm">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="credit">Credits Only</SelectItem>
+                <SelectItem value="expense">Debits (Expenses)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full md:w-[240px] space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Date Range</label>
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal bg-background/50 border-border/50 h-10 text-xs", !startDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "dd MMM") : "Start"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal bg-background/50 border-border/50 h-10 text-xs", !endDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "dd MMM") : "End"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <div className="flex gap-2 w-full md:w-auto">
+            {(searchQuery || startDate || endDate || typeFilter !== 'all') && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => {
+                  setSearchQuery('');
+                  setStartDate(undefined);
+                  setEndDate(undefined);
+                  setTypeFilter('all');
+                }}
+                className="h-10 w-10 text-muted-foreground hover:text-destructive"
+                title="Clear Filters"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <Button onClick={exportEmployeeExpenses} variant="outline" className="gap-2 h-10 bg-background/50 border-border/50">
+              <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
+            </Button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden">
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden group hover:ring-1 hover:ring-primary/20 transition-all">
             {loading && <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="h-3 w-3" /> Pending</div>
-              <p className="text-xl font-bold text-amber-600 mt-1">{stats.pendingCount}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-widest font-bold"><Clock className="h-3 w-3" /> Pending</div>
+                <div className="h-7 w-7 rounded-full bg-amber-500/10 flex items-center justify-center"><Clock className="h-3.5 w-3.5 text-amber-500" /></div>
+              </div>
+              <p className="text-2xl font-black text-amber-600 mt-2">{stats.pendingCount}</p>
+              <div className="mt-1 h-1 w-full bg-amber-100 rounded-full overflow-hidden">
+                <motion.div initial={{ width: 0 }} animate={{ width: "40%" }} className="h-full bg-amber-500" />
+              </div>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden">
+
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden group hover:ring-1 hover:ring-red-500/20 transition-all">
             {loading && <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingDown className="h-3 w-3" /> Exp. Approved</div>
-              <p className="text-xl font-bold text-destructive mt-1">₹{stats.totalApprovedExp.toLocaleString()}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-widest font-bold"><TrendingDown className="h-3 w-3" /> Exp. Approved</div>
+                <div className="h-7 w-7 rounded-full bg-red-500/10 flex items-center justify-center"><TrendingDown className="h-3.5 w-3.5 text-red-500" /></div>
+              </div>
+              <p className="text-2xl font-black text-destructive mt-2">₹{stats.totalApprovedExp.toLocaleString()}</p>
+              <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                <span className="font-bold text-red-500">Total Spent</span> throughout period
+              </div>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden">
+
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden group hover:ring-1 hover:ring-emerald-500/20 transition-all">
             {loading && <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingUp className="h-3 w-3" /> Total Credits</div>
-              <p className="text-xl font-bold text-emerald-600 mt-1">₹{stats.totalCredited.toLocaleString()}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-widest font-bold"><TrendingUp className="h-3 w-3" /> Total Credits</div>
+                <div className="h-7 w-7 rounded-full bg-emerald-500/10 flex items-center justify-center"><TrendingUp className="h-3.5 w-3.5 text-emerald-500" /></div>
+              </div>
+              <p className="text-2xl font-black text-emerald-600 mt-2">₹{stats.totalCredited.toLocaleString()}</p>
+              <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                <span className="font-bold text-emerald-500">{stats.activeEmployeesCount} Employees</span> tracked
+              </div>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden">
+
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm relative overflow-hidden group hover:ring-1 hover:ring-blue-500/20 transition-all">
             {loading && <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>}
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground"><Wallet className="h-3 w-3" /> Net Liquidity</div>
-              <p className={cn("text-xl font-bold mt-1", (stats.totalCredited - stats.totalApprovedExp) >= 0 ? "text-emerald-600" : "text-destructive")}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-widest font-bold"><Wallet className="h-3 w-3" /> Net Liquidity</div>
+                <div className="h-7 w-7 rounded-full bg-blue-500/10 flex items-center justify-center"><Wallet className="h-3.5 w-3.5 text-blue-500" /></div>
+              </div>
+              <p className={cn("text-2xl font-black mt-2", (stats.totalCredited - stats.totalApprovedExp) >= 0 ? "text-emerald-600" : "text-destructive")}>
                 ₹{(stats.totalCredited - stats.totalApprovedExp).toLocaleString()}
               </p>
+              <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                <span className={cn("font-bold", (stats.totalCredited - stats.totalApprovedExp) >= 0 ? "text-emerald-500" : "text-destructive")}>
+                  {(stats.totalCredited - stats.totalApprovedExp) >= 0 ? "SURPLUS" : "DEFICIT"}
+                </span> remaining balance
+              </div>
             </CardContent>
           </Card>
         </div>
-        <Button onClick={exportEmployeeExpenses} size="sm" variant="outline" className="gap-2 shrink-0">
-          <Download className="h-4 w-4" /> Export Report
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
@@ -377,44 +543,101 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4 text-blue-500" /> Employee Summaries
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="max-h-[300px] overflow-y-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/30">
-                    <TableHead className="text-xs">Employee</TableHead>
-                    <TableHead className="text-right text-xs">Balance</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(Array.isArray(employeeList) ? employeeList : []).filter(emp => {
-                    if (!emp || emp._id === user?.id) return false;
-                    if (roleFilter !== 'all' && (emp.role || (emp as any).role || 'employee') !== roleFilter) return false;
-                    return true;
-                  }).map(emp => {
-                    const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
-                    const empCred = (Array.isArray(credits) ? credits : []).filter(c => c && (c.user_id?._id === emp._id || c.user_id === emp._id)).reduce((s, c) => s + Number(c.amount || 0), 0);
-                    const balance = empCred - empExp;
-                    return (
-                      <TableRow key={emp._id} className="group hover:bg-muted/50 transition-colors">
-                        <TableCell className="text-xs py-2">{emp.name || 'Unknown'}</TableCell>
-                        <TableCell className={cn("text-right text-xs py-2 font-bold", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
-                          ₹{isNaN(balance) ? 0 : balance.toLocaleString()}
-                        </TableCell>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="bg-muted/30 p-1 mb-4 h-9">
+            <TabsTrigger value="overview" className="text-xs h-7">Financial Overview</TabsTrigger>
+            <TabsTrigger value="credits" className="text-xs h-7">Daily Credit Tracking</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Users className="h-4 w-4 text-blue-500" /> Employee Summaries
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="max-h-[300px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30">
+                        <TableHead className="text-xs">Employee</TableHead>
+                        <TableHead className="text-xs text-emerald-600">Total Credits</TableHead>
+                        <TableHead className="text-xs text-destructive">Total Expenses</TableHead>
+                        <TableHead className="text-right text-xs">Current Balance</TableHead>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {(Array.isArray(employeeList) ? employeeList : []).filter(emp => {
+                        if (!emp || emp._id === user?.id) return false;
+                        if (roleFilter !== 'all' && (emp.role || (emp as any).role || 'employee') !== roleFilter) return false;
+                        return true;
+                      }).map(emp => {
+                        const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
+                        const empCred = (Array.isArray(credits) ? credits : []).filter(c => c && (c.user_id?._id === emp._id || c.user_id === emp._id)).reduce((s, c) => s + Number(c.amount || 0), 0);
+                        const balance = empCred - empExp;
+                        return (
+                          <TableRow key={emp._id} className="group hover:bg-muted/50 transition-colors">
+                            <TableCell className="text-xs py-3 font-medium flex items-center gap-2">
+                              <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                                {getInitials(emp.name)}
+                              </div>
+                              {emp.name || 'Unknown'}
+                            </TableCell>
+                            <TableCell className="text-xs py-3 text-emerald-600 font-bold">₹{empCred.toLocaleString()}</TableCell>
+                            <TableCell className="text-xs py-3 text-destructive font-bold">₹{empExp.toLocaleString()}</TableCell>
+                            <TableCell className={cn("text-right text-xs py-3 font-black", balance >= 0 ? "text-emerald-600" : "text-destructive")}>
+                              ₹{isNaN(balance) ? 0 : balance.toLocaleString()}
+                              {balance < 0 && <Badge variant="outline" className="ml-2 text-[8px] bg-red-50 text-red-600 border-red-200 uppercase px-1">Deficit</Badge>}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="credits">
+            <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-500" /> Day-wise Credit Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="max-h-[300px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30">
+                        <TableHead className="text-xs">Date</TableHead>
+                        <TableHead className="text-xs text-emerald-600">Credits Added</TableHead>
+                        <TableHead className="text-xs text-destructive">Expenses</TableHead>
+                        <TableHead className="text-right text-xs">Daily Net</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dailyStats.length === 0 ? (
+                        <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground text-xs">No data for selected period</TableCell></TableRow>
+                      ) : dailyStats.slice().reverse().map(stat => (
+                        <TableRow key={stat.fullDate}>
+                          <TableCell className="text-xs py-3 font-medium">{format(safeParseDate(stat.fullDate), 'dd MMM yyyy')}</TableCell>
+                          <TableCell className="text-xs py-3 text-emerald-600 font-bold">₹{stat.credits.toLocaleString()}</TableCell>
+                          <TableCell className="text-xs py-3 text-destructive font-bold">₹{stat.expenses.toLocaleString()}</TableCell>
+                          <TableCell className={cn("text-right text-xs py-3 font-black", stat.net >= 0 ? "text-emerald-600" : "text-destructive")}>
+                            {stat.net >= 0 ? '+' : '-'}₹{Math.abs(stat.net).toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <motion.div
@@ -424,27 +647,35 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
         className="w-full"
       >
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
-          <CardHeader className="pb-2 border-b border-border/10"><CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Credit Utilization Overview</CardTitle></CardHeader>
+          <CardHeader className="pb-2 border-b border-border/10">
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Financial Trends</div>
+              <div className="flex gap-2">
+                 <Button onClick={() => setTimeFilter('all')} size="sm" variant={timeFilter === 'all' ? "default" : "ghost"} className="h-6 text-[10px]">Employee Utilization</Button>
+                 <Button onClick={() => setTimeFilter('day')} size="sm" variant={timeFilter === 'day' ? "default" : "ghost"} className="h-6 text-[10px]">Daily Trends</Button>
+              </div>
+            </CardTitle>
+          </CardHeader>
           <CardContent className="p-6 h-[400px] relative">
             {loading ? (
               <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary/30" /></div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={utilizationData}
+                  data={timeFilter === 'day' ? dailyStats : utilizationData}
                   layout="horizontal"
                   margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.3)" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey={timeFilter === 'day' ? "date" : "name"} angle={-45} textAnchor="end" height={60} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip 
                     cursor={{ fill: 'hsl(var(--muted)/0.2)' }}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '10px' }}
                   />
                   <Legend verticalAlign="top" iconType="circle" wrapperStyle={{ fontSize: '11px', paddingBottom: '20px' }} />
-                  <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={30} name="Spent (₹)" />
-                  <Bar dataKey="balance" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} name="Balance (₹)" />
+                  <Bar dataKey={timeFilter === 'day' ? "credits" : "expense"} fill={timeFilter === 'day' ? "#10b981" : "#ef4444"} radius={[4, 4, 0, 0]} barSize={30} name={timeFilter === 'day' ? "Credits (₹)" : "Spent (₹)"} />
+                  <Bar dataKey={timeFilter === 'day' ? "expenses" : "balance"} fill={timeFilter === 'day' ? "#ef4444" : "#10b981"} radius={[4, 4, 0, 0]} barSize={30} name={timeFilter === 'day' ? "Expenses (₹)" : "Balance (₹)"} />
                 </BarChart>
               </ResponsiveContainer>
             )}

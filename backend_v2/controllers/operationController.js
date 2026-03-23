@@ -306,8 +306,15 @@ const getMyExpenses = async (req, res) => {
 
 const getAllExpenses = async (req, res) => {
     try {
+        const { status, startDate, endDate, user_id } = req.query;
         const filter = {};
-        if (req.query.status) filter.approval_status = req.query.status;
+        if (status) filter.approval_status = status;
+        if (user_id) filter.user_id = user_id;
+        if (startDate || endDate) {
+            filter.expense_date = {};
+            if (startDate) filter.expense_date.$gte = new Date(startDate);
+            if (endDate) filter.expense_date.$lte = new Date(endDate);
+        }
         
         // Admin can see everything
         const expenses = await Expense.find(filter)
@@ -421,7 +428,16 @@ const getMyCredits = async (req, res) => {
 
 const getAllCredits = async (req, res) => {
     try {
-        const credits = await Credit.find({})
+        const { startDate, endDate, user_id } = req.query;
+        const filter = {};
+        if (user_id) filter.user_id = user_id;
+        if (startDate || endDate) {
+            filter.credit_date = {};
+            if (startDate) filter.credit_date.$gte = new Date(startDate);
+            if (endDate) filter.credit_date.$lte = new Date(endDate);
+        }
+
+        const credits = await Credit.find(filter)
             .populate('user_id', 'name email')
             .sort({ credit_date: -1, createdAt: -1 });
         res.json(credits);
