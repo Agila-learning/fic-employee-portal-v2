@@ -8,6 +8,7 @@ import { Printer, Download, Calculator, FileText, CheckCircle2 } from 'lucide-re
 import { useToast } from '@/hooks/use-toast';
 import ficLogo from '@/assets/fic-logo.jpeg';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const COMPANIES = {
   'Forge India Connect': {
@@ -62,12 +63,11 @@ const EmployeeOfferLetterForm = () => {
     // Improved styles for Word conversion
     const styles = `
       <style>
-        body { font-family: 'Times New Roman', Times, serif; }
+        body { font-family: 'Times New Roman', Times, serif; padding: 40pt; }
         .page-break { 
-          page-break-after: always; 
-          margin-bottom: 20pt; 
-          border-bottom: 1px solid #eee;
-          padding: 20pt;
+          page-break-before: always;
+          break-before: page;
+          margin-top: 40pt;
         }
         h1 { font-size: 24pt; color: #1e293b; font-weight: bold; text-align: center; }
         h2 { font-size: 18pt; color: #1e293b; font-weight: bold; text-align: center; border-bottom: 1px solid #1e293b; padding-bottom: 5pt; }
@@ -103,6 +103,7 @@ const EmployeeOfferLetterForm = () => {
     const footer = "</body></html>";
     const sourceHTML = header + content + footer;
     
+    // Convert to a blob and download
     const blob = new Blob(['\ufeff', sourceHTML], {
       type: 'application/msword'
     });
@@ -443,20 +444,17 @@ const EmployeeOfferLetterForm = () => {
           <div className="bg-white text-black p-0 shadow-2xl rounded-sm offer-letter-container flex flex-col font-serif relative overflow-hidden">
             {/* Page 1: Introduction & Company Profile */}
             <div className="p-12 min-h-[1050px] flex flex-col relative border-[12px] border-double border-slate-900 mb-8 page-break">
-              {/* Page Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
                 <img src={formData.customLogo || companyData.logo || ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
               </div>
 
               {selectedCompany === 'Antigraviity' ? (
                 <div className="flex flex-col items-center mb-8">
-                  <img src={formData.customLogo || companyData.logo || ficLogo} alt="Logo" className="h-[90px] w-auto object-contain mb-4" />
+                  <img src={formData.customLogo || companyData.logo || ficLogo} alt="Logo" className={cn("h-[90px] w-auto object-contain mb-4 transition-all duration-500", selectedCompany === 'Antigraviity' && "brightness-0")} />
                   <h1 className="text-3xl font-bold text-slate-800 tracking-tight leading-none">{companyData.name}</h1>
                   <p className="text-[10px] font-bold text-amber-600 mt-2 uppercase tracking-widest">CIN : {companyData.cin}</p>
                   <div className="w-full border-b-2 border-blue-400/30 mt-4 mb-6"></div>
-                  
                   <p className="text-xl font-serif italic text-amber-600 font-bold mb-6">"{formData.tagline || companyData.tagline}"</p>
-                  
                   <div className="text-center w-full max-w-[600px] border-y-2 border-slate-900 py-2.5 mb-1 bg-white">
                     <h2 className="text-2xl font-black tracking-[0.3em] uppercase text-slate-900">Letter of Appointment</h2>
                   </div>
@@ -491,7 +489,7 @@ const EmployeeOfferLetterForm = () => {
               )}
 
               <div className="grid grid-cols-2 gap-0 mb-8 pb-4 border-b border-slate-100">
-                <div className="space-y-1">
+                <div className="space-y-1 text-left">
                   <p className="font-bold text-slate-400 uppercase text-[8px] tracking-widest">Employee Information:</p>
                   <p className="font-black text-base text-slate-900 leading-none">{formData.candidateName || '[Name Needed]'}</p>
                   <p className="text-[10.5px] text-slate-600 font-medium leading-tight max-w-[280px]">{formData.candidateAddress || '[Full Address]'}</p>
@@ -504,25 +502,20 @@ const EmployeeOfferLetterForm = () => {
                 </div>
               </div>
 
-              {/* Content Body */}
               <div className="space-y-6 text-[11.5px] leading-snug text-slate-800 text-justify">
                 <p>Dear <span className="font-black text-slate-900 uppercase tracking-tighter">{formData.candidateName.split(' ')[0]}</span>,</p>
-                
                 <p>
                   We are pleased to offer you the formal appointment for the position of <span className="font-black border-b border-slate-900 uppercase text-slate-900">{formData.designation || '[TBD]'}</span> in the <span className="font-bold italic">{formData.department}</span> division at <span className="font-black text-slate-900">{companyData.name}</span>.
                 </p>
 
-                {/* 1. Company Profile */}
                 <div className="space-y-2">
-                  <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">1. Company Overview & Vision</h3>
+                  <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px] text-left">1. Company Overview & Vision</h3>
                   <div className="bg-slate-50 p-4 rounded border border-slate-200 text-[10.5px] text-justify leading-relaxed">
-                    <p>
-                      <span className="font-bold">{companyData.name}</span> {companyData.profile}
-                    </p>
+                    <p><span className="font-bold">{companyData.name}</span> {companyData.profile}</p>
                     {selectedCompany === 'Antigraviity' && companyData.services && (
                       <div className="mt-2 space-y-1">
-                        <p className="font-bold text-[9px] uppercase tracking-tighter text-slate-500">Key Services:</p>
-                        <ul className="list-disc pl-4 space-y-0.5">
+                        <p className="font-bold text-[9px] uppercase tracking-tighter text-slate-500 text-left">Key Services:</p>
+                        <ul className="list-disc pl-4 space-y-0.5 text-left">
                           {companyData.services.map((service, idx) => (
                             <li key={idx} className="text-[9.5px]">{service}</li>
                           ))}
@@ -532,298 +525,211 @@ const EmployeeOfferLetterForm = () => {
                   </div>
                 </div>
 
-                {/* 2. Position & Logistics */}
                 <div>
-                  <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-2 tracking-widest text-[10px]">2. Terms of Engagement</h3>
-                  <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded border border-slate-200">
+                  <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-2 tracking-widest text-[10px] text-left">2. Terms of Engagement</h3>
+                  <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded border border-slate-200 text-left">
                     <div className="space-y-2">
                       <p><span className="text-slate-500 font-bold uppercase text-[8px]">Job Title:</span> <br/><span className="font-black text-slate-900">{formData.designation}</span></p>
                       <p><span className="text-slate-500 font-bold uppercase text-[8px]">Type:</span> <br/><span className="font-black text-slate-900">{formData.employmentType}</span></p>
                       <p><span className="text-slate-500 font-bold uppercase text-[8px]">Reports To:</span> <br/><span className="font-black text-slate-900">{formData.reportingManager}</span></p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <p><span className="text-slate-500 font-bold uppercase text-[8px]">Joining Date:</span> <br/><span className="font-black text-slate-900 underline decoration-amber-500">{formData.joiningDate ? format(new Date(formData.joiningDate), 'dd MMMM yyyy') : '[TBD]'}</span></p>
                       <p><span className="text-slate-500 font-bold uppercase text-[8px]">Location (Mode):</span> <br/><span className="font-black text-slate-900">{formData.location} ({formData.workMode})</span></p>
                       <p><span className="text-slate-500 font-bold uppercase text-[8px]">Shift Window:</span> <br/><span className="font-black text-slate-900">{formData.shiftTimings}</span></p>
                     </div>
                   </div>
                 </div>
-
-                {/* 3. Compensation Summary */}
-                <div className="space-y-3">
-                  <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 tracking-widest text-[10px]">3. Compensation & Structure</h3>
-                  <table className="w-full border-collapse border border-slate-400">
-                    <thead className="bg-slate-900 text-white text-[9px] uppercase font-black">
-                      <tr>
-                        <th className="border border-slate-400 p-2 text-left w-1/2">Remuneration Component</th>
-                        <th className="border border-slate-400 p-2 text-right">Monthly (INR)</th>
-                        <th className="border border-slate-400 p-2 text-right">Annual (INR)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-[10px] font-medium">
-                      <tr>
-                        <td className="border border-slate-300 p-1.5 px-3">Primary Basic Salary</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{calculations.basic.toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.basic * 12).toLocaleString()}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-slate-300 p-1.5 px-3">House Rent Allowance (HRA)</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{calculations.hra.toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.hra * 12).toLocaleString()}</td>
-                      </tr>
-                      <tr className="text-slate-500">
-                        <td className="border border-slate-300 p-1.5 px-3 italic">Statutory Allowances (Med/Conv)</td>
-                        <td className="border border-slate-300 p-1.5 text-right italic">{(calculations.medical + calculations.conveyance).toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right italic">{((calculations.medical + calculations.conveyance) * 12).toLocaleString()}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-slate-300 p-1.5 px-3">Company Special Allowance</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{calculations.specialAllowance.toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.specialAllowance * 12).toLocaleString()}</td>
-                      </tr>
-                      <tr className="bg-slate-50 italic">
-                        <td className="border border-slate-300 p-1.5 px-3">Employer Contributions (PF/ESI)</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{(calculations.pfEmployer + calculations.esiEmployer).toLocaleString()}</td>
-                        <td className="border border-slate-300 p-1.5 text-right">{((calculations.pfEmployer + calculations.esiEmployer) * 12).toLocaleString()}</td>
-                      </tr>
-                      <tr className="bg-slate-100 font-black border-t-2 border-slate-900 text-[11px]">
-                        <td className="border border-slate-400 p-2 uppercase">Gross Cost To Company (CTC)</td>
-                        <td className="border border-slate-400 p-2 text-right">INR {calculations.monthlyCTC.toLocaleString()}</td>
-                        <td className="border border-slate-400 p-2 text-right">INR {(parseFloat(formData.ctc)).toLocaleString()}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div className="bg-amber-100 p-3 rounded-sm border-2 border-amber-600 text-center font-black text-slate-900 text-[12px]">
-                    Monthly Net Take-Home Salary: <span className="text-lg">INR {calculations.netTakeHome.toLocaleString()}</span>
-                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-1 italic text-center">(Approximate after standard TDS and Statutory deductions)</p>
-                  </div>
-                </div>
               </div>
 
-              {/* Professional Footer (Overhauled) */}
-              {selectedCompany === 'Antigraviity' ? (
-                <div className="mt-auto pt-4 flex flex-col items-center">
-                  <div className="w-full border-t border-blue-400/50 mb-3"></div>
-                  <div className="flex justify-center gap-12 text-[10px] text-blue-600 font-medium w-full px-6">
-                    <p>Website: <span className="underline decoration-blue-200">{companyData.website}</span></p>
-                    <p>Address: <span className="underline decoration-blue-200">{companyData.address}</span></p>
-                  </div>
+              <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
+                <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5 text-left">
+                  <p>Page 1 | {formData.candidateName || 'Employee'}</p>
+                  {selectedCompany === 'Antigraviity' && <p>Address: {companyData.address}</p>}
                 </div>
-              ) : (
-                <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
-                  <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
-                    <p>Page 1 of 3 | {formData.candidateName || 'Employee Copy'}</p>
-                    <p>Email: {companyData.email}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-black text-slate-900 uppercase">{companyData.name}</p>
-                    <p className="text-[9px] text-amber-600 font-bold uppercase tracking-widest italic">{companyData.website}</p>
-                  </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-900 uppercase">{companyData.name}</p>
+                  {selectedCompany === 'Antigraviity' && <p className="text-[9px] text-blue-600 font-bold">{companyData.website}</p>}
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* Page 2: Responsibilities, Legal & Compliance */}
+            {/* Page 2: Compensation & Responsibilities */}
             <div className="p-12 min-h-[1050px] flex flex-col relative border-[12px] border-double border-slate-900 mb-8 page-break">
-              {/* Page Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
                 <img src={formData.customLogo || companyData.logo || ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
               </div>
 
-              {/* 4. Roles & Responsibilities */}
-              <div className="space-y-6 text-[11.5px] leading-snug text-slate-800">
-                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">4. Job Description & Execution Objectives</h3>
-                <div className="bg-slate-50 p-6 rounded border border-slate-200">
-                  <p className="mb-4 font-bold text-slate-900 tracking-tight underline uppercase text-[10px]">Core Responsibilities Highlight:</p>
-                  <ul className="space-y-2 list-none">
-                    {formData.roles.split('\n').map((line, i) => (
-                      <li key={i} className="flex gap-3">
-                        <span className="text-amber-500 font-black">✔</span>
-                        <span className="font-medium text-slate-700 leading-tight">{line}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-6 text-[9.5px] font-bold text-slate-400 italic">
-                    Management reserves the right to modify job duties and reporting hierarchy in alignment with evolving business requirements.
-                  </p>
+              <div className="space-y-6">
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mb-1 tracking-widest text-[10px] text-left">3. Compensation & Structure</h3>
+                <table className="w-full border-collapse border border-slate-400">
+                  <thead className="bg-slate-900 text-white text-[9px] uppercase font-black">
+                    <tr>
+                      <th className="border border-slate-400 p-2 text-left w-1/2">Remuneration Component</th>
+                      <th className="border border-slate-400 p-2 text-right">Monthly (INR)</th>
+                      <th className="border border-slate-400 p-2 text-right">Annual (INR)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-[10px] font-medium text-left">
+                    <tr>
+                      <td className="border border-slate-300 p-1.5 px-3">Primary Basic Salary</td>
+                      <td className="border border-slate-300 p-1.5 text-right">{calculations.basic.toLocaleString()}</td>
+                      <td className="border border-slate-300 p-1.5 text-right">{(calculations.basic * 12).toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-slate-300 p-1.5 px-3">House Rent Allowance (HRA)</td>
+                      <td className="border border-slate-300 p-1.5 text-right">{calculations.hra.toLocaleString()}</td>
+                      <td className="border border-slate-300 p-1.5 text-right">{(calculations.hra * 12).toLocaleString()}</td>
+                    </tr>
+                    <tr className="text-slate-500 italic">
+                      <td className="border border-slate-300 p-1.5 px-3">Statutory Allowances (Med/Conv)</td>
+                      <td className="border border-slate-300 p-1.5 text-right italic">{(calculations.medical + calculations.conveyance).toLocaleString()}</td>
+                      <td className="border border-slate-300 p-1.5 text-right italic">{((calculations.medical + calculations.conveyance) * 12).toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-slate-300 p-1.5 px-3">Company Special Allowance</td>
+                      <td className="border border-slate-300 p-1.5 text-right">{calculations.specialAllowance.toLocaleString()}</td>
+                      <td className="border border-slate-300 p-1.5 text-right">{(calculations.specialAllowance * 12).toLocaleString()}</td>
+                    </tr>
+                    <tr className="bg-slate-50 italic">
+                      <td className="border border-slate-300 p-1.5 px-3">Employer Contributions (PF/ESI)</td>
+                      <td className="border border-slate-300 p-1.5 text-right">{(calculations.pfEmployer + calculations.esiEmployer).toLocaleString()}</td>
+                      <td className="border border-slate-300 p-1.5 text-right">{((calculations.pfEmployer + calculations.esiEmployer) * 12).toLocaleString()}</td>
+                    </tr>
+                    <tr className="bg-slate-100 font-black border-t-2 border-slate-900 text-[11px]">
+                      <td className="border border-slate-400 p-2 uppercase">Gross Cost To Company (CTC)</td>
+                      <td className="border border-slate-400 p-2 text-right font-black">INR {calculations.monthlyCTC.toLocaleString()}</td>
+                      <td className="border border-slate-400 p-2 text-right font-black">INR {(parseFloat(formData.ctc)).toLocaleString()}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div className="bg-amber-100 p-4 rounded-sm border-2 border-amber-600 text-center font-black text-slate-900 text-[13px]">
+                  Monthly Net Take-Home Salary: <span className="text-xl">INR {calculations.netTakeHome.toLocaleString()}</span>
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter mt-1 italic">(After statutory deductions)</p>
                 </div>
 
-                {/* 5 & 6. Probation & Leave (Tightened) */}
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <h3 className="font-black text-slate-900 uppercase text-[9px] underline tracking-widest">5. Probationary Period</h3>
-                    <p className="text-[10.5px] text-justify font-medium leading-relaxed">
-                      You will undergo a <span className="font-black text-slate-900">Probation for three months</span>. Confirmation is performance-contingent. Management may extend probation if performance goals are not explicitly met.
-                    </p>
+                <div className="pt-8">
+                  <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px] text-left">4. Job Description & Responsibilities</h3>
+                  <div className="bg-slate-50 p-6 rounded border border-slate-200 mt-2">
+                    <ul className="space-y-2 list-none text-left">
+                      {formData.roles.split('\n').map((line, i) => (
+                        <li key={i} className="flex gap-3 text-[11px]">
+                          <span className="text-amber-500 font-black">✔</span>
+                          <span className="font-medium text-slate-700">{line}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-black text-slate-900 uppercase text-[9px] underline tracking-widest">6. Leave & Holiday Entitlement</h3>
-                    <p className="text-[10.5px] text-justify font-medium leading-relaxed">
-                      You are entitled to 12 Sick/Casual leaves annually (01 per month). Public holidays apply as per the annual company schedule. Unauthorized absence for 3 days leads to LOP.
-                    </p>
-                  </div>
                 </div>
+              </div>
 
-                {/* 7. Legal Guardrails */}
-                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mt-4 tracking-widest text-[10px]">7. Confidentiality & Intellectual Ownership</h3>
-                <div className="space-y-3 text-[10.5px] text-justify bg-slate-100 p-5 rounded border-l-4 border-slate-900 leading-relaxed font-medium">
-                  <p>
-                    <span className="font-black underline uppercase">Non-Disclosure Agreement:</span> You shall maintain absolute secrecy of all organizational data, proprietary software, client lists, and strategic insights. Any breach will result in immediate termination and legal prosecution for damages.
-                  </p>
-                  <p>
-                    <span className="font-black underline uppercase">Asset Protection:</span> All creative, technical, or strategic outputs produced by you remain the exclusive property of <span className="font-bold">{companyData.shortName}</span>.
-                  </p>
+              <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200 text-left">
+                <div className="text-[8px] text-slate-400 font-bold uppercase">
+                  <p>Page 2 | {companyData.website}</p>
                 </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-900 uppercase">{companyData.name}</p>
+                </div>
+              </div>
+            </div>
 
-                {/* 8. Separation Policy */}
-                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mt-4 tracking-widest text-[10px]">8. Resignation & Termination Policies</h3>
-                <div className="space-y-2 text-[10.5px] text-justify leading-relaxed font-medium">
-                  <p>
-                    Separation requires a formal <span className="font-black text-slate-900">Notice Period of 30 Days</span> or salary in lieu. Immediate termination applies for gross misconduct, fraud, or code of conduct violations.
-                  </p>
-                  <p className="bg-red-50 p-3 text-red-900 border-l-2 border-red-700 italic opacity-85">
-                    "Absconding from duty or consistent failure in meeting behavioral compliance will be grounds for summary dismissal without settlement."
-                  </p>
-                </div>
+            {/* Page 3: Legal & Separation */}
+            <div className="p-12 min-h-[1050px] flex flex-col relative border-[12px] border-double border-slate-900 mb-8 page-break">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
+                <img src={formData.customLogo || companyData.logo || ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
+              </div>
+
+              <div className="space-y-6 text-[11.5px] leading-snug text-slate-800 text-left">
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">5. Probationary Period</h3>
+                <p className="bg-slate-50 p-4 rounded border border-slate-200">You will undergo a <span className="font-black">Probation for three months</span>. Confirmation is performance-contingent. Management may extend probation if performance goals are not explicitly met.</p>
+
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">6. Leave & Holiday Entitlement</h3>
+                <p className="bg-slate-50 p-4 rounded border border-slate-200">You are entitled to 12 Sick/Casual leaves annually (01 per month). Public holidays apply as per the annual company schedule.</p>
+
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">7. Confidentiality & NDA</h3>
+                <p className="bg-slate-100 p-4 rounded border border-slate-200 italic font-medium">"You shall maintain absolute secrecy of all organizational data, proprietary software, and client lists. Any breach will result in immediate termination and legal prosecution."</p>
+
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">8. Notice Period & Termination</h3>
+                <p className="bg-slate-50 p-4 rounded border border-slate-200">Separation requires a formal <span className="font-black">Notice Period of 30 Days</span> or salary in lieu. Immediate termination applies for gross misconduct, fraud, or code of conduct violations.</p>
 
                 {formData.additionalPoints && (
-                  <div className="space-y-2">
-                    <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 mt-4 tracking-widest text-[10px]">9. Additional Agreed Terms</h3>
-                    <div className="bg-slate-50 p-4 border rounded text-[10.5px] font-medium leading-relaxed whitespace-pre-wrap">
+                  <div className="pt-4">
+                    <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">9. Additional Agreed Terms</h3>
+                    <div className="bg-amber-50/30 p-4 border border-amber-200 rounded mt-2 whitespace-pre-wrap italic">
                       {formData.additionalPoints}
                     </div>
                   </div>
                 )}
-
               </div>
 
-              {/* Professional Footer */}
-              {selectedCompany === 'Antigraviity' ? (
-                <div className="mt-auto pt-4 flex flex-col items-center">
-                  <div className="w-full border-t border-blue-400/50 mb-3"></div>
-                  <div className="flex justify-center gap-12 text-[10px] text-blue-600 font-medium w-full px-6">
-                    <p>Website: <span className="underline decoration-blue-200">{companyData.website}</span></p>
-                    <p>Address: <span className="underline decoration-blue-200">{companyData.address}</span></p>
-                  </div>
+              <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200 text-left">
+                <div className="text-[8px] text-slate-400 font-bold uppercase">
+                   <p>Page 3 | {companyData.website}</p>
                 </div>
-              ) : (
-                <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
-                  <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5">
-                    <p>Page 2 of 3 | {companyData.website}</p>
-                    <p>Contact: {companyData.mobile}</p>
-                  </div>
-                  <div className="text-right">
-                    <p>{companyData.email}</p>
-                    <p className="text-[9px] font-black text-slate-900 uppercase leading-none">{companyData.name}</p>
-                  </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-900 uppercase">{companyData.name}</p>
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* Page 3: IT, BGV & Acceptance */}
-            <div className="p-12 min-h-[1050px] flex flex-col relative border-[12px] border-double border-slate-900 mb-0">
-              {/* Page Watermark */}
+            {/* Page 4: Signatures */}
+            <div className="p-12 min-h-[1050px] flex flex-col relative border-[12px] border-double border-slate-900 mb-0 page-break">
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
                 <img src={formData.customLogo || companyData.logo || ficLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
               </div>
-              
-              <div className="space-y-6 text-[11.5px] leading-snug text-slate-800">
-                
-                {/* 9. IT Usage */}
-                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">9. IT & Cybersecurity Policy Compliance</h3>
-                <div className="text-[10.5px] leading-relaxed font-medium">
-                  <p>
-                    All organizational hardware, emails, and data access points are strictly for business usage. Monitoring protocols are in place to prevent data leaks. Sharing of passwords or unauthorized system modifications is a punishable offense under Indian Cyber Laws.
-                  </p>
-                </div>
 
-                {/* 10. Background Verification */}
-                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">10. Selection Contingencies (BGV)</h3>
-                <div className="text-[10.5px] leading-relaxed font-medium">
-                  <p>
-                    Engagement depends on clear Background Verification (BGV) reports. Any discrepancy in previous salary, experience, or academic credentials will result in instant offer withdrawal.
-                  </p>
-                </div>
+              <div className="space-y-6 text-[11.5px] leading-snug text-slate-800 text-left">
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">10. Selection Contingencies</h3>
+                <p>Engagement depends on clear Background Verification (BGV) reports. Any discrepancy in credentials will result in instant offer withdrawal.</p>
 
-                {/* 11. Non-Solicitation */}
-                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">11. Non-Solicitation & Ethical Conduct</h3>
-                <div className="bg-slate-50 p-4 border rounded text-[10.5px] font-medium italic opacity-90 text-justify">
-                  <p>
-                    "Upon cessation of employment, you shall not solicit clients, vendors, or employees of {companyData.shortName} for a period of one (01) year. Ethical conduct and non-compromise on brand integrity is expected during and after your tenure."
-                  </p>
-                </div>
+                <h3 className="font-black text-slate-900 uppercase border-l-4 border-amber-500 pl-3 tracking-widest text-[10px]">11. Non-Solicitation</h3>
+                <p className="bg-slate-50 p-4 border rounded italic">"Upon cessation, you shall not solicit clients or employees of {companyData.shortName} for a period of one (01) year."</p>
 
-                <div className="text-center pt-4">
+                <div className="text-center pt-8">
                   <p className="inline-block font-black text-[13px] uppercase tracking-[0.2em] border-y-2 border-slate-900 py-1.5 px-8">Final Declaration & Acceptance</p>
                 </div>
 
-                {/* 12. Signatures (Tightened) */}
-                <div className="space-y-6 pt-4">
-                  <p className="font-medium text-[11px] text-justify leading-relaxed">
-                    "I, <span className="font-black underline uppercase">{formData.candidateName || '[Selected Name]'}</span>, acknowledge the receipt of this Appointment Letter and hereby accept all terms and conditions specified. I declare that I will report for duty at the stipulated time and maintain the highest level of professional decorum."
+                <div className="pt-8 space-y-12">
+                  <p className="font-medium text-[11px] text-justify">
+                    "I, <span className="font-black underline uppercase">{formData.candidateName || '[Name]'}</span>, acknowledge the receipt of this Appointment Letter and hereby accept all terms and conditions specified."
                   </p>
 
-                  <div className="grid grid-cols-2 gap-16 pt-8 pb-4">
-                    {/* Management */}
-                    <div className="space-y-12">
-                      <div className="pt-2 relative">
-                        <p className="font-black text-slate-900 text-[11px] uppercase leading-none">{companyData.ceo}</p>
-                        <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest leading-none mt-1">Chief Executive Officer (CEO)</p>
-                        {companyData.md && (
-                          <div className="mt-4 flex flex-col gap-0.5 items-start bg-slate-50 p-2 rounded border border-dashed border-slate-200">
-                            <p className="text-[8px] font-bold text-slate-400 italic">Auth Verification:</p>
-                            <p className="font-black text-slate-900 text-[10px] uppercase">{companyData.md}</p>
-                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Managing Director</p>
-                          </div>
-                        )}
+                  <div className="grid grid-cols-2 gap-16 pt-12 pb-4">
+                    <div className="space-y-8 text-left">
+                      <div>
+                        <p className="font-black text-slate-900 text-[11px] uppercase">{companyData.ceo}</p>
+                        <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Chief Executive Officer</p>
                       </div>
-                    </div>
-
-                    {/* Employee */}
-                    <div className="space-y-12">
-                      <div className="border-t-2 border-slate-900 pt-2 text-right">
-                        <p className="font-black text-slate-900 text-[11px] uppercase leading-none">{formData.candidateName || '[Selected Name]'}</p>
-                        <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-1">Accepting Employee Signature</p>
-                        <div className="mt-6 space-y-1 text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
-                          <p>Date: _____/_____/_________</p>
-                          <p>Place: _____________________</p>
+                      {selectedCompany === 'Forge India Connect' && companyData.md && (
+                        <div className="pt-2">
+                          <p className="font-black text-slate-900 text-[10px] uppercase">{companyData.md}</p>
+                          <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Managing Director</p>
                         </div>
-                      </div>
+                      )}
+                    </div>
+                    <div className="border-t-2 border-slate-900 pt-2 text-right">
+                      <p className="font-black text-slate-900 text-[11px] uppercase">{formData.candidateName || '[Name]'}</p>
+                      <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Accepting Employee Signature</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Digitally Signed Tag (Tightened) */}
                 {selectedCompany !== 'Antigraviity' && (
-                  <div className="mt-6 border-2 border-dashed border-amber-300 p-3 rounded text-center bg-amber-50/20">
+                  <div className="mt-auto border-2 border-dashed border-amber-300 p-3 rounded text-center bg-amber-50/20">
                     <p className="text-[9px] font-black text-amber-800 uppercase tracking-widest mb-0.5">e-Verifiable Appointment Contract</p>
-                    <p className="text-[8px] text-slate-400 font-bold leading-none italic uppercase">Valid for Payroll & HR Operations across all FIC Corporate Units</p>
+                    <p className="text-[8px] text-slate-400 font-bold leading-none italic uppercase italic text-center">FIC Corporate Operations Unit</p>
                   </div>
                 )}
-
               </div>
 
-              {/* Final Page Footer */}
-              {selectedCompany === 'Antigraviity' ? (
-                <div className="mt-auto pt-4 flex flex-col items-center">
-                  <div className="w-full border-t border-blue-400/50 mb-3"></div>
-                  <div className="flex justify-center gap-12 text-[10px] text-blue-600 font-medium w-full px-6">
-                    <p>Website: <span className="underline decoration-blue-200">{companyData.website}</span></p>
-                    <p>Address: <span className="underline decoration-blue-200">{companyData.address}</span></p>
-                  </div>
+              <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
+                <div className="text-[8px] text-slate-400 font-bold uppercase text-left">
+                  <p>Page 4 | Final Signature Copy</p>
                 </div>
-              ) : (
-                <div className="mt-auto pt-4 flex justify-between items-end border-t border-slate-200">
-                  <div className="text-[8px] text-slate-400 font-bold uppercase space-y-0.5 text-left">
-                    <p>{companyData.email} | {companyData.website} | Page 3 of 3</p>
-                    <p>{companyData.footerText}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[9px] font-black text-slate-900 uppercase leading-none">{companyData.name}</p>
-                    <p className="text-[8px] text-amber-600 font-bold italic">"{formData.tagline || companyData.tagline}"</p>
-                  </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-900 uppercase">{companyData.name}</p>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         )}

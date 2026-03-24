@@ -89,6 +89,17 @@ const LocationSelector = ({ value, onChange, disabled }: LocationSelectorProps) 
           </p>
         </div>
       )}
+      {value === 'chennai' && (
+        <div className="space-y-1">
+          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+            <Navigation className="h-3 w-3" />
+            GPS verification required - within 100m of Chennai office
+          </p>
+          <p className="text-[10px] text-muted-foreground pl-4">
+            • 13°03'38.8"N 80°15'44.4"E, Chennai
+          </p>
+        </div>
+      )}
     </div>
   );
 };

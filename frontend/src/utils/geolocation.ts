@@ -83,11 +83,11 @@ export const OFFICE_LOCATIONS: Record<WorkLocation, OfficeLocation> = {
   chennai: {
     id: 'chennai',
     name: 'Chennai Office',
-    latitude: 13.0827,
-    longitude: 80.2707,
-    radiusMeters: 1000,
-    address: 'Chennai, Tamil Nadu',
-    requiresGPS: false,
+    latitude: 13.060778,
+    longitude: 80.262333,
+    radiusMeters: 100,
+    address: "13°03'38.8\"N 80°15'44.4\"E, Chennai",
+    requiresGPS: true,
   },
   bangalore: {
     id: 'bangalore',
