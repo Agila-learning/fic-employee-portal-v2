@@ -124,21 +124,39 @@ const Footer = () => {
 
             {/* Employee Details Drive - Admin Only */}
             {isAdmin && (
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 sm:mb-6 py-3 px-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-purple-600/10 border border-purple-500/20">
-                <div className="flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4 text-purple-400" />
-                  <span className="text-white/80 text-xs sm:text-sm">Employee Details Drive</span>
-                  <span className="text-purple-400 hidden sm:inline">|</span>
+              <>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-purple-600/10 border border-purple-500/20">
+                  <div className="flex items-center gap-2">
+                    <FolderOpen className="h-4 w-4 text-purple-400" />
+                    <span className="text-white/80 text-xs sm:text-sm">Employee Details Drive</span>
+                    <span className="text-purple-400 hidden sm:inline">|</span>
+                  </div>
+                  <a 
+                    href="https://drive.google.com/drive/folders/1-7PHoUruvtXV6JdKgXK8dE-xhfZaTz9l?usp=sharing" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-400 hover:text-purple-300 transition-colors text-xs sm:text-sm font-medium"
+                  >
+                    🔗 Employee Details Drive
+                  </a>
                 </div>
-                <a 
-                  href="https://drive.google.com/drive/folders/1-7PHoUruvtXV6JdKgXK8dE-xhfZaTz9l?usp=sharing" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-purple-400 hover:text-purple-300 transition-colors text-xs sm:text-sm font-medium"
-                >
-                  🔗 Employee Details Drive
-                </a>
-              </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 sm:mb-6 py-3 px-4 rounded-lg bg-gradient-to-r from-indigo-500/10 to-indigo-600/10 border border-indigo-500/20">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="h-4 w-4 text-indigo-400" />
+                    <span className="text-white/80 text-xs sm:text-sm">FIC SIM Details</span>
+                    <span className="text-indigo-400 hidden sm:inline">|</span>
+                  </div>
+                  <a 
+                    href="https://docs.google.com/spreadsheets/d/1VbZevVqKAtYOpaqtjbGMzU-Kf3yaducYDOYyIq8rQbU/edit?usp=sharing" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-indigo-400 hover:text-indigo-300 transition-colors text-xs sm:text-sm font-medium"
+                  >
+                    🔗 FIC SIM Details
+                  </a>
+                </div>
+              </>
             )}
 
             {/* Divider */}
