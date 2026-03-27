@@ -13,7 +13,7 @@ const Index = () => {
   }
 
   if (user) {
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/employee'} replace />;
+    return <Navigate to={(user.role === 'admin' || user.role === 'sub-admin' || user.role === 'md') ? '/admin' : '/employee'} replace />;
   }
 
   return <Navigate to="/login" replace />;
