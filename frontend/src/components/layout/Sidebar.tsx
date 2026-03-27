@@ -22,6 +22,7 @@ import {
   FileSignature,
   Trophy,
   MessageSquare,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -69,18 +70,36 @@ const Sidebar = () => {
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
     { to: '/admin/employees', icon: Users, label: 'Employees' },
-
     { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
     { to: '/admin/followups', icon: CalendarClock, label: 'Follow-ups' },
     { to: '/admin/tasks', icon: ClipboardList, label: 'Tasks' },
     { to: '/admin/reports', icon: FileText, label: 'Reports' },
     { to: '/admin/announcements', icon: Megaphone, label: 'Announcements' },
+    { to: '/admin/policies', icon: ShieldCheck, label: 'Policies' },
     { to: '/admin/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
     { to: '/admin/storage', icon: HardDrive, label: 'Storage' },
     { to: '/admin/invoice', icon: Receipt, label: 'Invoice' },
     { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/admin/payroll', icon: FileText, label: 'Payroll' },
+    { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
+    { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  const subAdminLinks = [
+    { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
+    { to: '/admin/employees', icon: Users, label: 'Employees' },
+    { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
+    { to: '/admin/followups', icon: CalendarClock, label: 'Follow-ups' },
+    { to: '/admin/tasks', icon: ClipboardList, label: 'Tasks' },
+    { to: '/admin/reports', icon: FileText, label: 'Reports' },
+    { to: '/admin/announcements', icon: Megaphone, label: 'Announcements' },
+    { to: '/admin/policies', icon: ShieldCheck, label: 'Policies' },
+    { to: '/admin/attendance', icon: CalendarCheck, label: 'Attendance' },
+    { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
+    { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
     { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
     { to: '/settings', icon: Settings, label: 'Settings' },
@@ -106,6 +125,7 @@ const Sidebar = () => {
     { to: '/employee', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
     { to: '/admin/announcements', icon: Megaphone, label: 'Announcements' },
+    { to: '/admin/policies', icon: ShieldCheck, label: 'Policies' },
     { to: '/admin/tasks', icon: ClipboardList, label: 'Tasks' },
     { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
     { to: '/employee/leads', icon: FileSpreadsheet, label: 'My Leads' },
@@ -117,6 +137,7 @@ const Sidebar = () => {
 
   const getLinks = () => {
     if (user?.role === 'admin') return adminLinks;
+    if (user?.role === 'sub-admin') return subAdminLinks;
     if (user?.role === 'md') return mdLinks;
     return employeeLinks;
   };

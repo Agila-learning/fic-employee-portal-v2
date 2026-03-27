@@ -1,4 +1,4 @@
-export type AppRole = 'admin' | 'employee' | 'md';
+export type AppRole = 'admin' | 'employee' | 'md' | 'sub-admin';
 export type LeadStatus = 'nc1' | 'nc2' | 'nc3' | 'follow_up' | 'converted' | 'success' | 'rejected' | 'not_interested' | 'not_interested_paid' | 'different_domain';
 export type LeadSource = 'social_media' | 'own_source' | 'college' | 'referral' | 'job_portal' | 'website' | 'agents' | 'other';
 export type PaymentStage = 'registration_done' | 'initial_payment_done' | 'full_payment_done';

@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const {
     getHolidays, createHoliday,
@@ -6,36 +6,36 @@ const {
     getAnnouncements, createAnnouncement, updateAnnouncementStatus, deleteAnnouncement,
     getTasks, createTask, updateTaskStatus, deleteTask
 } = require('../controllers/utilityController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, admin, subAdmin } = require('../middleware/authMiddleware');
 const { cloudinary, upload, requireCloudinary } = require('../utils/cloudinary');
 
 router.route('/holidays')
     .get(protect, getHolidays)
-    .post(protect, admin, createHoliday);
+    .post(protect, subAdmin, createHoliday);
 
 router.route('/success-stories')
     .get(protect, getSuccessStories)
-    .post(protect, admin, createSuccessStory);
+    .post(protect, subAdmin, createSuccessStory);
 
 router.route('/success-stories/:id')
-    .put(protect, admin, updateSuccessStory)
-    .delete(protect, admin, deleteSuccessStory);
+    .put(protect, subAdmin, updateSuccessStory)
+    .delete(protect, subAdmin, deleteSuccessStory);
 
 router.route('/announcements')
     .get(protect, getAnnouncements)
-    .post(protect, admin, createAnnouncement);
+    .post(protect, subAdmin, createAnnouncement);
 
 router.route('/announcements/:id')
-    .put(protect, admin, updateAnnouncementStatus)
-    .delete(protect, admin, deleteAnnouncement);
+    .put(protect, subAdmin, updateAnnouncementStatus)
+    .delete(protect, subAdmin, deleteAnnouncement);
 
 router.route('/tasks')
     .get(protect, getTasks)
-    .post(protect, admin, createTask);
+    .post(protect, subAdmin, createTask);
 
 router.route('/tasks/:id')
     .put(protect, updateTaskStatus)
-    .delete(protect, admin, deleteTask);
+    .delete(protect, subAdmin, deleteTask);
 
 // Direct video upload for success stories via Cloudinary multer (same as /leads/upload)
 router.post('/upload-video', protect, admin, requireCloudinary, upload.single('file'), (req, res) => {

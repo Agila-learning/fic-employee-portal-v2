@@ -22,11 +22,19 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'md')) {
         next();
     } else {
-        return res.status(401).json({ message: 'Not authorized as an admin' });
+        return res.status(403).json({ message: 'Not authorized as an admin' });
     }
 };
 
-module.exports = { protect, admin };
+const subAdmin = (req, res, next) => {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'md')) {
+        next();
+    } else {
+        return res.status(403).json({ message: 'Not authorized as a sub-admin' });
+    }
+};
+
+module.exports = { protect, admin, subAdmin };

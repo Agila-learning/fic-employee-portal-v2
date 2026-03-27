@@ -8,7 +8,7 @@ const {
     getHolidays, createHoliday,
     getMyCredits, getAllCredits, createCredit, updateCredit, deleteCredit, deleteLeaveRequest
 } = require('../controllers/operationController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, admin, subAdmin } = require('../middleware/authMiddleware');
 
 // Payslips
 router.route('/payslips')
@@ -21,24 +21,24 @@ router.delete('/payslips/:id', protect, admin, deletePayslip);
 // Leave
 router.route('/leave')
     .post(protect, createLeaveRequest)
-    .get(protect, admin, getAllLeaveRequests);
+    .get(protect, subAdmin, getAllLeaveRequests);
 router.get('/leave/my', protect, getMyLeaveRequests);
-router.put('/leave/:id', protect, admin, updateLeaveStatus);
+router.put('/leave/:id', protect, subAdmin, updateLeaveStatus);
 router.delete('/leave/:id', protect, deleteLeaveRequest);
 
 // Attendance
 router.route('/attendance')
     .post(protect, markAttendance)
-    .get(protect, admin, getAllAttendance);
+    .get(protect, subAdmin, getAllAttendance);
 router.get('/attendance/my', protect, getMyAttendance);
-router.get('/attendance/range', protect, admin, getAllAttendance); // Frontend calls /range
+router.get('/attendance/range', protect, subAdmin, getAllAttendance); // Frontend calls /range
 router.patch('/attendance/checkout', protect, checkOut);
-router.put('/attendance/:id', protect, admin, updateAttendance);
+router.put('/attendance/:id', protect, subAdmin, updateAttendance);
 
 // Expenses
 router.route('/expenses')
     .post(protect, createExpense)
-    .get(protect, admin, getAllExpenses);
+    .get(protect, subAdmin, getAllExpenses);
 router.get('/expenses/my', protect, getMyExpenses);
 router.put('/expenses/:id', protect, updateExpense);
 router.put('/expenses/:id/status', protect, admin, updateExpenseStatus);

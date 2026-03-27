@@ -32,6 +32,7 @@ const AdminPayroll = lazy(() => import("./pages/admin/AdminPayroll"));
 const AdminOfferLetter = lazy(() => import("./pages/admin/AdminOfferLetter"));
 const AdminSuccessStories = lazy(() => import("./pages/admin/AdminSuccessStories"));
 const AdminChat = lazy(() => import("./pages/admin/AdminChat"));
+const AdminPolicies = lazy(() => import("./pages/admin/AdminPolicies"));
 
 // Lazy load employee pages
 const EmployeeDashboard = lazy(() => import("./pages/employee/EmployeeDashboard"));
@@ -96,6 +97,7 @@ const App = () => (
                 <Route path="/admin/tasks" element={<AdminTasks />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
                 <Route path="/admin/announcements" element={<AdminAnnouncements />} />
+                <Route path="/admin/policies" element={<AdminPolicies />} />
                 <Route path="/admin/attendance" element={<AdminAttendance />} />
                 <Route path="/admin/followups" element={<AdminFollowups />} />
                 <Route path="/admin/storage" element={<AdminStorage />} />

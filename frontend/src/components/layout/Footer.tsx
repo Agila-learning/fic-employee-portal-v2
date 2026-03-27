@@ -5,10 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Footer = () => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
+    const isAdminOrMd = user?.role === 'admin' || user?.role === 'md';
 
-  return (
-    <footer className="md:ml-64 p-4 sm:p-6">
+    return (
+        <footer className="md:ml-64 p-4 sm:p-6">
       <Card className="border-0 shadow-xl bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
         <div className="px-4 sm:px-6 py-6 sm:py-8">
           <div className="max-w-7xl mx-auto">
@@ -123,7 +123,7 @@ const Footer = () => {
             </div>
 
             {/* Employee Details Drive - Admin Only */}
-            {isAdmin && (
+            {isAdminOrMd && (
               <>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-purple-600/10 border border-purple-500/20">
                   <div className="flex items-center gap-2">

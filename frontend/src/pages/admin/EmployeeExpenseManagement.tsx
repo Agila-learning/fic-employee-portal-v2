@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ interface EmployeeExpenseManagementProps {
 
 const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseManagementProps) => {
   const { user } = useAuth();
+  const isViewOnly = user?.role === 'sub-admin';
   const [expenses, setExpenses] = useState<any[]>([]);
   const [credits, setCredits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -516,24 +517,26 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
                       </TableCell>
                       <TableCell className="text-xs py-2 font-bold text-destructive">₹{e?.amount || 0}</TableCell>
                       <TableCell className="text-right py-2">
-                        <div className="flex justify-end gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-7 text-[10px] px-2 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
-                            onClick={() => e && handleApproval(e._id, 'approved')}
-                          >
-                            Approve
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-7 text-[10px] px-2 text-destructive border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
-                            onClick={() => e && handleApproval(e._id, 'rejected')}
-                          >
-                            Reject
-                          </Button>
-                        </div>
+                        {!isViewOnly && (
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 text-[10px] px-2 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
+                              onClick={() => e && handleApproval(e._id, 'approved')}
+                            >
+                              Approve
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 text-[10px] px-2 text-destructive border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                              onClick={() => e && handleApproval(e._id, 'rejected')}
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -570,7 +573,8 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
                     <TableBody>
                       {(Array.isArray(employeeList) ? employeeList : []).filter(emp => {
                         if (!emp || emp._id === user?.id) return false;
-                        if (roleFilter !== 'all' && (emp.role || (emp as any).role || 'employee') !== roleFilter) return false;
+                        const empRole = emp.role || (emp as any).role || 'employee';
+                        if (roleFilter !== 'all' && empRole !== roleFilter) return false;
                         return true;
                       }).map(emp => {
                         const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
@@ -713,7 +717,7 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
                 </TableHeader>
                 <TableBody>
                   {groupedTransactions.map((group) => (
-                    <>
+                    <Fragment key={group.date}>
                       <TableRow key={group.date} className="bg-muted/10">
                         <TableCell colSpan={8} className="py-2 px-4">
                           <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border-primary/20">
@@ -754,28 +758,30 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1 justify-end">
-                              <Button
-                                variant="ghost" size="icon"
-                                className="h-7 w-7 hover:text-primary hover:bg-primary/10"
-                                onClick={() => openEditDialog(item)}
-                                title="Edit"
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost" size="icon"
-                                className="h-7 w-7 hover:text-red-500 hover:bg-red-50"
-                                onClick={() => handleDeleteEmployee(item)}
-                                title="Delete"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
+                            {!isViewOnly && (
+                              <div className="flex items-center gap-1 justify-end">
+                                <Button
+                                  variant="ghost" size="icon"
+                                  className="h-7 w-7 hover:text-primary hover:bg-primary/10"
+                                  onClick={() => openEditDialog(item)}
+                                  title="Edit"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost" size="icon"
+                                  className="h-7 w-7 hover:text-red-500 hover:bg-red-50"
+                                  onClick={() => handleDeleteEmployee(item)}
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
-                    </>
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>
