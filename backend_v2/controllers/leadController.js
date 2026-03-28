@@ -16,7 +16,7 @@ const createLead = async (req, res) => {
 const getLeads = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 0;
-        const filter = req.user.role === 'admin'
+        const filter = (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'md')
             ? {}
             : { $or: [{ assigned_to: req.user._id }, { created_by: req.user._id }] };
         
@@ -59,7 +59,7 @@ const deleteLead = async (req, res) => {
             const isCreator = lead.created_by && lead.created_by.toString() === req.user._id.toString();
             const isAssignee = lead.assigned_to && lead.assigned_to.toString() === req.user._id.toString();
 
-            if (req.user.role === 'admin' || isCreator || isAssignee) {
+            if (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'md' || isCreator || isAssignee) {
                 await lead.deleteOne();
                 res.json({ message: 'Lead removed' });
             } else {

@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 
@@ -10,6 +10,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children, requiredRole }: DashboardLayoutProps) => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -26,6 +27,14 @@ const DashboardLayout = ({ children, requiredRole }: DashboardLayoutProps) => {
   // Admin, Sub-Admin and MD can access admin pages
   if (requiredRole === 'admin' && user.role !== 'admin' && user.role !== 'md' && user.role !== 'sub-admin') {
     return <Navigate to="/employee" replace />;
+  }
+
+  // Strictly block Sub-Admin from specific admin sections
+  if (user.role === 'sub-admin') {
+    const restrictedPaths = ['/admin/employees', '/admin/expenses'];
+    if (restrictedPaths.some(path => location.pathname.startsWith(path))) {
+      return <Navigate to="/admin" replace />;
+    }
   }
 
   return (

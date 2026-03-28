@@ -90,7 +90,6 @@ const Sidebar = () => {
   const subAdminLinks = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
-    { to: '/admin/employees', icon: Users, label: 'Employees' },
     { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
     { to: '/admin/followups', icon: CalendarClock, label: 'Follow-ups' },
     { to: '/admin/tasks', icon: ClipboardList, label: 'Tasks' },
@@ -99,7 +98,6 @@ const Sidebar = () => {
     { to: '/admin/policies', icon: ShieldCheck, label: 'Policies' },
     { to: '/admin/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
-    { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
     { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
     { to: '/settings', icon: Settings, label: 'Settings' },

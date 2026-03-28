@@ -11,7 +11,9 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar as CalendarIcon, Download, RefreshCw, FileSpreadsheet, Users, Building2, User, Phone, MapPin, Briefcase, MessageSquare, Sun, Moon, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Calendar as CalendarIcon, Download, RefreshCw, FileSpreadsheet, Users, Building2, User, Phone, MapPin, Briefcase, MessageSquare, Sun, Moon, Trash2, Send, Plus } from 'lucide-react';
 import { cn, safeParseDate } from '@/lib/utils';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +59,54 @@ const AdminReports = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+
+  // Add Report State for Sub-Admins
+  const [isAddReportOpen, setIsAddReportOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [reportDate, setReportDate] = useState<Date>(new Date());
+  const [reportDept, setReportDept] = useState('Other');
+  const [morningDesc, setMorningDesc] = useState('');
+  const [afternoonDesc, setAfternoonDesc] = useState('');
+  const [candidatesScreened, setCandidatesScreened] = useState('0');
+
+  useEffect(() => {
+    if (user?.department) {
+      const matchedDept = DEPARTMENTS.find(
+        d => d.toLowerCase() === user.department?.toLowerCase()
+      );
+      if (matchedDept) {
+        setReportDept(matchedDept);
+      }
+    }
+  }, [user]);
+
+  const handleSubmitReport = async () => {
+    if (!morningDesc || !afternoonDesc) {
+      toast.error('Please fill in both morning and afternoon descriptions');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await reportService.createReport({
+        report_date: format(reportDate, 'yyyy-MM-dd'),
+        department: reportDept,
+        morning_description: morningDesc,
+        afternoon_description: afternoonDesc,
+        candidates_screened: reportDept === 'BDA' || reportDept === 'HR' ? (parseInt(candidatesScreened) || 0) : 0
+      });
+      toast.success('Report submitted successfully');
+      setMorningDesc('');
+      setAfternoonDesc('');
+      setIsAddReportOpen(false);
+      fetchReports();
+    } catch (error: any) {
+      console.error('Report submission error:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit report');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const fetchProfiles = useCallback(async () => {
     try {
@@ -265,8 +315,90 @@ const AdminReports = () => {
               <Download className="h-4 w-4 mr-2" />
               Export Excel
             </Button>
+            {user?.role === 'sub-admin' && (
+              <Button onClick={() => setIsAddReportOpen(true)} className="gap-2 shadow-lg shadow-primary/20">
+                <Plus className="h-4 w-4" />
+                Add My Report
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Add Report Dialog for Sub-Admins */}
+        <Dialog open={isAddReportOpen} onOpenChange={setIsAddReportOpen}>
+          <DialogContent className="max-w-2xl bg-card">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5 text-primary" />
+                Submit New Report
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal border-border/50">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {format(reportDate, 'PPP')}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={reportDate} onSelect={(d) => d && setReportDate(d)} className="p-3" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Department</label>
+                  <Select value={reportDept} onValueChange={setReportDept}>
+                    <SelectTrigger className="border-border/50"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Morning Session Description</label>
+                <Textarea
+                  placeholder="Describe your morning work..."
+                  className="min-h-[100px] border-border/50"
+                  value={morningDesc}
+                  onChange={(e) => setMorningDesc(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium">Afternoon Session Description</label>
+                <Textarea
+                  placeholder="Describe your afternoon work..."
+                  className="min-h-[100px] border-border/50"
+                  value={afternoonDesc}
+                  onChange={(e) => setAfternoonDesc(e.target.value)}
+                />
+              </div>
+
+              {(reportDept === 'BDA' || reportDept === 'HR') && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Candidates Screened</label>
+                  <Input
+                    type="number"
+                    value={candidatesScreened}
+                    onChange={(e) => setCandidatesScreened(e.target.value)}
+                    className="border-border/50"
+                  />
+                </div>
+              )}
+
+              <Button onClick={handleSubmitReport} className="w-full gap-2 shadow-lg shadow-primary/20" disabled={submitting}>
+                {submitting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Submit Report
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
