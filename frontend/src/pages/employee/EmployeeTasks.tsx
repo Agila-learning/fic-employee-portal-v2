@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle, Calendar as CalendarIcon, ListTodo } from 'lucide-react';
+import { CheckCircle, Calendar as CalendarIcon, ListTodo, Eye, PlayCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { format, parseISO, isValid } from 'date-fns';
 
@@ -24,6 +25,8 @@ const EmployeeTasks = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const fetchTasks = useCallback(async () => {
     if (!user) return;
@@ -42,10 +45,10 @@ const EmployeeTasks = () => {
     fetchTasks();
   }, [fetchTasks]);
 
-  const handleCompleteTask = async (taskId: string) => {
+  const handleUpdateStatus = async (taskId: string, newStatus: string) => {
     try {
-      await utilityService.updateTaskStatus(taskId, 'completed');
-      toast.success('Task marked as completed');
+      await utilityService.updateTaskStatus(taskId, newStatus);
+      toast.success(`Task marked as ${newStatus.replace('_', ' ')}`);
       fetchTasks();
     } catch (error) {
       toast.error('Failed to update task');
@@ -108,15 +111,38 @@ const EmployeeTasks = () => {
                             {task.status === 'in_progress' ? 'In Progress' : 'Pending'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleCompleteTask(task._id || task.id)}
-                            className="gap-2 hover:bg-emerald-100 hover:text-emerald-600 transition-colors"
-                          >
-                            <CheckCircle className="h-4 w-4" /> Mark Complete
-                          </Button>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-right justify-end">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedTask(task);
+                                setIsViewDialogOpen(true);
+                              }}
+                              className="gap-2 hover:bg-primary/10 transition-colors"
+                            >
+                              <Eye className="h-4 w-4" /> View full
+                            </Button>
+                            {task.status !== 'in_progress' && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleUpdateStatus(task._id || task.id, 'in_progress')}
+                                className="gap-2 hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                              >
+                                <PlayCircle className="h-4 w-4" /> Start
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleUpdateStatus(task._id || task.id, 'completed')}
+                              className="gap-2 hover:bg-emerald-100 hover:text-emerald-600 transition-colors"
+                            >
+                              <CheckCircle className="h-4 w-4" /> Complete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -158,7 +184,20 @@ const EmployeeTasks = () => {
                           {safeFormatDate(task.updatedAt || task.updated_at)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Badge variant="outline" className="text-emerald-600 bg-emerald-50 border-emerald-200">Completed</Badge>
+                          <div className="flex items-center gap-2 justify-end">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedTask(task);
+                                setIsViewDialogOpen(true);
+                              }}
+                              className="gap-2 hover:bg-primary/10 transition-colors h-7 px-2"
+                            >
+                              <Eye className="h-3 w-3" /> View
+                            </Button>
+                            <Badge variant="outline" className="text-emerald-600 bg-emerald-50 border-emerald-200">Completed</Badge>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -169,6 +208,31 @@ const EmployeeTasks = () => {
           </Card>
         </div>
       </div>
+
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl pr-6">
+              <ListTodo className="h-5 w-5 text-primary" />
+              {selectedTask?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-muted/30 p-4 rounded-lg border border-border/50 max-h-[300px] overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed">
+              {selectedTask?.description || 'No description provided.'}
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/20 p-2 rounded-md">
+              <div className="flex items-center gap-1">
+                <CalendarIcon className="h-3 w-3" />
+                Due: {safeFormatDate(selectedTask?.due_date)}
+              </div>
+              <Badge variant={selectedTask?.status === 'in_progress' ? 'default' : selectedTask?.status === 'completed' ? 'secondary' : 'outline'}>
+                {selectedTask?.status === 'in_progress' ? 'In Progress' : selectedTask?.status === 'completed' ? 'Completed' : 'Pending'}
+              </Badge>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
