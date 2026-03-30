@@ -4,14 +4,16 @@ import LeadsTable from '@/components/leads/LeadsTable';
 import { useLeads } from '@/hooks/useLeads';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Upload, Download, Loader2 } from 'lucide-react';
+import { Upload, Download, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import LeadFormDialog from '@/components/leads/LeadFormDialog';
 
 const AdminLeads = () => {
   const { leads, refetchLeads, bulkUpload, isLoading } = useLeads();
   const [searchParams] = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const paymentStageFilter = searchParams.get('payment_stage') || undefined;
   const statusFilter = searchParams.get('status') || undefined;
@@ -63,6 +65,10 @@ const AdminLeads = () => {
             <p className="text-muted-foreground">View and manage all candidate leads across the team</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 bg-gradient-to-r from-primary to-primary/80">
+              <Plus className="h-4 w-4" />
+              Add Lead
+            </Button>
             <Button variant="outline" size="sm" onClick={downloadTemplate} className="gap-2">
               <Download className="h-4 w-4" />
               Template
@@ -76,6 +82,7 @@ const AdminLeads = () => {
             />
             <Button
               size="sm"
+              variant="outline"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading || isLoading}
               className="gap-2"
@@ -87,6 +94,12 @@ const AdminLeads = () => {
         </div>
         <LeadsTable leads={leads} showAssignee onRefresh={refetchLeads} defaultPaymentStageFilter={paymentStageFilter} defaultStatusFilter={statusFilter} />
       </div>
+      <LeadFormDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={setIsAddDialogOpen} 
+        onSave={refetchLeads} 
+        mode="edit" 
+      />
     </DashboardLayout>
   );
 };

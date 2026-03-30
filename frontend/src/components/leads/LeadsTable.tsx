@@ -82,10 +82,10 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
   const filteredLeads = useMemo(() => {
     return leads.filter(lead => {
       const matchesSearch =
-        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.candidate_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.phone.includes(searchTerm);
+        (lead.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (lead.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (lead.candidate_id?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (lead.phone || '').includes(searchTerm);
 
       const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
       const matchesSource = sourceFilter === 'all' || lead.source === sourceFilter;
@@ -137,7 +137,8 @@ const LeadsTable = ({ leads, showAssignee = false, onRefresh, defaultPaymentStag
       }
 
       // Employee filter (for admin)
-      const matchesEmployee = employeeFilter === 'all' || lead.created_by === employeeFilter;
+      const createdId = typeof lead.created_by === 'object' ? (lead.created_by as any)?._id : lead.created_by;
+      const matchesEmployee = employeeFilter === 'all' || createdId === employeeFilter;
 
       return matchesSearch && matchesStatus && matchesSource && matchesSuccessDate && matchesRejectedDate && matchesDomain && matchesDateFilter && matchesEmployee && matchesPaymentStage;
     });

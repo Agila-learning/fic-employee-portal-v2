@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import LeaveRequestForm from './LeaveRequestForm';
+import { Plus } from 'lucide-react';
 
 const statusConfig = {
   pending: { icon: Clock, label: 'Pending', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
@@ -30,14 +33,27 @@ const AdminLeaveRequests = () => {
     <div className="space-y-8 animate-fade-in">
       {/* Pending Requests */}
       <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-amber-500" />
-          <h2 className="text-xl font-bold">Pending Requests</h2>
-          {pendingRequests.length > 0 && (
-            <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30">
-              {pendingRequests.length}
-            </Badge>
-          )}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-amber-500" />
+            <h2 className="text-xl font-bold">Pending Requests</h2>
+            {pendingRequests.length > 0 && (
+              <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30">
+                {pendingRequests.length}
+              </Badge>
+            )}
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+                <Plus className="h-4 w-4" />
+                Request Leave for Myself
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px] p-0 border-none bg-transparent">
+              <LeaveRequestForm />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {pendingRequests.length === 0 ? (

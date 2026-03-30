@@ -55,15 +55,21 @@ const AdminFollowups = () => {
       if (lead.status !== 'follow_up') return false;
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        if (!lead.name.toLowerCase().includes(query) &&
-          !lead.email.toLowerCase().includes(query) &&
-          !lead.candidate_id.toLowerCase().includes(query) &&
-          !lead.phone.toLowerCase().includes(query)) {
+        const leadName = lead.name?.toLowerCase() || '';
+        const leadEmail = lead.email?.toLowerCase() || '';
+        const leadId = lead.candidate_id?.toLowerCase() || '';
+        const leadPhone = lead.phone?.toLowerCase() || '';
+        
+        if (!leadName.includes(query) &&
+          !leadEmail.includes(query) &&
+          !leadId.includes(query) &&
+          !leadPhone.includes(query)) {
           return false;
         }
       }
       if (domainFilter !== 'all' && lead.interested_domain !== domainFilter) return false;
-      if (employeeFilter !== 'all' && lead.assigned_to !== employeeFilter) return false;
+      const assignedId = typeof lead.assigned_to === 'object' ? (lead.assigned_to as any)?._id : lead.assigned_to;
+      if (employeeFilter !== 'all' && assignedId !== employeeFilter) return false;
       if (dateFilter !== 'all' && lead.followup_date) {
         const followupDate = new Date(lead.followup_date);
         switch (dateFilter) {
@@ -96,7 +102,8 @@ const AdminFollowups = () => {
   const groupedByEmployee = useMemo(() => {
     const groups: Record<string, Lead[]> = {};
     sortedLeads.forEach(lead => {
-      const key = lead.assigned_to || 'unassigned';
+      const assignedId = typeof lead.assigned_to === 'object' ? (lead.assigned_to as any)?._id : lead.assigned_to;
+      const key = assignedId || 'unassigned';
       if (!groups[key]) groups[key] = [];
       groups[key].push(lead);
     });
@@ -122,7 +129,7 @@ const AdminFollowups = () => {
   const maxedOutCount = sortedLeads.filter(l => (l.followup_count || 0) >= MAX_FOLLOWUP_COUNT).length;
 
   const allEmployees = useMemo(() => {
-    return employees.filter(e => e.role === 'employee');
+    return employees.filter(e => e.role === 'employee' || e.role === 'sub-admin' || e.role === 'md');
   }, [employees]);
 
   return (
@@ -266,7 +273,16 @@ const AdminFollowups = () => {
                               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{lead.phone}</span>
                                 {lead.followup_date && (
-                                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{format(new Date(lead.followup_date), 'MMM d, h:mm a')}</span>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {(() => {
+                                      try {
+                                        return format(new Date(lead.followup_date), 'MMM d, h:mm a');
+                                      } catch (e) {
+                                        return 'Invalid Date';
+                                      }
+                                    })()}
+                                  </span>
                                 )}
                               </div>
                             </div>

@@ -57,7 +57,9 @@ export const useLeads = (limit?: number) => {
         id: l._id,
         created_at: l.createdAt || l.created_at,
         updated_at: l.updatedAt || l.updated_at,
-        created_by_name: l.created_by?.name || 'Unknown'
+        created_by_name: l.created_by?.name || 'Unknown',
+        // Ensure assigned_to ID is extracted if it's an object
+        assigned_to_id: typeof l.assigned_to === 'object' ? l.assigned_to?._id : l.assigned_to
       }));
 
       setLeads(mappedLeads);
@@ -146,10 +148,11 @@ export const useLeads = (limit?: number) => {
     deleteLead,
     bulkUpload,
     // Include leads created_by OR assigned_to the employee
-    getLeadsByEmployee: (empId: string) => leads.filter(l =>
-      l.assigned_to === empId ||
-      (typeof l.created_by === 'string' ? l.created_by === empId : (l.created_by as any)?._id === empId)
-    ),
+    getLeadsByEmployee: (empId: string) => leads.filter(l => {
+      const assignedId = typeof l.assigned_to === 'object' ? (l.assigned_to as any)?._id : l.assigned_to;
+      const createdId = typeof l.created_by === 'object' ? (l.created_by as any)?._id : l.created_by;
+      return assignedId === empId || createdId === empId;
+    }),
     refetchLeads: fetchLeads,
   };
 };
