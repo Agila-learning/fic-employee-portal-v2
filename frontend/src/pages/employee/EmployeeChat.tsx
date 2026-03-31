@@ -25,7 +25,7 @@ const EmployeeChat = () => {
         // For now, let's assume we chat with the primary admin.
         // We can also fetch the chat list to see who we've talked to.
         const chats = await messageService.getChatList();
-        const adminChat = chats.find(c => c.role === 'admin');
+        const adminChat = chats.find(c => ['admin', 'md', 'sub-admin'].includes(c.role));
         
         if (adminChat) {
           setAdminUser(adminChat);
@@ -34,12 +34,15 @@ const EmployeeChat = () => {
           // Assuming the getEmployees returns role info or we can find an admin
           // Actually, let's just use a placeholder if not found, 
           // but in this system there's usually an admin.
-          const adminFromList = emps.find(e => e.role === 'admin' || e.designation?.toLowerCase().includes('admin'));
+          const adminFromList = emps.find(e => 
+            ['admin', 'md', 'sub-admin'].includes(e.role) || 
+            e.designation?.toLowerCase().includes('admin')
+          );
           if (adminFromList) {
             setAdminUser({
               _id: adminFromList.user_id?._id || adminFromList.user_id || adminFromList._id,
               name: adminFromList.name,
-              role: 'admin'
+              role: adminFromList.role || 'admin'
             });
           }
         }
@@ -96,7 +99,7 @@ const EmployeeChat = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold truncate">{adminUser.name}</p>
-                      <Badge variant="outline" className="text-[10px] h-4 bg-primary/5 border-primary/20 text-primary">Admin</Badge>
+                      <Badge variant="outline" className="text-[10px] h-4 bg-primary/5 border-primary/20 text-primary capitalize">{adminUser.role || 'Admin'}</Badge>
                     </div>
                   </div>
                 ) : (

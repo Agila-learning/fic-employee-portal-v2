@@ -107,11 +107,11 @@ const getUsers = async (req, res) => {
             filters.role = req.query.role;
         }
 
-        // If the requester is not an admin/md, restrict results to only admins
-        // This allows employees to fetch administrative users to chat with.
-        if (req.user.role !== 'admin' && req.user.role !== 'md') {
-            filters.role = 'admin';
+        // If the requester is an employee, only show administrative users they can chat with
+        if (req.user.role === 'employee') {
+            filters.role = { $in: ['admin', 'md', 'sub-admin'] };
         }
+        // Sub-admins and admins/md can see all users, but can also filter by role if provided in query
 
         const users = await User.find(filters).select('-password');
         res.json(users);

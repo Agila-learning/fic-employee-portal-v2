@@ -89,7 +89,7 @@ exports.getChatList = async (req, res) => {
 
         // If employee, filter out non-admin partners
         if (req.user.role === 'employee') {
-            users = users.filter(user => user.role === 'admin');
+            users = users.filter(user => ['admin', 'md', 'sub-admin'].includes(user.role));
         }
 
         const result = await Promise.all(users.map(async (user) => {

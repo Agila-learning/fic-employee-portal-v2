@@ -9,7 +9,7 @@ router.get('/profile', protect, getUserProfile);
 router.put('/update-password', protect, updatePassword);
 
 router.route('/')
-    .get(protect, subAdmin, getUsers);
+    .get(protect, getUsers);
 
 router.route('/:id')
     .put(protect, admin, updateUser)
