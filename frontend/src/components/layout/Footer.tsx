@@ -88,6 +88,23 @@ const Footer = () => {
               </a>
             </div>
 
+            {/* Job Consulting Portal */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-teal-500/10 to-teal-600/10 border border-teal-500/20">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-teal-400" />
+                <span className="text-white/80 text-xs sm:text-sm">Job Consulting Portal Access</span>
+                <span className="text-teal-400 hidden sm:inline">|</span>
+              </div>
+              <a 
+                href="https://job-consulting-portal.vercel.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-teal-400 hover:text-teal-300 transition-colors text-xs sm:text-sm font-medium"
+              >
+                🔗 job-consulting-portal.vercel.app
+              </a>
+            </div>
+
             {/* FIC Connect App */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/20">
               <div className="flex items-center gap-2">
@@ -105,6 +122,23 @@ const Footer = () => {
               </a>
             </div>
 
+            {/* SBI Credit Card Portal */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-indigo-500/10 to-indigo-600/10 border border-indigo-500/20">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-indigo-400" />
+                <span className="text-white/80 text-xs sm:text-sm">SBI Credit Card Portal Access</span>
+                <span className="text-indigo-400 hidden sm:inline">|</span>
+              </div>
+              <a 
+                href="https://sbi-credit-portal.vercel.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-indigo-400 hover:text-indigo-300 transition-colors text-xs sm:text-sm font-medium"
+              >
+                🔗 sbi-credit-portal.vercel.app
+              </a>
+            </div>
+
             {/* Candidate Screening Portal */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-amber-500/10 to-amber-600/10 border border-amber-500/20">
               <div className="flex items-center gap-2">
@@ -119,6 +153,23 @@ const Footer = () => {
                 className="text-amber-400 hover:text-amber-300 transition-colors text-xs sm:text-sm font-medium"
               >
                 🔗 job-path-guard.vercel.app
+              </a>
+            </div>
+
+            {/* Document Management Portal */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-rose-500/10 to-rose-600/10 border border-rose-500/20">
+              <div className="flex items-center gap-2">
+                <FolderOpen className="h-4 w-4 text-rose-400" />
+                <span className="text-white/80 text-xs sm:text-sm">Document Management Portal Access</span>
+                <span className="text-rose-400 hidden sm:inline">|</span>
+              </div>
+              <a 
+                href="https://document-management-portal-fic.vercel.app" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-rose-400 hover:text-rose-300 transition-colors text-xs sm:text-sm font-medium"
+              >
+                🔗 document-management-portal-fic.vercel.app
               </a>
             </div>
 
@@ -141,17 +192,17 @@ const Footer = () => {
                   </a>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 sm:mb-6 py-3 px-4 rounded-lg bg-gradient-to-r from-indigo-500/10 to-indigo-600/10 border border-indigo-500/20">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 sm:mb-6 py-3 px-4 rounded-lg bg-gradient-to-r from-cyan-500/10 to-cyan-600/10 border border-cyan-500/20">
                   <div className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-4 w-4 text-indigo-400" />
+                    <FileSpreadsheet className="h-4 w-4 text-cyan-400" />
                     <span className="text-white/80 text-xs sm:text-sm">FIC SIM Details</span>
-                    <span className="text-indigo-400 hidden sm:inline">|</span>
+                    <span className="text-cyan-400 hidden sm:inline">|</span>
                   </div>
                   <a 
                     href="https://docs.google.com/spreadsheets/d/1VbZevVqKAtYOpaqtjbGMzU-Kf3yaducYDOYyIq8rQbU/edit?usp=sharing" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-indigo-400 hover:text-indigo-300 transition-colors text-xs sm:text-sm font-medium"
+                    className="text-cyan-400 hover:text-cyan-300 transition-colors text-xs sm:text-sm font-medium"
                   >
                     🔗 FIC SIM Details
                   </a>

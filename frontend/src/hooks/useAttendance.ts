@@ -145,8 +145,11 @@ export const useAttendance = () => {
 
     // Validations (same as original, keeping time restriction etc.)
     const now = new Date();
-    if (now.getHours() > 10 || (now.getHours() === 10 && now.getMinutes() >= 30)) {
-      toast({ title: "Attendance window closed", description: "Attendance can only be marked before 10:30 AM", variant: "destructive" });
+    const isLate = now.getHours() > 10 || (now.getHours() === 10 && now.getMinutes() >= 30);
+    const isRestrictedLocation = workLocation === 'krishnagiri' || workLocation === 'chennai';
+
+    if (isLate && isRestrictedLocation) {
+      toast({ title: "Attendance window closed", description: "Attendance for Krishnagiri and Chennai can only be marked before 10:30 AM", variant: "destructive" });
       return { error: new Error('Attendance window closed'), locationError: false };
     }
 
@@ -181,10 +184,13 @@ export const useAttendance = () => {
     }
 
     try {
+      const finalNotes = isLate ? (leaveReason ? `${leaveReason} (Late Login)` : '(Late Login)') : leaveReason;
+      
       await operationService.markAttendance({
         date: new Date().toISOString().split('T')[0],
         status,
         leave_reason: status === 'absent' ? leaveReason : null,
+        notes: finalNotes,
         latitude,
         longitude,
         location_verified: locationVerified,
@@ -292,8 +298,7 @@ export const useAttendance = () => {
   };
 
   const canMarkAttendance = () => {
-    const now = new Date();
-    return (now.getHours() < 10 || (now.getHours() === 10 && now.getMinutes() < 30)) && !todayAttendance;
+    return !todayAttendance;
   };
 
   useEffect(() => {

@@ -249,21 +249,26 @@ const AttendanceCard = () => {
                 ) : null}
               </div>
             </div>
-          ) : isBeforeCutoff ? (
+          ) : (
             <div className="space-y-2 sm:space-y-3">
               <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
                 <Clock className="h-3 w-3 shrink-0" />
-                <span className="truncate">{timeRemaining}</span>
+                <span className="truncate">
+                  {isBeforeCutoff ? timeRemaining : 'Window closed for Krishnagiri/Chennai'}
+                </span>
               </div>
               <div className="flex gap-2">
                 <Button
                   onClick={() => setShowMarkDialog(true)}
                   disabled={marking}
                   size="sm"
-                  className="flex-1 bg-success hover:bg-success/90 gap-1 text-[10px] sm:text-xs h-7 sm:h-8"
+                  className={cn(
+                    "flex-1 gap-1 text-[10px] sm:text-xs h-7 sm:h-8",
+                    isBeforeCutoff ? "bg-success hover:bg-success/90" : "bg-amber-500 hover:bg-amber-600"
+                  )}
                 >
                   <CheckCircle className="h-3 w-3" />
-                  Present
+                  {isBeforeCutoff ? 'Present' : 'Late Login'}
                 </Button>
                 <Button
                   onClick={() => setShowLeaveDialog(true)}
@@ -276,12 +281,11 @@ const AttendanceCard = () => {
                   Leave
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-2">
-              <XCircle className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-muted-foreground mb-1" />
-              <p className="text-xs sm:text-sm text-muted-foreground">Window closed</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Mark before 10:30 AM</p>
+              {!isBeforeCutoff && (
+                <p className="text-[9px] sm:text-[10px] text-muted-foreground text-center animate-pulse">
+                  Only for non-restricted locations
+                </p>
+              )}
             </div>
           )}
         </CardContent>
