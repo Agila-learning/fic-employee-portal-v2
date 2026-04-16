@@ -63,7 +63,7 @@ const { initCronJobs } = require('./services/cronService');
 initCronJobs();
 
 app.get('/', (req, res) => {
-    res.send('FIC Employee Portal API is running...');
+    res.send('FIC Employee Portal Backend - Service is Active');
 });
 
 // Error handling middleware
