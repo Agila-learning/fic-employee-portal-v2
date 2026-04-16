@@ -6,6 +6,7 @@ const {
     getAllResignations, 
     updateResignationStatus, 
     updateAssets, 
+    revokeResignation,
     finalizeResignation 
 } = require('../controllers/resignationController');
 const { protect, admin, hrManager } = require('../middleware/authMiddleware');
@@ -17,6 +18,9 @@ router.get('/my-resignation', protect, getMyResignation);
 router.get('/all', protect, hrManager, getAllResignations);
 router.put('/:id/status', protect, hrManager, updateResignationStatus);
 router.put('/:id/assets', protect, hrManager, updateAssets);
+
+// Employee revocation
+router.delete('/:id/revoke', protect, revokeResignation);
 
 // Admin only finalization
 router.put('/:id/finalize', protect, admin, finalizeResignation);

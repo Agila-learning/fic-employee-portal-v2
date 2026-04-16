@@ -29,5 +29,10 @@ export const resignationService = {
   finalizeResignation: async (id: string) => {
     const response = await api.put(`/resignations/${id}/finalize`);
     return response.data;
+  },
+
+  revokeResignation: async (id: string) => {
+    const response = await api.delete(`/resignations/${id}/revoke`);
+    return response.data;
   }
 };

@@ -276,6 +276,31 @@ const generateRelievingLetterPDF = async (resignation) => {
     });
 };
 
+const revokeResignation = async (req, res) => {
+    try {
+        const resignation = await Resignation.findById(req.params.id);
+        if (!resignation) return res.status(404).json({ message: 'Not found' });
+        
+        // Ensure only the employee who created it or an admin can delete it
+        if (resignation.employee.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'hr_manager') {
+             return res.status(403).json({ message: 'Not authorized to revoke this resignation' });
+        }
+        
+        // Prevent revocation if already completely processed
+        if (resignation.status === 'Completed') {
+             return res.status(400).json({ message: 'Cannot revoke a finalized resignation.' });
+        }
+
+        await Resignation.findByIdAndDelete(req.params.id);
+        
+        await notifyUser(req.user._id, 'RESIGNATION_REVOKED', 'Your resignation process has been revoked and removed from records.', '/employee/dashboard');
+
+        res.json({ message: 'Resignation revoked successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const finalizeResignation = async (req, res) => {
     try {
         const resignation = await Resignation.findById(req.params.id).populate('employee');
@@ -330,5 +355,6 @@ module.exports = {
     getAllResignations,
     updateResignationStatus,
     updateAssets,
+    revokeResignation,
     finalizeResignation
 };

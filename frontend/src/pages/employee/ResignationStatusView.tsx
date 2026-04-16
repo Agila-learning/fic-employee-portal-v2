@@ -1,15 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Resignation } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileDown, CalendarDays, Clock, ShieldCheck, DoorOpen, CheckCircle2 } from 'lucide-react';
+import { FileDown, CalendarDays, Clock, ShieldCheck, DoorOpen, CheckCircle2, Ban } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { resignationService } from '@/api/resignationService';
+import { toast } from 'sonner';
 
 interface Props {
   resignation: Resignation;
 }
 
 const ResignationStatusView: React.FC<Props> = ({ resignation }) => {
+  const [revoking, setRevoking] = useState(false);
+
+  const handleRevoke = async () => {
+    if (!window.confirm("Are you sure you want to revoke your resignation? This action cannot be undone.")) return;
+    
+    setRevoking(true);
+    try {
+      await resignationService.revokeResignation(resignation._id);
+      toast.success('Resignation successfully revoked.');
+      window.location.reload(); // Reload to refresh boundary state to show submission form
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to revoke resignation. Please try again.');
+    } finally {
+      setRevoking(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Submitted': return 'bg-blue-100 text-blue-700';
@@ -127,6 +147,17 @@ const ResignationStatusView: React.FC<Props> = ({ resignation }) => {
                       Download Relieving Letter
                     </button>
                   </a>
+                )}
+                
+                {resignation.status !== 'Completed' && (
+                  <button 
+                    onClick={handleRevoke}
+                    disabled={revoking}
+                    className="w-full mt-4 flex items-center justify-center gap-2 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 px-4 rounded-xl transition-all duration-300 disabled:opacity-50"
+                  >
+                    <Ban size={18} />
+                    {revoking ? 'Revoking...' : 'Revoke Resignation'}
+                  </button>
                 )}
              </div>
            </CardContent>
