@@ -9,26 +9,35 @@ const path = require('path');
 // Email Helper
 const sendEmail = async (to, subject, text, attachments = []) => {
     try {
+        console.log(`[EMAIL] Attempting to send email to ${to}...`);
+        console.log(`[EMAIL] SMTP Config: host=${process.env.SMTP_HOST}, port=${process.env.SMTP_PORT}, user=${process.env.SMTP_USER}`);
+
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: process.env.SMTP_PORT || 587,
-            secure: process.env.SMTP_PORT == 465, // true for 465, false for other ports
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_PORT == 465, 
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
             },
         });
 
-        await transporter.sendMail({
+        // Verify connection before sending
+        await transporter.verify();
+        console.log('[EMAIL] SMTP Connection verified successfully');
+
+        const info = await transporter.sendMail({
             from: `"${process.env.SMTP_FROM_NAME || 'FIC Admin'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
             to,
             subject,
             text,
             attachments
         });
-        console.log(`Email sent to ${to}`);
+        
+        console.log(`[EMAIL] Success: Message sent to ${to}. ID: ${info.messageId}`);
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('[EMAIL] CRITICAL ERROR sending email:', error.message);
+        console.error('[EMAIL] Full Error Details:', error);
     }
 };
 
@@ -298,12 +307,15 @@ const finalizeResignation = async (req, res) => {
         );
 
         if (filePath) {
+            console.log(`[RESIGNATION] Triggering Finalized email with PDF: ${filePath}`);
             await sendEmail(
                 resignation.employee.email, 
                 'Relieving Letter - Forge India Connect', 
                 `Dear ${resignation.employee.name},\n\nPlease find attached your formal relieving letter.\n\nBest Regards,\nForge India Connect HR`,
                 [{ filename: path.basename(filePath), path: filePath }]
             );
+        } else {
+            console.error('[RESIGNATION] Skipping email: Relieving letter PDF path not found.');
         }
 
         res.json(resignation);
