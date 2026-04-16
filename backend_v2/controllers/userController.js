@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { sendEmail } = require('../services/mailService');
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -28,8 +29,31 @@ const registerUser = async (req, res) => {
         }
 
         const user = await User.create(userData);
-
+        
         if (user) {
+            // Send Welcome Email with Credentials
+            const portalUrl = process.env.PORTAL_URL || 'https://forgeindiaconnect.in';
+            const emailSubject = 'Welcome to Forge India Connect - Your Login Credentials';
+            const emailText = `Dear ${user.name},
+
+Welcome to the Forge India Connect family!
+
+Your employee portal account has been created successfully. You can now log in to track your leads, manage expenses, and view company policies.
+
+Your Login Credentials:
+- Portal Link: ${portalUrl}
+- Email/Username: ${user.email}
+- Password: ${password}
+
+Please log in and update your password if needed.
+
+Best Regards,
+HR Department
+Forge India Connect`;
+
+            // Send email asynchronously (don't await so the UI stays fast)
+            sendEmail(user.email, emailSubject, emailText);
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,

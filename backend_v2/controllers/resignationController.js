@@ -2,44 +2,9 @@ const Resignation = require('../models/Resignation');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const PDFDocument = require('pdfkit');
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('../services/mailService');
 const fs = require('fs');
 const path = require('path');
-
-// Email Helper
-const sendEmail = async (to, subject, text, attachments = []) => {
-    try {
-        console.log(`[EMAIL] Attempting to send email to ${to}...`);
-        console.log(`[EMAIL] SMTP Config: host=${process.env.SMTP_HOST}, port=${process.env.SMTP_PORT}, user=${process.env.SMTP_USER}`);
-
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: process.env.SMTP_PORT == 465, 
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-        });
-
-        // Verify connection before sending
-        await transporter.verify();
-        console.log('[EMAIL] SMTP Connection verified successfully');
-
-        const info = await transporter.sendMail({
-            from: `"${process.env.SMTP_FROM_NAME || 'FIC Admin'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
-            to,
-            subject,
-            text,
-            attachments
-        });
-        
-        console.log(`[EMAIL] Success: Message sent to ${to}. ID: ${info.messageId}`);
-    } catch (error) {
-        console.error('[EMAIL] CRITICAL ERROR sending email:', error.message);
-        console.error('[EMAIL] Full Error Details:', error);
-    }
-};
 
 const notifyUser = async (userId, type, message, link) => {
     try {
