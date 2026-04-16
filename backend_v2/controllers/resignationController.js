@@ -171,7 +171,7 @@ Best Regards,
 HR Department
 Forge India Connect`;
 
-            await sendEmail(
+            sendEmail(
                 resignation.employee.email,
                 'Resignation Approved & Notice Period Started - Forge India Connect',
                 emailContent
@@ -308,7 +308,7 @@ const finalizeResignation = async (req, res) => {
 
         if (filePath) {
             console.log(`[RESIGNATION] Triggering Finalized email with PDF: ${filePath}`);
-            await sendEmail(
+            sendEmail(
                 resignation.employee.email, 
                 'Relieving Letter - Forge India Connect', 
                 `Dear ${resignation.employee.name},\n\nPlease find attached your formal relieving letter.\n\nBest Regards,\nForge India Connect HR`,
