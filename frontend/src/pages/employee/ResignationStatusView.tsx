@@ -149,16 +149,16 @@ const ResignationStatusView: React.FC<Props> = ({ resignation }) => {
                   </a>
                 )}
                 
-                {resignation.status !== 'Completed' && (
+                <div className="pt-4 border-t border-slate-100">
                   <button 
                     onClick={handleRevoke}
                     disabled={revoking}
-                    className="w-full mt-4 flex items-center justify-center gap-2 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 px-4 rounded-xl transition-all duration-300 disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 px-4 rounded-xl transition-all duration-300 disabled:opacity-50"
                   >
                     <Ban size={18} />
-                    {revoking ? 'Revoking...' : 'Revoke Resignation'}
+                    {revoking ? 'Deleting Record...' : 'Delete/Revoke Request (Admin Test)'}
                   </button>
-                )}
+                </div>
              </div>
            </CardContent>
         </Card>

@@ -318,14 +318,10 @@ const revokeResignation = async (req, res) => {
         const resignation = await Resignation.findById(req.params.id);
         if (!resignation) return res.status(404).json({ message: 'Not found' });
         
+        // Allow admin testing the revocation regardless of complete status
         // Ensure only the employee who created it or an admin can delete it
         if (resignation.employee.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'hr_manager') {
              return res.status(403).json({ message: 'Not authorized to revoke this resignation' });
-        }
-        
-        // Prevent revocation if already completely processed
-        if (resignation.status === 'Completed') {
-             return res.status(400).json({ message: 'Cannot revoke a finalized resignation.' });
         }
 
         await Resignation.findByIdAndDelete(req.params.id);
