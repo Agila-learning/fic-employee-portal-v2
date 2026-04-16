@@ -20,7 +20,7 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
     email: '',
     password: '',
     employee_id: '',
-    role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin'
+    role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -139,13 +139,14 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
             </Label>
             <Select
               value={formData.role}
-              onValueChange={(value: 'admin' | 'employee' | 'md' | 'sub-admin') => setFormData(prev => ({ ...prev, role: value }))}
+              onValueChange={(value: 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager') => setFormData(prev => ({ ...prev, role: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="employee">Employee</SelectItem>
+                <SelectItem value="hr_manager">HR Manager</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="sub-admin">Sub-Admin</SelectItem>
                 <SelectItem value="md">Managing Director (MD)</SelectItem>

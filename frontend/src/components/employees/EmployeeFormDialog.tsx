@@ -20,7 +20,7 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ 
     name: '', email: '', employee_id: '', is_active: true, 
-    role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin',
+    role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager',
     base_salary: '', incentive_per_success: '' 
   });
 
@@ -89,6 +89,7 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="employee">Employee</SelectItem>
+                <SelectItem value="hr_manager">HR Manager</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="sub-admin">Sub-Admin</SelectItem>
                 <SelectItem value="md">Managing Director (MD)</SelectItem>

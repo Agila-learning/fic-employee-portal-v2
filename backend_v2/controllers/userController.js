@@ -109,7 +109,7 @@ const getUsers = async (req, res) => {
 
         // If the requester is an employee, only show administrative users they can chat with
         if (req.user.role === 'employee') {
-            filters.role = { $in: ['admin', 'md', 'sub-admin'] };
+            filters.role = { $in: ['admin', 'md', 'sub-admin', 'hr_manager'] };
         }
         // Sub-admins and admins/md can see all users, but can also filter by role if provided in query
 

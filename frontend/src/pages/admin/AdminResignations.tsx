@@ -209,8 +209,10 @@ const AdminResignations = () => {
                     />
                     
                     <div className="flex gap-3 flex-wrap">
-                      {/* HR Actions */}
-                      {user?.role === 'hr_manager' && selectedItem.status === 'Submitted' && (
+                      {/* HR Actions: Only if Submitted and not HR resigning (HR resignation goes to CEO) */}
+                      {user?.role === 'hr_manager' && 
+                       selectedItem.status === 'Submitted' && 
+                       selectedItem.employee?.role !== 'hr_manager' && (
                         <>
                           <Button disabled={processing} onClick={() => handleAction('HR Approved')} className="bg-purple-600 hover:bg-purple-700">
                             <CheckCircle2 className="w-4 h-4 mr-2" /> HR Approve
@@ -224,7 +226,9 @@ const AdminResignations = () => {
                       {/* Admin / CEO Actions */}
                       {(user?.role === 'admin' || user?.role === 'md') && (
                         <>
-                          {(selectedItem.status === 'HR Approved' || selectedItem.status === 'Submitted') && (
+                          {/* CEO Approve: Only if HR Approved OR if applicant is HR Manager (skips HR step) */}
+                          {((selectedItem.status === 'HR Approved') || 
+                            (selectedItem.status === 'Submitted' && selectedItem.employee?.role === 'hr_manager')) && (
                             <>
                               <Button disabled={processing} onClick={() => handleAction('CEO Approved')} className="bg-indigo-600 hover:bg-indigo-700">
                                 <CheckCircle2 className="w-4 h-4 mr-2" /> CEO Approve
@@ -233,6 +237,13 @@ const AdminResignations = () => {
                                 <XCircle className="w-4 h-4 mr-2" /> Reject
                               </Button>
                             </>
+                          )}
+                          
+                          {/* Fallback for CEO to approve Submitted directly if needed (e.g. bypass HR) */}
+                          {selectedItem.status === 'Submitted' && selectedItem.employee?.role !== 'hr_manager' && (
+                             <Button disabled={processing} variant="outline" onClick={() => handleAction('CEO Approved')} className="text-indigo-600 border-indigo-200">
+                               Bypass to CEO Approve
+                             </Button>
                           )}
 
                           {selectedItem.status === 'CEO Approved' && (
