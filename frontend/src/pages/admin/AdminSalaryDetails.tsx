@@ -168,7 +168,7 @@ const AdminSalaryDetails = () => {
                     <SelectTrigger><SelectValue placeholder="Choose employee" /></SelectTrigger>
                     <SelectContent>
                       {activeEmployees.map(emp => (
-                        <SelectItem key={emp._id || emp.user_id} value={emp._id || emp.user_id}>
+                        <SelectItem key={(emp as any)._id || (emp as any).user_id} value={(emp as any)._id || (emp as any).user_id}>
                           {emp.name} ({emp.employee_id})
                         </SelectItem>
                       ))}

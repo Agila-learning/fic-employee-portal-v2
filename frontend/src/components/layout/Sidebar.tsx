@@ -21,6 +21,7 @@ import {
   IndianRupee,
   FileSignature,
   Trophy,
+  MessageSquare,
   Ban,
   ShieldCheck,
   DoorOpen,
