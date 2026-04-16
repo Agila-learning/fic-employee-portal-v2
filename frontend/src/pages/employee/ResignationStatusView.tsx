@@ -117,7 +117,7 @@ const ResignationStatusView: React.FC<Props> = ({ resignation }) => {
                 
                 {resignation.status === 'Completed' && resignation.relievingLetterUrl && (
                   <a 
-                    href={`${import.meta.env.VITE_API_URL || ''}${resignation.relievingLetterUrl}`}
+                    href={`${import.meta.env.VITE_API_URL || '/api'}${resignation.relievingLetterUrl.replace('/uploads', '/uploads')}`}
                     target="_blank"
                     rel="noopener noreferrer" 
                     className="w-full"
