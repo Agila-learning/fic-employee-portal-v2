@@ -71,6 +71,13 @@ const submitResignation = async (req, res) => {
         
         await notifyUser(req.user._id, 'RESIGNATION', 'Your resignation has been submitted successfully.', '/employee/resignation-status');
 
+        // Initial Email to Employee
+        sendEmail(
+            req.user.email,
+            'Resignation Initiated - Forge India Connect',
+            `Dear ${req.user.name},\n\nWe have successfully received your formal resignation request. Your proposed last working date (${new Date(req.body.proposedLastWorkingDate).toLocaleDateString()}) has been noted.\n\nOur HR and Management teams will review your request. You will be notified automatically with notice period details upon CEO approval.\n\nBest Regards,\nHR Department\nForge India Connect`
+        );
+
         // Notify HR Managers (unless it is HR resigning)
         if (req.user.role !== 'hr_manager') {
             const hrs = await User.find({ role: 'hr_manager' });
@@ -222,48 +229,78 @@ const updateAssets = async (req, res) => {
 const generateRelievingLetterPDF = async (resignation) => {
     return new Promise((resolve, reject) => {
         try {
-            const doc = new PDFDocument();
-            const fileName = `Relieving_Letter_${resignation.employee.employee_id}.pdf`;
-            const dir = path.join(__dirname, '..', 'uploads');
-            if (!fs.existsSync(dir)){
-                fs.mkdirSync(dir, { recursive: true });
-            }
             const filePath = path.join(dir, fileName);
             const stream = fs.createWriteStream(filePath);
+            
+            // Standard A4 sizes and margins
+            const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 50, left: 50, right: 50 } });
             doc.pipe(stream);
 
-            // Add Company Header
-            doc.fontSize(20).text('FORGE INDIA CONNECT', { align: 'center' });
-            doc.moveDown();
-            doc.fontSize(14).text('RELIEVING LETTER', { align: 'center', underline: true });
+            const logoPath = path.join(__dirname, '../../frontend/src/assets/fic-logo.jpeg');
+            let hasLogo = fs.existsSync(logoPath);
+
+            // Watermark (Center)
+            if (hasLogo) {
+                doc.save(); 
+                doc.opacity(0.1);
+                // Center the watermark on standard A4 (595.28 x 841.89)
+                doc.image(logoPath, (doc.page.width - 300) / 2, (doc.page.height - 300) / 2, { width: 300 });
+                doc.restore();
+            }
+
+            // Header Section
+            if (hasLogo) {
+                doc.image(logoPath, 50, 45, { width: 80 }); 
+            }
+            
+            // Company Name
+            doc.fillColor('#0b4c92'); 
+            doc.fontSize(22).font('Helvetica-Bold').text('FORGE INDIA CONNECT', 145, 50);
+            
+            // Company Address
+            doc.fillColor('#666666');
+            doc.fontSize(10).font('Helvetica').text('RK Towers, Opposite to HP Petrol Bunk, Wahab Nagar,', 145, 75);
+            doc.text('Rayakottai road, Krishnagiri.', 145, 88);
+            
+            // Separator Line
+            doc.moveTo(50, 115).lineTo(545, 115).lineWidth(2).strokeColor('#e5e7eb').stroke();
+
+            // Document Title
+            doc.fillColor('#000000');
+            doc.fontSize(15).font('Helvetica-Bold').text('RELIEVING LETTER', 50, 145, { align: 'center' });
+            
             doc.moveDown(2);
-
-            doc.fontSize(12).text(`Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
+            doc.fontSize(11).font('Helvetica');
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
             doc.moveDown();
 
-            doc.text(`To,`);
+            doc.font('Helvetica-Bold').text('To,');
             doc.text(`${resignation.employee.name}`);
-            doc.text(`Employee ID: ${resignation.employee.employee_id}`);
+            doc.font('Helvetica').text(`Employee ID: ${resignation.employee.employee_id}`);
             doc.text(`Department: ${resignation.employee.department}`);
-            doc.moveDown();
+            doc.moveDown(1.5);
 
-            doc.text(`Sub: Relieving Letter`, { underline: true });
-            doc.moveDown();
+            doc.font('Helvetica-Bold').text('Sub: Relieving Letter', { underline: true });
+            doc.moveDown(1.5);
 
-            doc.text(`Dear ${resignation.employee.name},`);
+            doc.font('Helvetica').text(`Dear ${resignation.employee.name},`);
             doc.moveDown();
             
-            doc.text(`This has reference to your resignation letter dated ${resignation.appliedDate.toLocaleDateString()}. We would like to inform you that your resignation has been accepted and you are relieved from the services of Forge India Connect with effect from the close of working hours of ${resignation.noticePeriod.expectedLastWorkingDate ? resignation.noticePeriod.expectedLastWorkingDate.toLocaleDateString() : '_____'}.`);
+            let lwd = resignation.noticePeriod && resignation.noticePeriod.expectedLastWorkingDate 
+                      ? new Date(resignation.noticePeriod.expectedLastWorkingDate).toLocaleDateString() 
+                      : '_____';
+
+            doc.text(`This has reference to your resignation letter dated ${new Date(resignation.appliedDate).toLocaleDateString()}. We would like to inform you that your resignation has been accepted and you are relieved from the services of Forge India Connect with effect from the close of working hours of ${lwd}.`, { align: 'justify', lineGap: 4 });
             doc.moveDown();
 
-            doc.text(`Your full and final settlement will be processed within the stipulated timeframe as per company policy.`);
+            doc.text(`Your full and final settlement will be processed within the stipulated timeframe as per company policy.`, { align: 'justify', lineGap: 4 });
             doc.moveDown();
-            doc.text(`We thank you for your contribution to the organization and wish you all the best in your future endeavors.`);
+            doc.text(`We thank you for your contribution to the organization and wish you all the best in your future endeavors.`, { align: 'justify', lineGap: 4 });
+            doc.moveDown(4);
+
+            doc.font('Helvetica-Bold').fillColor('#0b4c92').text(`For Forge India Connect,`);
             doc.moveDown(3);
-
-            doc.text(`For Forge India Connect,`);
-            doc.moveDown(2);
-            doc.text(`________________________`);
+            doc.fillColor('#000000').font('Helvetica').text(`________________________`);
             doc.text(`Authorized Signatory`);
 
             doc.end();
