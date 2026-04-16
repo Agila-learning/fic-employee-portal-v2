@@ -19,6 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import CredentialProjectDialog from '@/components/credentials/CredentialProjectDialog';
 import ProjectCredentialsView from '@/components/credentials/ProjectCredentialsView';
 
