@@ -10,15 +10,17 @@ const path = require('path');
 const sendEmail = async (to, subject, text, attachments = []) => {
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail', // Standard fallback, you can update this to SMTP config
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || 587,
+            secure: process.env.SMTP_PORT == 465, // true for 465, false for other ports
             auth: {
-                user: process.env.EMAIL_USER || 'no-reply@forgeindiaconnect.com',
-                pass: process.env.EMAIL_PASS || 'password',
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
             },
         });
 
         await transporter.sendMail({
-            from: process.env.EMAIL_USER || 'no-reply@forgeindiaconnect.com',
+            from: `"${process.env.SMTP_FROM_NAME || 'FIC Admin'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
             to,
             subject,
             text,
@@ -126,8 +128,49 @@ const updateResignationStatus = async (req, res) => {
             changedBy: req.user._id
         });
         
-        if (status === 'Notice Active') {
-            resignation.noticePeriod.expectedLastWorkingDate = resignation.proposedLastWorkingDate; // Reset or fix here
+        // CEO Approval Automation
+        if (status === 'CEO Approved') {
+            // Notice period starts now. Calculate expected LWD.
+            // Default to 1 month from now or use notice period setting
+            const noticeDays = resignation.noticePeriod?.totalDays || 30;
+            const expectedLWD = new Date();
+            expectedLWD.setDate(expectedLWD.getDate() + noticeDays);
+            
+            resignation.noticePeriod.expectedLastWorkingDate = expectedLWD;
+            resignation.status = 'Notice Active'; // Automatically advance to active notice period
+            
+            // Add a timeline entry for auto-transition
+            resignation.timeline.push({
+                status: 'Notice Active',
+                remarks: `Automated: Notice period started upon CEO approval. Expected LWD: ${expectedLWD.toLocaleDateString()}`,
+                changedBy: req.user._id
+            });
+
+            // Send notification email to employee
+            const emailContent = `Dear ${resignation.employee.name},
+
+Your resignation request has been APPROVED by the CEO.
+
+NOTICE PERIOD DETAILS:
+- Start Date: ${new Date().toLocaleDateString()}
+- Notice Duration: ${noticeDays} days
+- Expected Last Working Date: ${expectedLWD.toLocaleDateString()}
+
+Please complete the handover process and asset clearance as scheduled.
+
+Best Regards,
+HR Department
+Forge India Connect`;
+
+            await sendEmail(
+                resignation.employee.email,
+                'Resignation Approved & Notice Period Started - Forge India Connect',
+                emailContent
+            );
+        }
+
+        if (status === 'Notice Active' && !resignation.noticePeriod.expectedLastWorkingDate) {
+            resignation.noticePeriod.expectedLastWorkingDate = resignation.proposedLastWorkingDate;
         }
 
         await resignation.save();
@@ -135,7 +178,7 @@ const updateResignationStatus = async (req, res) => {
         await notifyUser(
             resignation.employee._id, 
             'RESIGNATION_UPDATE', 
-            `Your resignation status updated to: ${status}`, 
+            `Your resignation status updated to: ${resignation.status}`, 
             '/employee/resignation-status'
         );
 
