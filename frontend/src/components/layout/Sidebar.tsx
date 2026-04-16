@@ -21,10 +21,11 @@ import {
   IndianRupee,
   FileSignature,
   Trophy,
-  MessageSquare,
+  Ban,
   ShieldCheck,
   DoorOpen,
   Key,
+  Landmark,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -82,6 +83,7 @@ const Sidebar = () => {
     { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
     { to: '/admin/resignations', icon: DoorOpen, label: 'Resignations' },
     { to: '/admin/credentials', icon: Key, label: 'Credentials Manager' },
+    { to: '/admin/salary-details', icon: Landmark, label: 'Salary Details' },
     { to: '/admin/storage', icon: HardDrive, label: 'Storage' },
     { to: '/admin/invoice', icon: Receipt, label: 'Invoice' },
     { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
@@ -127,6 +129,7 @@ const Sidebar = () => {
   const hrManagerLinks = [
     ...employeeLinks.filter(l => l.label !== 'Settings'),
     { to: '/admin/resignations', icon: DoorOpen, label: 'HR Resignations' },
+    { to: '/admin/salary-details', icon: Landmark, label: 'Salary Details' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -142,6 +145,7 @@ const Sidebar = () => {
     { to: '/employee/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/admin/resignations', icon: DoorOpen, label: 'Resignations' },
+    { to: '/admin/salary-details', icon: Landmark, label: 'Salary Details' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
