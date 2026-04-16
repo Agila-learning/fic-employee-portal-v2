@@ -8,10 +8,11 @@ import { operationService } from '@/api/operationService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import LeadFormDialog from '@/components/leads/LeadFormDialog';
-import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase, Star, Calendar as CalendarIcon, Loader2, MessageSquare } from 'lucide-react';
+import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase, Star, Calendar as CalendarIcon, Loader2, MessageSquare, Key } from 'lucide-react';
 import AdminLeaveRequests from '@/components/leave/AdminLeaveRequests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { credentialService } from '@/api/credentialService';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { STATUS_OPTIONS, STATUS_OPTIONS_ADMIN, Lead, INTERESTED_DOMAIN_OPTIONS } from '@/types';
 import { cn, safeParseDate, getInitials } from '@/lib/utils';
@@ -29,6 +30,7 @@ const AdminDashboard = () => {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loadingAttendance, setLoadingAttendance] = useState(true);
   const [attendanceRange, setAttendanceRange] = useState<'today' | 'week' | 'month'>('today');
+  const [projectCount, setProjectCount] = useState(0);
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -47,7 +49,18 @@ const AdminDashboard = () => {
         setLoadingAttendance(false);
       }
     };
+
+    const fetchProjectCount = async () => {
+      try {
+        const data = await credentialService.getProjects();
+        setProjectCount(data.length);
+      } catch (error) {
+        console.error('Failed to fetch projects', error);
+      }
+    };
+
     fetchAttendance();
+    fetchProjectCount();
   }, []);
 
   const attendanceStats = useMemo(() => {
@@ -141,14 +154,14 @@ const AdminDashboard = () => {
     }
 
     // Map to quickly check if a user ID belongs to an employee we care about
-    const employeeIds = new Set(employees.map(e => (e.user_id || e._id || e.id)?.toString()).filter(Boolean));
+    const employeeIds = new Set(employees.map(e => (e.user_id || (e as any)._id || e.id)?.toString()).filter(Boolean));
     
     let success = 0;
     let total = 0;
 
     leads.forEach(l => {
-      const assignedId = (typeof l.assigned_to === 'object' ? (l.assigned_to?.id || l.assigned_to?._id) : l.assigned_to)?.toString();
-      const creatorId = (typeof l.created_by === 'object' ? (l.created_by?.id || l.created_by?._id) : l.created_by)?.toString();
+      const assignedId = (typeof l.assigned_to === 'object' ? (l.assigned_to?.id || (l.assigned_to as any)?._id) : l.assigned_to)?.toString();
+      const creatorId = (typeof l.created_by === 'object' ? (l.created_by?.id || (l.created_by as any)?._id) : l.created_by)?.toString();
       
       const isEmployeeLead = (assignedId && employeeIds.has(assignedId)) || (creatorId && employeeIds.has(creatorId));
       
@@ -173,7 +186,7 @@ const AdminDashboard = () => {
     if (!activeEmployees.length) return [];
     
     return activeEmployees.map(emp => {
-      const empId = (emp.user_id || emp._id || emp.id)?.toString();
+      const empId = (emp.user_id || (emp as any)._id || emp.id)?.toString();
       const empLeads = leads.filter(l => matchEmployee(l.assigned_to, empId) || matchEmployee(l.created_by, empId));
       
       return {
@@ -199,7 +212,7 @@ const AdminDashboard = () => {
     }
 
     const performance = activeEmployees.map(emp => {
-      const empId = (emp.user_id || emp._id || emp.id)?.toString();
+      const empId = (emp.user_id || (emp as any)._id || emp.id)?.toString();
       const weeklyLeads = leads.filter(l => {
         if (!(matchEmployee(l.assigned_to, empId) || matchEmployee(l.created_by, empId))) return false;
         if (!isStatus(l.status, ['converted', 'success'])) return false;
@@ -325,6 +338,14 @@ const AdminDashboard = () => {
               delay={400}
             />
           </div>
+          <StatsCard
+            title="Project Vault"
+            value={projectCount}
+            icon={Key}
+            iconClassName="bg-gradient-to-br from-indigo-500 to-indigo-600"
+            delay={450}
+            link="/admin/credentials"
+          />
         </div>
 
 

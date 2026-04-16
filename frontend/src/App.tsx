@@ -34,6 +34,7 @@ const AdminSuccessStories = lazy(() => import("./pages/admin/AdminSuccessStories
 const AdminChat = lazy(() => import("./pages/admin/AdminChat"));
 const AdminPolicies = lazy(() => import("./pages/admin/AdminPolicies"));
 const AdminResignations = lazy(() => import("./pages/admin/AdminResignations"));
+const CredentialsManager = lazy(() => import("./pages/admin/CredentialsManager"));
 
 // Lazy load employee pages
 const EmployeeDashboard = lazy(() => import("./pages/employee/EmployeeDashboard"));
@@ -106,6 +107,7 @@ const App = () => (
                 <Route path="/admin/invoice" element={<AdminInvoice />} />
                 <Route path="/admin/leave-requests" element={<AdminLeaveRequestsPage />} />
                 <Route path="/admin/resignations" element={<AdminResignations />} />
+                <Route path="/admin/credentials" element={<CredentialsManager />} />
                 <Route path="/admin/expenses" element={<AdminExpenses />} />
                 <Route path="/admin/payroll" element={<AdminPayroll />} />
                 <Route path="/admin/offer-letter" element={<AdminOfferLetter />} />

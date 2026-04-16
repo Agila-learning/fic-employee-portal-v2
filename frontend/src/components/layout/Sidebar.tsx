@@ -80,6 +80,7 @@ const Sidebar = () => {
     { to: '/admin/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
     { to: '/admin/resignations', icon: DoorOpen, label: 'Resignations' },
+    { to: '/admin/credentials', icon: Key, label: 'Credentials Manager' },
     { to: '/admin/storage', icon: HardDrive, label: 'Storage' },
     { to: '/admin/invoice', icon: Receipt, label: 'Invoice' },
     { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
