@@ -20,8 +20,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import CredentialProjectDialog from '@/components/credentials/CredentialProjectDialog';
-import ProjectCredentialsView from '@/components/credentials/ProjectCredentialsView';
+import CredentialProjectDialog from '../../components/credentials/CredentialProjectDialog';
+import ProjectCredentialsView from '../../components/credentials/ProjectCredentialsView';
 
 const STATUS_COLORS: Record<string, string> = {
   'Active': 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
