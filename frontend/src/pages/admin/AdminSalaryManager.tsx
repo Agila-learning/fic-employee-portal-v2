@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { salaryService } from '@/api/salaryService';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Landmark, Plus, Search, Calendar, MapPin, Building2, History, Trash2, Edit } from 'lucide-react';
+import { Landmark, Plus, Search, Calendar, MapPin, Building2, History, Trash2, Edit, ShieldCheck, Ban } from 'lucide-react';
 import { format } from 'date-fns';
 
 const AdminSalaryDetails = () => {
