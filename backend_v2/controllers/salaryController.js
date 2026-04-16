@@ -24,7 +24,7 @@ const getSalaryDetailByUserId = async (req, res) => {
 
 const upsertSalaryDetail = async (req, res) => {
     try {
-        const { userId, ifscCode, bankName, location, department, joiningDate, totalSalary } = req.body;
+        const { userId, ifscCode, bankName, accountNumber, location, department, joiningDate, totalSalary } = req.body;
         
         const user = await User.findById(userId);
         if (!user) {
@@ -36,6 +36,7 @@ const upsertSalaryDetail = async (req, res) => {
         if (salaryDetail) {
             salaryDetail.ifscCode = ifscCode || salaryDetail.ifscCode;
             salaryDetail.bankName = bankName || salaryDetail.bankName;
+            salaryDetail.accountNumber = accountNumber || salaryDetail.accountNumber;
             salaryDetail.location = location || salaryDetail.location;
             salaryDetail.department = department || salaryDetail.department;
             salaryDetail.joiningDate = joiningDate || salaryDetail.joiningDate;
@@ -49,6 +50,7 @@ const upsertSalaryDetail = async (req, res) => {
                 employeeId: user.employee_id,
                 ifscCode,
                 bankName,
+                accountNumber,
                 location,
                 department,
                 joiningDate,
@@ -65,7 +67,7 @@ const upsertSalaryDetail = async (req, res) => {
 
 const addMonthlySalary = async (req, res) => {
     try {
-        const { userId, month, year, amount, status, remarks } = req.body;
+        const { userId, month, year, amount, lopDays, lopAmount, status, remarks } = req.body;
         
         let salaryDetail = await SalaryDetail.findOne({ user: userId });
         if (!salaryDetail) {
@@ -82,6 +84,8 @@ const addMonthlySalary = async (req, res) => {
             month: parseInt(month),
             year: parseInt(year),
             amount: parseFloat(amount),
+            lopDays: parseFloat(lopDays) || 0,
+            lopAmount: parseFloat(lopAmount) || 0,
             status: status || 'Paid',
             remarks: remarks || ''
         });

@@ -4,6 +4,8 @@ const monthlySalarySchema = mongoose.Schema({
     month: { type: Number, required: true },
     year: { type: Number, required: true },
     amount: { type: Number, required: true },
+    lopDays: { type: Number, default: 0 },
+    lopAmount: { type: Number, default: 0 },
     status: { type: String, enum: ['Paid', 'Pending'], default: 'Paid' },
     paidDate: { type: Date, default: Date.now },
     remarks: { type: String }
@@ -20,6 +22,7 @@ const salaryDetailSchema = mongoose.Schema({
     employeeId: { type: String }, // Cached for convenience
     ifscCode: { type: String },
     bankName: { type: String },
+    accountNumber: { type: String },
     location: { type: String },
     department: { type: String },
     joiningDate: { type: Date },

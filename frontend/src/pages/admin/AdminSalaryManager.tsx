@@ -28,6 +28,7 @@ const AdminSalaryDetails = () => {
   const [credentialForm, setCredentialForm] = useState({
     ifscCode: '',
     bankName: '',
+    accountNumber: '',
     location: '',
     department: '',
     joiningDate: '',
@@ -41,6 +42,8 @@ const AdminSalaryDetails = () => {
     month: (new Date().getMonth() + 1).toString(),
     year: new Date().getFullYear().toString(),
     amount: '',
+    lopDays: '0',
+    lopAmount: '0',
     status: 'Paid',
     remarks: '',
   });
@@ -117,6 +120,7 @@ const AdminSalaryDetails = () => {
     setCredentialForm({
       ifscCode: '',
       bankName: '',
+      accountNumber: '',
       location: '',
       department: '',
       joiningDate: '',
@@ -129,6 +133,7 @@ const AdminSalaryDetails = () => {
     setCredentialForm({
       ifscCode: detail.ifscCode || '',
       bankName: detail.bankName || '',
+      accountNumber: detail.accountNumber || '',
       location: detail.location || '',
       department: detail.department || '',
       joiningDate: detail.joiningDate ? detail.joiningDate.split('T')[0] : '',
@@ -181,9 +186,13 @@ const AdminSalaryDetails = () => {
                     <Input value={credentialForm.bankName} onChange={e => setCredentialForm({...credentialForm, bankName: e.target.value})} placeholder="e.g. SBI, HDFC" />
                   </div>
                   <div className="space-y-2">
-                    <Label>IFSC Code</Label>
-                    <Input value={credentialForm.ifscCode} onChange={e => setCredentialForm({...credentialForm, ifscCode: e.target.value})} placeholder="SBIN000..." />
+                    <Label>Account Number</Label>
+                    <Input value={credentialForm.accountNumber} onChange={e => setCredentialForm({...credentialForm, accountNumber: e.target.value})} placeholder="Account No" />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>IFSC Code</Label>
+                  <Input value={credentialForm.ifscCode} onChange={e => setCredentialForm({...credentialForm, ifscCode: e.target.value})} placeholder="SBIN000..." />
                 </div>
                 <div className="space-y-2">
                   <Label>Location / Branch</Label>
@@ -245,8 +254,9 @@ const AdminSalaryDetails = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="text-sm">{detail.bankName}</span>
-                          <span className="text-xs font-mono text-muted-foreground">{detail.ifscCode}</span>
+                          <span className="text-sm font-semibold">{detail.bankName}</span>
+                          <span className="text-xs text-muted-foreground">{detail.accountNumber || 'N/A'}</span>
+                          <span className="text-[10px] font-mono text-muted-foreground/60">{detail.ifscCode}</span>
                         </div>
                       </TableCell>
                       <TableCell><Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">{detail.department}</Badge></TableCell>
@@ -300,8 +310,16 @@ const AdminSalaryDetails = () => {
                   <Input type="number" className="h-8" value={monthlyForm.year} onChange={e => setMonthlyForm({...monthlyForm, year: e.target.value})} />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] uppercase">Amount (₹)</Label>
+                  <Label className="text-[10px] uppercase">Paid Amount (₹)</Label>
                   <Input type="number" className="h-8" value={monthlyForm.amount} onChange={e => setMonthlyForm({...monthlyForm, amount: e.target.value})} required />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase">LOP Days</Label>
+                  <Input type="number" className="h-8" value={monthlyForm.lopDays} onChange={e => setMonthlyForm({...monthlyForm, lopDays: e.target.value})} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase">LOP Amount (₹)</Label>
+                  <Input type="number" className="h-8" value={monthlyForm.lopAmount} onChange={e => setMonthlyForm({...monthlyForm, lopAmount: e.target.value})} />
                 </div>
                 <div className="space-y-1 col-span-2">
                   <Label className="text-[10px] uppercase">Remarks</Label>
@@ -319,6 +337,7 @@ const AdminSalaryDetails = () => {
                     <TableRow>
                       <TableHead className="py-2 h-8">Period</TableHead>
                       <TableHead className="py-2 h-8">Amount</TableHead>
+                      <TableHead className="py-2 h-8">LOP</TableHead>
                       <TableHead className="py-2 h-8">Status</TableHead>
                       <TableHead className="py-2 h-8">Date</TableHead>
                     </TableRow>
@@ -328,6 +347,11 @@ const AdminSalaryDetails = () => {
                       <TableRow key={idx}>
                         <TableCell className="py-2 font-medium">{format(new Date(s.year, s.month-1, 1), 'MMM yyyy')}</TableCell>
                         <TableCell className="py-2 font-bold text-emerald-600">₹{s.amount.toLocaleString()}</TableCell>
+                        <TableCell className="py-2 text-xs">
+                          {s.lopDays > 0 ? (
+                            <span className="text-red-500 font-medium">{s.lopDays}d (-₹{s.lopAmount})</span>
+                          ) : '-'}
+                        </TableCell>
                         <TableCell className="py-2"><Badge className="bg-emerald-50 text-emerald-600 border-none px-1.5 py-0 text-[10px]">{s.status}</Badge></TableCell>
                         <TableCell className="py-2 text-xs text-muted-foreground">{s.paidDate ? format(new Date(s.paidDate), 'dd/MM/yy') : '-'}</TableCell>
                       </TableRow>
