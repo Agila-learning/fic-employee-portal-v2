@@ -37,4 +37,12 @@ const subAdmin = (req, res, next) => {
     }
 };
 
-module.exports = { protect, admin, subAdmin };
+const hrManager = (req, res, next) => {
+    if (req.user && (req.user.role === 'hr_manager' || req.user.role === 'admin' || req.user.role === 'md')) {
+        next();
+    } else {
+        return res.status(403).json({ message: 'Not authorized as an HR Manager' });
+    }
+};
+
+module.exports = { protect, admin, subAdmin, hrManager };

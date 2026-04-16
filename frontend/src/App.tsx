@@ -33,6 +33,7 @@ const AdminOfferLetter = lazy(() => import("./pages/admin/AdminOfferLetter"));
 const AdminSuccessStories = lazy(() => import("./pages/admin/AdminSuccessStories"));
 const AdminChat = lazy(() => import("./pages/admin/AdminChat"));
 const AdminPolicies = lazy(() => import("./pages/admin/AdminPolicies"));
+const AdminResignations = lazy(() => import("./pages/admin/AdminResignations"));
 
 // Lazy load employee pages
 const EmployeeDashboard = lazy(() => import("./pages/employee/EmployeeDashboard"));
@@ -47,6 +48,7 @@ const EmployeeExpenses = lazy(() => import("./pages/employee/EmployeeExpenses"))
 const EmployeePayslips = lazy(() => import("./pages/employee/EmployeePayslips"));
 const EmployeeSuccessStories = lazy(() => import("./pages/employee/EmployeeSuccessStories"));
 const EmployeeChat = lazy(() => import("./pages/employee/EmployeeChat"));
+const EmployeeResignation = lazy(() => import("./pages/employee/EmployeeResignation"));
 const Settings = lazy(() => import("./pages/Settings"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
@@ -103,6 +105,7 @@ const App = () => (
                 <Route path="/admin/storage" element={<AdminStorage />} />
                 <Route path="/admin/invoice" element={<AdminInvoice />} />
                 <Route path="/admin/leave-requests" element={<AdminLeaveRequestsPage />} />
+                <Route path="/admin/resignations" element={<AdminResignations />} />
                 <Route path="/admin/expenses" element={<AdminExpenses />} />
                 <Route path="/admin/payroll" element={<AdminPayroll />} />
                 <Route path="/admin/offer-letter" element={<AdminOfferLetter />} />
@@ -118,6 +121,7 @@ const App = () => (
                 <Route path="/employee/attendance" element={<EmployeeAttendance />} />
                 <Route path="/employee/tasks" element={<EmployeeTasks />} />
                 <Route path="/employee/leave" element={<EmployeeLeave />} />
+                <Route path="/employee/resignation" element={<EmployeeResignation />} />
                 <Route path="/employee/expenses" element={<EmployeeExpenses />} />
                 <Route path="/employee/payslips" element={<EmployeePayslips />} />
                 <Route path="/employee/success-stories" element={<EmployeeSuccessStories />} />

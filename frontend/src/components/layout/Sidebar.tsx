@@ -23,6 +23,7 @@ import {
   Trophy,
   MessageSquare,
   ShieldCheck,
+  DoorOpen,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -78,6 +79,7 @@ const Sidebar = () => {
     { to: '/admin/policies', icon: ShieldCheck, label: 'Policies' },
     { to: '/admin/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
+    { to: '/admin/resignations', icon: DoorOpen, label: 'Resignations' },
     { to: '/admin/storage', icon: HardDrive, label: 'Storage' },
     { to: '/admin/invoice', icon: Receipt, label: 'Invoice' },
     { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
@@ -113,9 +115,16 @@ const Sidebar = () => {
     { to: '/employee/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/employee/tasks', icon: ClipboardList, label: 'Tasks' },
     { to: '/employee/leave', icon: CalendarClock, label: 'Leave Request' },
+    { to: '/employee/resignation', icon: DoorOpen, label: 'Apply for Resignation' },
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
     { to: '/employee/success-stories', icon: Trophy, label: 'Success Stories' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  const hrManagerLinks = [
+    ...employeeLinks.filter(l => l.label !== 'Settings'),
+    { to: '/admin/resignations', icon: DoorOpen, label: 'HR Resignations' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -130,6 +139,7 @@ const Sidebar = () => {
     { to: '/employee/followups', icon: CalendarClock, label: 'Follow-ups' },
     { to: '/employee/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
+    { to: '/admin/resignations', icon: DoorOpen, label: 'Resignations' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -137,6 +147,7 @@ const Sidebar = () => {
     if (user?.role === 'admin') return adminLinks;
     if (user?.role === 'sub-admin') return subAdminLinks;
     if (user?.role === 'md') return mdLinks;
+    if (user?.role === 'hr_manager') return hrManagerLinks;
     return employeeLinks;
   };
 

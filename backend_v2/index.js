@@ -42,6 +42,8 @@ const utilityRoutes = require('./routes/utilityRoutes');
 const operationRoutes = require('./routes/operationRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const policyRoutes = require('./routes/policyRoutes');
+const resignationRoutes = require('./routes/resignationRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/leads', leadRoutes);
@@ -51,6 +53,8 @@ app.use('/api/utility', utilityRoutes);
 app.use('/api/operations', operationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/policies', policyRoutes);
+app.use('/api/resignations', resignationRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Initialize Cron Jobs
 const { initCronJobs } = require('./services/cronService');

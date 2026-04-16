@@ -1,5 +1,6 @@
 const Payslip = require('../models/Payslip.js');
 const LeaveRequest = require('../models/LeaveRequest.js');
+const Resignation = require('../models/Resignation.js');
 const Attendance = require('../models/Attendance.js');
 const Expense = require('../models/Expense.js');
 const Holiday = require('../models/Holiday.js');
@@ -71,6 +72,16 @@ const deletePayslip = async (req, res) => {
 // Leave Requests
 const createLeaveRequest = async (req, res) => {
     try {
+        // Prevent leave if in notice period
+        const activeResignation = await Resignation.findOne({
+            employee: req.user._id,
+            status: { $in: ['HR Approved', 'CEO Approved', 'Notice Active', 'Clearance Pending'] }
+        });
+
+        if (activeResignation) {
+            return res.status(400).json({ message: "Leave is not allowed during the notice period. Any absence will extend your final working date." });
+        }
+
         const request = await LeaveRequest.create({ ...req.body, user_id: req.user._id });
         res.status(201).json(request);
     } catch (error) {

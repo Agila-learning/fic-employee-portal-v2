@@ -1,4 +1,71 @@
-export type AppRole = 'admin' | 'employee' | 'md' | 'sub-admin';
+export type AppRole = 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager';
+
+export interface AssetClearance {
+  assetName: string;
+  issuedDate?: string;
+  returnStatus: 'Pending' | 'Submitted';
+  returnDate?: string;
+  verifiedBy?: string;
+  remarks?: string;
+  _id?: string;
+}
+
+export interface ResignationTimeline {
+  status: string;
+  remarks?: string;
+  changedBy?: any; // User object or string ID
+  date?: string;
+  _id?: string;
+}
+
+export interface Resignation {
+  _id: string;
+  employee: any; // User object
+  status: 'Submitted' | 'HR Approved' | 'CEO Approved' | 'Rejected' | 'Notice Active' | 'Clearance Pending' | 'Completed';
+  appliedDate: string;
+  proposedLastWorkingDate: string;
+  reason: string;
+  customReason?: string;
+  experience?: string;
+  whatLiked?: string;
+  challenges?: string;
+  clearResponsibilities?: string;
+  properSupport?: string;
+  workCultureRate?: string;
+  growthRate?: string;
+  managementRate?: string;
+  salaryRate?: string;
+  recommend?: string;
+  improveCulture?: string;
+  improveManagement?: string;
+  improveHR?: string;
+  improveTraining?: string;
+  finalFeedback?: string;
+  biggestAchievement?: string;
+  keyProjects?: string;
+  bestContribution?: string;
+  awards?: string;
+  skillsDeveloped?: string;
+  startedKT?: boolean;
+  pendingTasks?: string;
+  ongoingAssignments?: string;
+  handoutPersonName?: string;
+  clientDependencies?: string;
+  transitionComments?: string;
+  noticePeriod?: {
+    defaultDays: number;
+    totalDays: number;
+    completedDays: number;
+    remainingDays: number;
+    extraDaysAdded: number;
+    expectedLastWorkingDate: string;
+  };
+  assets: AssetClearance[];
+  timeline: ResignationTimeline[];
+  relievingLetterUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 export type LeadStatus = 'nc1' | 'nc2' | 'nc3' | 'follow_up' | 'converted' | 'success' | 'rejected' | 'not_interested' | 'not_interested_paid' | 'different_domain';
 export type LeadSource = 'social_media' | 'own_source' | 'college' | 'referral' | 'job_portal' | 'website' | 'agents' | 'other';
 export type PaymentStage = 'registration_done' | 'initial_payment_done' | 'full_payment_done';

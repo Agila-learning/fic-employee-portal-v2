@@ -2,6 +2,33 @@ const cron = require('node-cron');
 const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const Holiday = require('../models/Holiday');
+const Resignation = require('../models/Resignation');
+
+const processNoticeExtension = async (employeeId) => {
+    try {
+        const activeResignation = await Resignation.findOne({
+            employee: employeeId,
+            status: 'Notice Active'
+        });
+        
+        if (activeResignation) {
+            // Add 1 extra day
+            activeResignation.noticePeriod.extraDaysAdded = (activeResignation.noticePeriod.extraDaysAdded || 0) + 1;
+            
+            // Recalculate Expected Last Working Date
+            if (activeResignation.noticePeriod.expectedLastWorkingDate) {
+                const newDate = new Date(activeResignation.noticePeriod.expectedLastWorkingDate);
+                newDate.setDate(newDate.getDate() + 1);
+                activeResignation.noticePeriod.expectedLastWorkingDate = newDate;
+            }
+            
+            await activeResignation.save();
+            console.log(`Extended notice period for ${employeeId} due to absence.`);
+        }
+    } catch (err) {
+        console.error('Error extending notice period:', err);
+    }
+};
 
 const initCronJobs = () => {
     // Run every day at 3:00 PM
@@ -43,7 +70,11 @@ const initCronJobs = () => {
                             notes: 'Auto-marked absent (No check-in by 3 PM)'
                         });
                         console.log(`Marked ${employee.name} (${employee.employee_id}) as absent.`);
+                        await processNoticeExtension(employee._id);
                     }
+                } else if (attendance.status === 'absent') {
+                    // They were marked absent manually or previously
+                    await processNoticeExtension(employee._id);
                 }
             }
             console.log('Daily Attendance Check completed.');
