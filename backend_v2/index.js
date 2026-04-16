@@ -62,6 +62,10 @@ app.use('/api/credentials', credentialRoutes);
 const { initCronJobs } = require('./services/cronService');
 initCronJobs();
 
+// Serve static files from the uploads directory (for PDFs, etc)
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.get('/', (req, res) => {
     res.send('FIC Employee Portal Backend - Service is Active');
 });
