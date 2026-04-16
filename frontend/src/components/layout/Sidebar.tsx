@@ -24,6 +24,7 @@ import {
   MessageSquare,
   ShieldCheck,
   DoorOpen,
+  Key,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
