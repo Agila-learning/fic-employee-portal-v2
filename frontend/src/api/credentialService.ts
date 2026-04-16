@@ -1,6 +1,6 @@
-import axios from 'axios';
+import apiClient from './apiClient';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// apiClient uses baseURL: "/api"
 
 export interface CredentialEntry {
     _id?: string;
@@ -45,33 +45,30 @@ export interface CredentialProject {
     updatedAt?: string;
 }
 
-const getAuthHeader = () => {
-    const user = JSON.parse(localStorage.getItem('fic-user') || '{}');
-    return { headers: { Authorization: `Bearer ${user.token}` } };
-};
+// Auth is handled by apiClient interceptor
 
 export const credentialService = {
     getProjects: async (): Promise<CredentialProject[]> => {
-        const response = await axios.get(`${API_URL}/credentials`, getAuthHeader());
+        const response = await apiClient.get('/credentials');
         return response.data;
     },
 
     getProject: async (id: string): Promise<CredentialProject> => {
-        const response = await axios.get(`${API_URL}/credentials/${id}`, getAuthHeader());
+        const response = await apiClient.get(`/credentials/${id}`);
         return response.data;
     },
 
     createProject: async (data: Partial<CredentialProject>): Promise<CredentialProject> => {
-        const response = await axios.post(`${API_URL}/credentials`, data, getAuthHeader());
+        const response = await apiClient.post('/credentials', data);
         return response.data;
     },
 
     updateProject: async (id: string, data: Partial<CredentialProject>): Promise<CredentialProject> => {
-        const response = await axios.put(`${API_URL}/credentials/${id}`, data, getAuthHeader());
+        const response = await apiClient.put(`/credentials/${id}`, data);
         return response.data;
     },
 
     deleteProject: async (id: string): Promise<void> => {
-        await axios.delete(`${API_URL}/credentials/${id}`, getAuthHeader());
+        await apiClient.delete(`/credentials/${id}`);
     }
 };
