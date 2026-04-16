@@ -1,4 +1,4 @@
-import api from './axios';
+import api from './apiClient';
 
 export const resignationService = {
   submitResignation: async (data: any) => {
