@@ -22,6 +22,10 @@ const AdminSalaryDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Filter states
+  const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString());
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  
   // States for Manage Credentials Modal
   const [isCredentialModalOpen, setIsCredentialModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState('');
@@ -44,7 +48,7 @@ const AdminSalaryDetails = () => {
     amount: '',
     lopDays: '0',
     lopAmount: '0',
-    status: 'Paid',
+    status: 'Received',
     remarks: '',
   });
 
@@ -220,14 +224,37 @@ const AdminSalaryDetails = () => {
 
         <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
           <CardHeader>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search by name, ID or bank..." 
-                className="pl-10 bg-background/50 border-border/50 max-w-sm"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
+            <div className="flex flex-col md:flex-row gap-4 items-end md:items-center justify-between">
+              <div className="relative w-full max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search name, ID or bank..." 
+                  className="pl-10 bg-background/50 border-border/50"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex gap-2 items-center">
+                <div className="flex gap-2">
+                  <Select value={filterMonth} onValueChange={setFilterMonth}>
+                    <SelectTrigger className="w-[130px] h-9 bg-background/50"><SelectValue placeholder="Month" /></SelectTrigger>
+                    <SelectContent>
+                      {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                        <SelectItem key={m} value={m.toString()}>{format(new Date(2022, m-1, 1), 'MMMM')}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Input 
+                    type="number" 
+                    className="w-[100px] h-9 bg-background/50" 
+                    value={filterYear} 
+                    onChange={e => setFilterYear(e.target.value)} 
+                    placeholder="Year"
+                  />
+                </div>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -237,53 +264,70 @@ const AdminSalaryDetails = () => {
                   <TableRow className="border-border/50">
                     <TableHead>Employee</TableHead>
                     <TableHead>Bank / IFSC</TableHead>
-                    <TableHead>Department</TableHead>
                     <TableHead>Join Date</TableHead>
                     <TableHead>Total Salary</TableHead>
+                    <TableHead>Status ({format(new Date(2022, parseInt(filterMonth)-1, 1), 'MMM')} {filterYear})</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDetails.map(detail => (
-                    <TableRow key={detail._id} className="border-border/50 group">
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-semibold">{detail.employeeName}</span>
-                          <span className="text-xs text-muted-foreground">{detail.employeeId}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold">{detail.bankName}</span>
-                          <span className="text-xs text-muted-foreground">{detail.accountNumber || 'N/A'}</span>
-                          <span className="text-[10px] font-mono text-muted-foreground/60">{detail.ifscCode}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell><Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">{detail.department}</Badge></TableCell>
-                      <TableCell className="text-sm font-medium">
-                        {detail.joiningDate ? format(new Date(detail.joiningDate), 'dd-MM-yyyy') : 'N/A'}
-                      </TableCell>
-                      <TableCell className="font-bold text-emerald-600">₹{detail.totalSalary?.toLocaleString()}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => { setManageMonthlyUser(detail); setIsMonthlyModalOpen(true); }}>
-                            <History className="h-4 w-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-500" onClick={() => openEditModal(detail)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={() => handleDelete(detail._id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredDetails.map(detail => {
+                    const monthlyRecord = detail.monthlySalaries?.find((s: any) => 
+                      s.month === parseInt(filterMonth) && s.year === parseInt(filterYear)
+                    );
+                    
+                    return (
+                      <TableRow key={detail._id} className="border-border/50 group">
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{detail.employeeName}</span>
+                            <span className="text-xs text-muted-foreground">{detail.employeeId}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold">{detail.bankName}</span>
+                            <span className="text-xs text-muted-foreground">{detail.accountNumber || 'N/A'}</span>
+                            <span className="text-[10px] font-mono text-muted-foreground/60">{detail.ifscCode}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm font-medium">
+                          {detail.joiningDate ? format(new Date(detail.joiningDate), 'dd-MM-yyyy') : 'N/A'}
+                        </TableCell>
+                        <TableCell className="font-bold text-slate-700">₹{detail.totalSalary?.toLocaleString()}</TableCell>
+                        <TableCell>
+                          {monthlyRecord ? (
+                            <Badge className="bg-emerald-50 text-emerald-600 border-none px-2 py-0.5 text-[10px] flex gap-1 items-center w-max">
+                              <ShieldCheck className="w-3 h-3" /> Received
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-red-50 text-red-600 border-none px-2 py-0.5 text-[10px] flex gap-1 items-center w-max">
+                              <Ban className="w-3 h-3" /> Not Received
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => { setManageMonthlyUser(detail); setIsMonthlyModalOpen(true); }}>
+                              <History className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-500" onClick={() => openEditModal(detail)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={() => handleDelete(detail._id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
           </CardContent>
         </Card>
+
       </div>
 
       {/* Monthly Salary Modal */}
@@ -320,6 +364,16 @@ const AdminSalaryDetails = () => {
                 <div className="space-y-1">
                   <Label className="text-[10px] uppercase">LOP Amount (₹)</Label>
                   <Input type="number" className="h-8" value={monthlyForm.lopAmount} onChange={e => setMonthlyForm({...monthlyForm, lopAmount: e.target.value})} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase">Status</Label>
+                  <Select value={monthlyForm.status} onValueChange={s => setMonthlyForm({...monthlyForm, status: s})}>
+                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Received">Received</SelectItem>
+                      <SelectItem value="Not Received">Not Received</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1 col-span-2">
                   <Label className="text-[10px] uppercase">Remarks</Label>

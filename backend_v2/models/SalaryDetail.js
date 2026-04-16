@@ -6,7 +6,7 @@ const monthlySalarySchema = mongoose.Schema({
     amount: { type: Number, required: true },
     lopDays: { type: Number, default: 0 },
     lopAmount: { type: Number, default: 0 },
-    status: { type: String, enum: ['Paid', 'Pending'], default: 'Paid' },
+    status: { type: String, enum: ['Received', 'Not Received'], default: 'Not Received' },
     paidDate: { type: Date, default: Date.now },
     remarks: { type: String }
 });
