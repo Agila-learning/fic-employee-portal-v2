@@ -412,27 +412,27 @@ const AdminSalaryDetails = () => {
                 <Table>
                   <TableHeader className="bg-muted/50 sticky top-0">
                     <TableRow>
-                      <TableHead className="py-2 h-8">Period</TableHead>
-                      <TableHead className="py-2 h-8">Gross Salary</TableHead>
-                      <TableHead className="py-2 h-8">LOP Deduction</TableHead>
-                      <TableHead className="py-2 h-8 text-emerald-600">Net Paid</TableHead>
-                      <TableHead className="py-2 h-8">Status</TableHead>
-                      <TableHead className="py-2 h-8">Date</TableHead>
-                      <TableHead className="py-2 h-8 text-right">Delete</TableHead>
+                       <TableHead className="py-2 h-8 text-left uppercase text-[10px]">Period</TableHead>
+                       <TableHead className="py-2 h-8 text-right uppercase text-[10px]">Gross Salary</TableHead>
+                       <TableHead className="py-2 h-8 text-right uppercase text-[10px]">LOP Deduction</TableHead>
+                       <TableHead className="py-2 h-8 text-right uppercase text-[10px] text-emerald-600">Net Paid</TableHead>
+                       <TableHead className="py-2 h-8 text-center uppercase text-[10px]">Status</TableHead>
+                       <TableHead className="py-2 h-8 text-center uppercase text-[10px]">Date</TableHead>
+                       <TableHead className="py-2 h-8 text-right uppercase text-[10px]">Delete</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {manageMonthlyUser?.monthlySalaries?.sort((a:any, b:any) => b.year - a.year || b.month - a.month).map((s: any, idx: number) => (
                       <TableRow key={idx}>
-                        <TableCell className="py-2 font-medium">{format(new Date(s.year, s.month-1, 1), 'MMM yyyy')}</TableCell>
-                        <TableCell className="py-2 text-xs">₹{(s.amount + (s.lopAmount || 0)).toLocaleString()}</TableCell>
-                        <TableCell className="py-2 text-xs text-rose-500">
+                        <TableCell className="py-2 font-medium whitespace-nowrap text-left">{format(new Date(s.year, s.month-1, 1), 'MMM yyyy')}</TableCell>
+                        <TableCell className="py-2 text-right text-xs">₹{(s.amount + (s.lopAmount || 0)).toLocaleString()}</TableCell>
+                        <TableCell className="py-2 text-right text-xs text-rose-500">
                           {s.lopAmount > 0 ? `-₹${s.lopAmount.toLocaleString()}` : '₹0'}
                           {s.lopDays > 0 && <span className="ml-1 text-[10px] text-muted-foreground">({s.lopDays}d)</span>}
                         </TableCell>
-                        <TableCell className="py-2 font-bold text-emerald-600">₹{s.amount.toLocaleString()}</TableCell>
-                        <TableCell className="py-2"><Badge className="bg-emerald-50 text-emerald-600 border-none px-1.5 py-0 text-[10px]">{s.status}</Badge></TableCell>
-                        <TableCell className="py-2 text-xs text-muted-foreground">{s.paidDate ? format(new Date(s.paidDate), 'dd/MM/yy') : '-'}</TableCell>
+                        <TableCell className="py-2 text-right font-bold text-emerald-600">₹{s.amount.toLocaleString()}</TableCell>
+                        <TableCell className="py-2 text-center"><Badge className="bg-emerald-50 text-emerald-600 border-none px-1.5 py-0 text-[10px]">{s.status}</Badge></TableCell>
+                        <TableCell className="py-2 text-center text-xs text-muted-foreground whitespace-nowrap">{s.paidDate ? format(new Date(s.paidDate), 'dd/MM/yyyy') : '-'}</TableCell>
                         <TableCell className="py-2 text-right">
                           <Button variant="ghost" size="icon" className="h-6 w-6 text-red-400 hover:text-red-600" onClick={() => handleMonthlyDelete(s.month, s.year)}>
                             <Trash2 className="h-3 w-3" />
