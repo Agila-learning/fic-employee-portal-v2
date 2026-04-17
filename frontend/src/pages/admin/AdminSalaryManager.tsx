@@ -400,9 +400,17 @@ const AdminSalaryDetails = () => {
                 </div>
                 <div className="space-y-1 col-span-2">
                   <Label className="text-[10px] uppercase">Remarks</Label>
-                  <Input className="h-8" placeholder="Payment notes..." value={monthlyForm.remarks} onChange={e => setMonthlyForm({...monthlyForm, remarks: e.target.value})} />
+                  <Input 
+                    className="h-8" 
+                    placeholder="Payment notes..." 
+                    value={monthlyForm.remarks} 
+                    onChange={e => setMonthlyForm({...monthlyForm, remarks: e.target.value})} 
+                  />
                 </div>
-                <Button type="submit" size="sm" className="gradient-primary h-8">Add Record</Button>
+                <div className="space-y-1">
+                  <div className="h-4" /> {/* Spacer to align with labels */}
+                  <Button type="submit" size="sm" className="gradient-primary h-8 w-full">Add Record</Button>
+                </div>
               </form>
             </div>
 
