@@ -22,6 +22,7 @@ import HolidayManagement from '@/components/admin/HolidayManagement';
 import EmployeeAttendanceExport from '@/components/attendance/EmployeeAttendanceExport';
 import AttendanceMapView from '@/components/attendance/AttendanceMapView';
 import LocationTrendReport from '@/components/attendance/LocationTrendReport';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getLocationDisplayName } from '@/utils/geolocation';
 import { createWorkbook, setColumnWidths, applyHeaderStyle, applyRowStyles, downloadWorkbook, styleCell, defaultBorder, solidBorder } from '@/utils/excelExport';
 
@@ -43,6 +44,9 @@ const AdminAttendance = () => {
   const [exportFromDate, setExportFromDate] = useState<Date | undefined>(undefined);
   const [exportToDate, setExportToDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
+
+  const [attendanceRequests, setAttendanceRequests] = useState<any[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
 
   const fetchAttendance = useCallback(async () => {
     setLoadingRecords(true);
@@ -77,9 +81,22 @@ const AdminAttendance = () => {
     }
   }, [periodFilter, startDate, endDate, toast]);
 
+  const fetchRequests = useCallback(async () => {
+    setLoadingRequests(true);
+    try {
+      const data = await (operationService as any).getAllAttendanceRequests();
+      setAttendanceRequests(data || []);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to fetch attendance requests', variant: 'destructive' });
+    } finally {
+      setLoadingRequests(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchAttendance();
-  }, [fetchAttendance]);
+    fetchRequests();
+  }, [fetchAttendance, fetchRequests]);
 
   const filteredAttendance = attendanceRecords.filter(a => {
     if (!a) return false;
@@ -309,6 +326,17 @@ const AdminAttendance = () => {
 
   const monthlyStats = getMonthlyStats();
 
+  const handleReviewRequest = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      await (operationService as any).updateAttendanceRequestStatus(id, status);
+      toast({ title: 'Success', description: `Request ${status} successfully` });
+      fetchRequests();
+      fetchAttendance(); // Refresh attendance list as well
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.response?.data?.message || 'Failed to update request', variant: 'destructive' });
+    }
+  };
+
   return (
     <DashboardLayout requiredRole="admin">
       <motion.div 
@@ -335,8 +363,22 @@ const AdminAttendance = () => {
           </div>
         </div>
 
-        {/* Improved Range Filter Header */}
-        <Card className="border-border/50 bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-950/30 dark:to-slate-900/20">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="bg-muted/50 p-1 border border-border/50">
+            <TabsTrigger value="overview" className="data-[state=active]:gradient-primary data-[state=active]:text-white">Overview</TabsTrigger>
+            <TabsTrigger value="requests" className="data-[state=active]:gradient-primary data-[state=active]:text-white relative">
+              Correction Requests
+              {attendanceRequests.filter(r => r.status === 'pending').length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                  {attendanceRequests.filter(r => r.status === 'pending').length}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            {/* Improved Range Filter Header */}
+            <Card className="border-border/50 bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-950/30 dark:to-slate-900/20">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-4 flex-1">
@@ -584,6 +626,115 @@ const AdminAttendance = () => {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="requests">
+            <Card className="border-border/50">
+              <CardHeader className="border-b border-border/50 bg-muted/20">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-primary" /> Pending Correction Requests
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {loadingRequests ? (
+                  <div className="flex flex-col items-center justify-center py-20">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : attendanceRequests.filter(r => r.status === 'pending').length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CheckCircle className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                    <p>No pending correction requests</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/30">
+                          <TableHead>Employee</TableHead>
+                          <TableHead>Requested Date</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Reason</TableHead>
+                          <TableHead>Requested At</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {attendanceRequests.filter(r => r.status === 'pending').map((req) => (
+                          <TableRow key={req._id}>
+                            <TableCell className="font-semibold">
+                              {(req.user_id as any)?.name || 'Unknown'}
+                              <div className="text-xs text-muted-foreground font-normal">{(req.user_id as any)?.employee_id}</div>
+                            </TableCell>
+                            <TableCell>{req.date ? format(parseISO(req.date), 'dd MMM yyyy') : '-'}</TableCell>
+                            <TableCell className="capitalize">{req.requested_status}</TableCell>
+                            <TableCell className="max-w-[200px] text-xs italic">"{req.reason}"</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{format(new Date(req.createdAt), 'dd/MM hh:mm a')}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="h-8 text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                                  onClick={() => handleReviewRequest(req._id, 'approved')}
+                                >
+                                  Approve
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="h-8 text-rose-600 border-rose-200 hover:bg-rose-50"
+                                  onClick={() => handleReviewRequest(req._id, 'rejected')}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Request History */}
+            <Card className="border-border/50 mt-6 overflow-hidden">
+              <CardHeader className="bg-muted/10 py-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Request History (Processed)</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableBody>
+                      {attendanceRequests.filter(r => r.status !== 'pending').slice(0, 10).map((req) => (
+                        <TableRow key={req._id} className="text-xs">
+                          <TableCell className="font-medium">{(req.user_id as any)?.name}</TableCell>
+                          <TableCell>{req.date ? format(parseISO(req.date), 'dd MMM') : '-'}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant="outline" 
+                              className={req.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}
+                            >
+                              {req.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground italic truncate max-w-[150px]">{req.reason}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">{format(new Date(req.reviewed_at || req.updatedAt), 'dd/MM')}</TableCell>
+                        </TableRow>
+                      ))}
+                      {attendanceRequests.filter(r => r.status !== 'pending').length === 0 && (
+                        <TableRow>
+                          <TableCell className="text-center py-4 text-muted-foreground italic">No historical records</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <HolidayManagement />

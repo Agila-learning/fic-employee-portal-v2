@@ -6,7 +6,8 @@ const {
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance, checkOut,
     createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, updateExpense, deleteExpense,
     getHolidays, createHoliday,
-    getMyCredits, getAllCredits, createCredit, updateCredit, deleteCredit, deleteLeaveRequest
+    getMyCredits, getAllCredits, createCredit, updateCredit, deleteCredit, deleteLeaveRequest,
+    createAttendanceRequest, getMyAttendanceRequests, getAllAttendanceRequests, reviewAttendanceRequest
 } = require('../controllers/operationController');
 const { protect, admin, subAdmin } = require('../middleware/authMiddleware');
 
@@ -34,6 +35,13 @@ router.get('/attendance/my', protect, getMyAttendance);
 router.get('/attendance/range', protect, subAdmin, getAllAttendance); // Frontend calls /range
 router.patch('/attendance/checkout', protect, checkOut);
 router.put('/attendance/:id', protect, subAdmin, updateAttendance);
+
+// Attendance Change Requests
+router.route('/attendance-request')
+    .post(protect, createAttendanceRequest)
+    .get(protect, subAdmin, getAllAttendanceRequests);
+router.get('/attendance-request/my', protect, getMyAttendanceRequests);
+router.put('/attendance-request/:id', protect, subAdmin, reviewAttendanceRequest);
 
 // Expenses
 router.route('/expenses')

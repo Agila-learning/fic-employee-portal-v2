@@ -6,6 +6,7 @@ const Expense = require('../models/Expense.js');
 const Holiday = require('../models/Holiday.js');
 const Credit = require('../models/Credit.js');
 const User = require('../models/User.js');
+const AttendanceRequest = require('../models/AttendanceRequest.js');
 
 // Payslips
 const createPayslip = async (req, res) => {
@@ -513,11 +514,106 @@ const deleteCredit = async (req, res) => {
     }
 };
 
+// Attendance Requests
+const createAttendanceRequest = async (req, res) => {
+    try {
+        const { date, requested_status, reason } = req.body;
+        
+        // Validate date is in current month
+        const requestDate = new Date(date);
+        const now = new Date();
+        if (requestDate.getMonth() !== now.getMonth() || requestDate.getFullYear() !== now.getFullYear()) {
+            return res.status(400).json({ message: 'Attendance correction can only be requested for the current month.' });
+        }
+
+        // Check for existing pending request
+        const existing = await AttendanceRequest.findOne({
+            user_id: req.user._id,
+            date,
+            status: 'pending'
+        });
+        if (existing) {
+            return res.status(400).json({ message: 'You already have a pending request for this date.' });
+        }
+
+        const request = await AttendanceRequest.create({
+            user_id: req.user._id,
+            date,
+            requested_status,
+            reason,
+            status: 'pending'
+        });
+        res.status(201).json(request);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const getMyAttendanceRequests = async (req, res) => {
+    try {
+        const requests = await AttendanceRequest.find({ user_id: req.user._id }).sort({ date: -1 });
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getAllAttendanceRequests = async (req, res) => {
+    try {
+        const requests = await AttendanceRequest.find({})
+            .populate('user_id', 'name email employee_id')
+            .sort({ createdAt: -1 });
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const reviewAttendanceRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // 'approved' or 'rejected'
+
+        const request = await AttendanceRequest.findById(id);
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        if (request.status !== 'pending') {
+            return res.status(400).json({ message: 'Request has already been processed' });
+        }
+
+        request.status = status;
+        request.reviewed_by = req.user._id;
+        request.reviewed_at = Date.now();
+        await request.save();
+
+        if (status === 'approved') {
+            // Automatically update/create the attendance record
+            await Attendance.findOneAndUpdate(
+                { user_id: request.user_id, date: request.date },
+                {
+                    status: request.requested_status,
+                    notes: `Corrected via Request: ${request.reason}`,
+                    location_verified: true,
+                    work_location: 'Office (Rectified)'
+                },
+                { upsert: true }
+            );
+        }
+
+        res.json({ message: `Request ${status} successfully`, request });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createPayslip, getMyPayslips, getAllPayslips, getLatestPayslip, deletePayslip,
     createLeaveRequest, getMyLeaveRequests, getAllLeaveRequests, updateLeaveStatus, deleteLeaveRequest,
     markAttendance, getMyAttendance, getAllAttendance, updateAttendance, checkOut,
     createExpense, getMyExpenses, getAllExpenses, updateExpenseStatus, updateExpense, deleteExpense,
     getHolidays, createHoliday,
-    getMyCredits, getAllCredits, createCredit, updateCredit, deleteCredit
+    getMyCredits, getAllCredits, createCredit, updateCredit, deleteCredit,
+    createAttendanceRequest, getMyAttendanceRequests, getAllAttendanceRequests, reviewAttendanceRequest
 };

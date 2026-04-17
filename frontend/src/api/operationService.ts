@@ -145,5 +145,26 @@ export const operationService = {
     updateAttendance: async (id: string, attendanceData: any) => {
         const response = await apiClient.put(`/operations/attendance/${id}`, attendanceData);
         return response.data;
+    },
+
+    // Attendance Requests
+    createAttendanceRequest: async (data: any) => {
+        const response = await apiClient.post('/operations/attendance-request', data);
+        return response.data;
+    },
+
+    getMyAttendanceRequests: async () => {
+        const response = await apiClient.get('/operations/attendance-request/my');
+        return response.data;
+    },
+
+    getAllAttendanceRequests: async () => {
+        const response = await apiClient.get('/operations/attendance-request');
+        return response.data;
+    },
+
+    updateAttendanceRequestStatus: async (id: string, status: string) => {
+        const response = await apiClient.put(`/operations/attendance-request/${id}`, { status });
+        return response.data;
     }
 };
