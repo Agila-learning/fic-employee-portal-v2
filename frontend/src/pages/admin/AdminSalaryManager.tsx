@@ -408,7 +408,7 @@ const AdminSalaryDetails = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <div className="h-4" /> {/* Spacer to align with labels */}
+                  <Label className="text-[10px] invisible">Action</Label>
                   <Button type="submit" size="sm" className="gradient-primary h-8 w-full">Add Record</Button>
                 </div>
               </form>
