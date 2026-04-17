@@ -36,6 +36,7 @@ const AdminPolicies = lazy(() => import("./pages/admin/AdminPolicies"));
 const AdminResignations = lazy(() => import("./pages/admin/AdminResignations"));
 const CredentialsManager = lazy(() => import("./pages/admin/CredentialsManager"));
 const AdminSalaryManager = lazy(() => import("./pages/admin/AdminSalaryManager"));
+const BirthdayList = lazy(() => import("./pages/BirthdayList"));
 
 // Lazy load employee pages
 const EmployeeDashboard = lazy(() => import("./pages/employee/EmployeeDashboard"));
@@ -115,6 +116,7 @@ const App = () => (
                 <Route path="/admin/offer-letter" element={<AdminOfferLetter />} />
                 <Route path="/admin/success-stories" element={<AdminSuccessStories />} />
                 <Route path="/admin/messages" element={<AdminChat />} />
+                <Route path="/admin/birthdays" element={<BirthdayList role="admin" />} />
                 
                 {/* Employee Routes */}
                 <Route path="/employee" element={<EmployeeDashboard />} />
@@ -130,6 +132,7 @@ const App = () => (
                 <Route path="/employee/payslips" element={<EmployeePayslips />} />
                 <Route path="/employee/success-stories" element={<EmployeeSuccessStories />} />
                 <Route path="/employee/messages" element={<EmployeeChat />} />
+                <Route path="/employee/birthdays" element={<BirthdayList role="employee" />} />
                 
                 {/* Common Routes */}
                 <Route path="/settings" element={<Settings />} />

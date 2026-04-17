@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
+import BirthdayBanner from '../dashboard/BirthdayBanner';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,6 +43,7 @@ const DashboardLayout = ({ children, requiredRole }: DashboardLayoutProps) => {
       <Sidebar />
       <main className="ml-0 md:ml-64 flex-1 px-3 py-4 sm:p-6 pb-8 pt-16 md:pt-6">
         <div className="animate-fade-in max-w-7xl mx-auto w-full">
+          <BirthdayBanner />
           {children}
         </div>
       </main>

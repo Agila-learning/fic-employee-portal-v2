@@ -21,7 +21,8 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
   const [formData, setFormData] = useState({ 
     name: '', email: '', employee_id: '', is_active: true, 
     role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager',
-    base_salary: '', incentive_per_success: '' 
+    base_salary: '', incentive_per_success: '',
+    dob: ''
   });
 
   useEffect(() => {
@@ -33,7 +34,8 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
         is_active: employee.is_active ?? true,
         role: employee.role as any || 'employee',
         base_salary: (employee as any).base_salary || '',
-        incentive_per_success: (employee as any).incentive_per_success || ''
+        incentive_per_success: (employee as any).incentive_per_success || '',
+        dob: employee.dob ? new Date(employee.dob).toISOString().split('T')[0] : ''
       });
     }
   }, [employee, open]);
@@ -53,7 +55,8 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
         employee_id: formData.employee_id || null,
         is_active: formData.is_active,
         base_salary: formData.base_salary ? parseFloat(formData.base_salary) : null,
-        incentive_per_success: formData.incentive_per_success ? parseFloat(formData.incentive_per_success) : null
+        incentive_per_success: formData.incentive_per_success ? parseFloat(formData.incentive_per_success) : null,
+        dob: formData.dob || null
       });
 
       toast.success('Employee updated successfully');
@@ -97,7 +100,10 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
             </Select>
           </div>
 
-          <div className="space-y-2"><Label>Employee ID</Label><Input value={formData.employee_id} onChange={(e) => setFormData(p => ({ ...p, employee_id: e.target.value }))} placeholder="EMP001" /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>Employee ID</Label><Input value={formData.employee_id} onChange={(e) => setFormData(p => ({ ...p, employee_id: e.target.value }))} placeholder="EMP001" /></div>
+            <div className="space-y-2"><Label>Date of Birth</Label><Input type="date" value={formData.dob} onChange={(e) => setFormData(p => ({ ...p, dob: e.target.value }))} /></div>
+          </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

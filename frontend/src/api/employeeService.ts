@@ -19,5 +19,10 @@ export const employeeService = {
     createEmployee: async (employeeData: any) => {
         const response = await apiClient.post('/users/register', employeeData); // Reuse register for employee creation
         return response.data;
+    },
+
+    getTodayBirthdays: async () => {
+        const response = await apiClient.get('/users/birthdays/today');
+        return response.data;
     }
 };

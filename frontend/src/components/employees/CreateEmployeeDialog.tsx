@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { employeeService } from '@/api/employeeService';
 import { toast } from 'sonner';
-import { UserPlus, Mail, Lock, User, IdCard, Shield } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, IdCard, Shield, Calendar } from 'lucide-react';
 
 interface CreateEmployeeDialogProps {
   open: boolean;
@@ -20,7 +20,8 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
     email: '',
     password: '',
     employee_id: '',
-    role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager'
+    role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager',
+    dob: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,11 +46,12 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
         email: formData.email,
         password: formData.password,
         employee_id: formData.employee_id || null,
-        role: formData.role
+        role: formData.role,
+        dob: formData.dob || null
       });
 
       toast.success(`Employee ${formData.name} created successfully!`);
-      setFormData({ name: '', email: '', password: '', employee_id: '', role: 'employee' });
+      setFormData({ name: '', email: '', password: '', employee_id: '', role: 'employee', dob: '' });
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
@@ -119,17 +121,31 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="employee_id" className="flex items-center gap-2">
-              <IdCard className="h-4 w-4 text-muted-foreground" />
-              Employee ID (Optional)
-            </Label>
-            <Input
-              id="employee_id"
-              placeholder="e.g., EMP001"
-              value={formData.employee_id}
-              onChange={(e) => setFormData(prev => ({ ...prev, employee_id: e.target.value }))}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="employee_id" className="flex items-center gap-2">
+                <IdCard className="h-4 w-4 text-muted-foreground" />
+                Employee ID
+              </Label>
+              <Input
+                id="employee_id"
+                placeholder="EMP001"
+                value={formData.employee_id}
+                onChange={(e) => setFormData(prev => ({ ...prev, employee_id: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dob" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                Date of Birth
+              </Label>
+              <Input
+                id="dob"
+                type="date"
+                value={formData.dob}
+                onChange={(e) => setFormData(prev => ({ ...prev, dob: e.target.value }))}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

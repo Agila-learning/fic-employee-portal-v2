@@ -37,6 +37,9 @@ const userSchema = mongoose.Schema({
         type: String,
         default: 'Other',
     },
+    dob: {
+        type: Date,
+    },
 }, {
     timestamps: true,
 });

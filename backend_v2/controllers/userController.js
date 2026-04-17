@@ -155,6 +155,7 @@ const updateUser = async (req, res) => {
             user.employee_id = req.body.employee_id !== undefined ? req.body.employee_id : user.employee_id;
             user.department = req.body.department !== undefined ? req.body.department : user.department;
             user.is_active = req.body.is_active !== undefined ? req.body.is_active : user.is_active;
+            user.dob = req.body.dob !== undefined ? req.body.dob : user.dob;
 
             if (req.body.password) {
                 user.password = req.body.password;
@@ -191,4 +192,26 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, getUserProfile, updatePassword, getUsers, updateUser, deleteUser };
+const getTodayBirthdays = async (req, res) => {
+    try {
+        const today = new Date();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
+
+        const users = await User.find({
+            $expr: {
+                $and: [
+                    { $eq: [{ $month: '$dob' }, month] },
+                    { $eq: [{ $dayOfMonth: '$dob' }, day] },
+                    { $eq: ['$is_active', true] }
+                ]
+            }
+        }).select('name department profile_picture');
+
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { registerUser, loginUser, getUserProfile, updatePassword, getUsers, updateUser, deleteUser, getTodayBirthdays };

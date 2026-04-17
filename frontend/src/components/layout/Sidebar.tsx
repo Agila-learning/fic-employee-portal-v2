@@ -27,6 +27,7 @@ import {
   DoorOpen,
   Key,
   Landmark,
+  Cake
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -91,6 +92,7 @@ const Sidebar = () => {
     { to: '/admin/payroll', icon: FileText, label: 'Payroll' },
     { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
     { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
+    { to: '/admin/birthdays', icon: Cake, label: 'Birthday List' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -107,6 +109,7 @@ const Sidebar = () => {
     { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
     { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
     { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
+    { to: '/admin/birthdays', icon: Cake, label: 'Birthday List' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -124,6 +127,7 @@ const Sidebar = () => {
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/employee/payslips', icon: FileText, label: 'Payslips' },
     { to: '/employee/success-stories', icon: Trophy, label: 'Success Stories' },
+    { to: '/employee/birthdays', icon: Cake, label: 'Birthday List' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -131,6 +135,7 @@ const Sidebar = () => {
     ...employeeLinks.filter(l => l.label !== 'Settings'),
     { to: '/admin/resignations', icon: DoorOpen, label: 'HR Resignations' },
     { to: '/admin/salary-details', icon: Landmark, label: 'Salary Details' },
+    { to: '/employee/birthdays', icon: Cake, label: 'Birthday List' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -147,6 +152,7 @@ const Sidebar = () => {
     { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
     { to: '/admin/resignations', icon: DoorOpen, label: 'Resignations' },
     { to: '/admin/salary-details', icon: Landmark, label: 'Salary Details' },
+    { to: '/admin/birthdays', icon: Cake, label: 'Birthday List' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
