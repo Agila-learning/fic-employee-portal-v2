@@ -4,6 +4,7 @@ import { Cake, Calendar, Search, Gift, PartyPopper, Users, Edit } from 'lucide-r
 import { Link } from 'react-router-dom';
 import { employeeService } from '@/api/employeeService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
