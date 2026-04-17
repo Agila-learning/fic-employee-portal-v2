@@ -47,6 +47,7 @@ const CredentialProjectDialog = ({ open, onOpenChange, project, onSuccess }: Cre
         projectType: '',
         department: '',
         status: 'Active',
+        developerName: '',
         requirements: '',
         credentials: [{ ...EMPTY_CREDENTIAL } as any]
     });
@@ -67,6 +68,7 @@ const CredentialProjectDialog = ({ open, onOpenChange, project, onSuccess }: Cre
                 projectType: '',
                 department: '',
                 status: 'Active',
+                developerName: '',
                 requirements: '',
                 credentials: [{ ...EMPTY_CREDENTIAL } as any]
             });
@@ -177,6 +179,15 @@ const CredentialProjectDialog = ({ open, onOpenChange, project, onSuccess }: Cre
                                     value={formData.department} 
                                     onChange={e => setFormData(p => ({ ...p, department: e.target.value }))}
                                     placeholder="e.g., IT, Marketing, Banking"
+                                    className="bg-card/50"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Developer Name</Label>
+                                <Input 
+                                    value={formData.developerName} 
+                                    onChange={e => setFormData(p => ({ ...p, developerName: e.target.value }))}
+                                    placeholder="Builder/Developer Name"
                                     className="bg-card/50"
                                 />
                             </div>

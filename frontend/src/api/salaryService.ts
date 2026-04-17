@@ -24,5 +24,10 @@ export const salaryService = {
     deleteSalaryDetail: async (id: string) => {
         const response = await apiClient.delete(`/salary/${id}`);
         return response.data;
+    },
+
+    deleteMonthlySalary: async (userId: string, month: string, year: string) => {
+        const response = await apiClient.delete(`/salary/monthly/${userId}/${month}/${year}`);
+        return response.data;
     }
 };

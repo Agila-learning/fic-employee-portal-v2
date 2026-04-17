@@ -111,10 +111,30 @@ const deleteSalaryDetail = async (req, res) => {
     }
 };
 
+const deleteMonthlySalary = async (req, res) => {
+    try {
+        const { userId, month, year } = req.params;
+        const result = await SalaryDetail.findOneAndUpdate(
+            { user: userId },
+            { $pull: { monthlySalaries: { month: parseInt(month), year: parseInt(year) } } },
+            { new: true }
+        );
+
+        if (!result) {
+            return res.status(404).json({ message: 'Salary details not found' });
+        }
+
+        res.json({ message: 'Monthly salary record deleted', data: result });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getSalaryDetails,
     getSalaryDetailByUserId,
     upsertSalaryDetail,
     addMonthlySalary,
-    deleteSalaryDetail
+    deleteSalaryDetail,
+    deleteMonthlySalary
 };

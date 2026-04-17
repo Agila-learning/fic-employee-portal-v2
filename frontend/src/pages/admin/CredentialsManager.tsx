@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Search, Filter, Shield, Key, ExternalLink, 
   MoreVertical, Edit, Trash2, FileText, ChevronRight,
-  Database, Server, Globe, Lock, Cpu, Cloud, Mail
+  Database, Server, Globe, Lock, Cpu, Cloud, Mail, Code
 } from 'lucide-react';
 import { credentialService, CredentialProject } from '@/api/credentialService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -198,6 +198,14 @@ const CredentialsManager = () => {
                                                 <Badge variant="outline" className="font-normal border-border">
                                                     {project.department || 'General'}
                                                 </Badge>
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-muted-foreground flex items-center gap-1.5">
+                                                    <Code className="h-3.5 w-3.5 text-indigo-500" /> Developer
+                                                </span>
+                                                <span className="font-medium text-indigo-600/80">
+                                                    {project.developerName || 'Unknown'}
+                                                </span>
                                             </div>
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-muted-foreground">Last Updated</span>

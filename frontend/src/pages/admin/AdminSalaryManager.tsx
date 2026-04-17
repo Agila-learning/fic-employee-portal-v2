@@ -114,8 +114,31 @@ const AdminSalaryDetails = () => {
       await salaryService.deleteSalaryDetail(id);
       toast.success('Record deleted');
       fetchData();
-    } catch (error) {
-      toast.error('Failed to delete record');
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete record. Please check console for details.');
+    }
+  };
+
+  const handleMonthlyDelete = async (month: number, year: number) => {
+    if (!manageMonthlyUser) return;
+    if (!window.confirm(`Are you sure you want to delete the salary record for ${format(new Date(year, month-1, 1), 'MMMM yyyy')}?`)) return;
+    
+    try {
+      await salaryService.deleteMonthlySalary(
+        manageMonthlyUser.user._id || manageMonthlyUser.user,
+        month.toString(),
+        year.toString()
+      );
+      toast.success('Monthly record deleted');
+      
+      // Refresh local state for the modal
+      const updatedData = await salaryService.getAllSalaryDetails();
+      setSalaryDetails(updatedData || []);
+      const updatedUser = updatedData.find((d: any) => (d._id === manageMonthlyUser._id));
+      setManageMonthlyUser(updatedUser);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete monthly record');
     }
   };
 
@@ -394,6 +417,7 @@ const AdminSalaryDetails = () => {
                       <TableHead className="py-2 h-8">LOP</TableHead>
                       <TableHead className="py-2 h-8">Status</TableHead>
                       <TableHead className="py-2 h-8">Date</TableHead>
+                      <TableHead className="py-2 h-8 text-right">Delete</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -408,6 +432,11 @@ const AdminSalaryDetails = () => {
                         </TableCell>
                         <TableCell className="py-2"><Badge className="bg-emerald-50 text-emerald-600 border-none px-1.5 py-0 text-[10px]">{s.status}</Badge></TableCell>
                         <TableCell className="py-2 text-xs text-muted-foreground">{s.paidDate ? format(new Date(s.paidDate), 'dd/MM/yy') : '-'}</TableCell>
+                        <TableCell className="py-2 text-right">
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-red-400 hover:text-red-600" onClick={() => handleMonthlyDelete(s.month, s.year)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {!manageMonthlyUser?.monthlySalaries?.length && (

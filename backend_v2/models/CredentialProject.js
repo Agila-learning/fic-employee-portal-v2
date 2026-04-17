@@ -31,6 +31,7 @@ const attachmentSchema = new mongoose.Schema({
 
 const credentialProjectSchema = new mongoose.Schema({
     projectName: { type: String, required: true },
+    developerName: { type: String },
     clientName: { type: String },
     companyName: { type: String },
     projectType: { type: String },
