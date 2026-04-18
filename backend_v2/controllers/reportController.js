@@ -51,7 +51,11 @@ const exportReports = async (req, res) => {
         if (startDate || endDate) {
             filter.report_date = {};
             if (startDate) filter.report_date.$gte = new Date(startDate);
-            if (endDate) filter.report_date.$lte = new Date(endDate);
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                filter.report_date.$lte = end;
+            }
         }
         
         if (department && department !== 'all') {

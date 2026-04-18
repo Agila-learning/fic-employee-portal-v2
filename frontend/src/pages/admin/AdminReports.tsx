@@ -56,7 +56,8 @@ const AdminReports = () => {
   const [viewCandidates, setViewCandidates] = useState<CandidateEntry[]>([]);
 
   // Filters
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
 
@@ -146,7 +147,7 @@ const AdminReports = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, selectedDate, selectedDepartment, selectedEmployee, profiles]);
+  }, [user, startDate, endDate, selectedDepartment, selectedEmployee, profiles]);
 
   const fetchCandidateEntries = async (reportId: string, reportDate: string, userId: string) => {
     try {
@@ -190,15 +191,19 @@ const AdminReports = () => {
 
   // Apply frontend filters
   const filteredReports = reports.filter(r => {
-    // Date filter
-    if (selectedDate) {
-      const reportDate = new Date(r.report_date);
-      const selected = new Date(selectedDate);
-      if (
-        reportDate.getFullYear() !== selected.getFullYear() ||
-        reportDate.getMonth() !== selected.getMonth() ||
-        reportDate.getDate() !== selected.getDate()
-      ) return false;
+    // Date range filter
+    const rDate = new Date(r.report_date);
+    rDate.setHours(0, 0, 0, 0);
+
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      if (rDate < start) return false;
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(0, 0, 0, 0);
+      if (rDate > end) return false;
     }
     // Department filter
     if (selectedDepartment !== 'all' && r.department !== selectedDepartment) return false;
@@ -283,13 +288,14 @@ const AdminReports = () => {
     }
 
     const timestamp = format(new Date(), 'yyyy-MM-dd_HHmm');
-    const dateLabel = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : 'all-dates';
+    const dateLabel = startDate ? (endDate ? `${format(startDate, 'yyyy-MM-dd')}_to_${format(endDate, 'yyyy-MM-dd')}` : format(startDate, 'yyyy-MM-dd')) : 'all-dates';
     await downloadWorkbook(wb, `Daily_Reports_${dateLabel}_exported_${timestamp}.xlsx`);
     toast.success('Report exported successfully');
   };
 
   const clearFilters = () => {
-    setSelectedDate(undefined);
+    setStartDate(undefined);
+    setEndDate(undefined);
     setSelectedDepartment('all');
     setSelectedEmployee('all');
   };
@@ -467,23 +473,45 @@ const AdminReports = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Date Picker */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Start Date Picker */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date</label>
+                <label className="text-sm font-medium">From Date</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, 'PPP') : 'All Dates'}
+                      {startDate ? format(startDate, 'PPP') : 'Select start date'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
+                      selected={startDate}
+                      onSelect={setStartDate}
                       disabled={(date) => date > new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* End Date Picker */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">To Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, 'PPP') : 'Select end date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      disabled={(date) => date > new Date() || (startDate ? date < startDate : false)}
                       initialFocus
                     />
                   </PopoverContent>
@@ -531,7 +559,7 @@ const AdminReports = () => {
         <Card>
           <CardHeader>
             <CardTitle>
-              Reports {selectedDate ? `for ${format(selectedDate, 'MMMM d, yyyy')}` : '(All Dates)'}
+              Reports {startDate ? (endDate ? `from ${format(startDate, 'MMM d')} to ${format(endDate, 'MMM d, yyyy')}` : `since ${format(startDate, 'MMM d, yyyy')}`) : (endDate ? `until ${format(endDate, 'MMM d, yyyy')}` : '(All Dates)')}
             </CardTitle>
           </CardHeader>
           <CardContent>
