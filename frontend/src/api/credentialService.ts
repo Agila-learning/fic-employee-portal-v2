@@ -37,6 +37,7 @@ export interface CredentialProject {
     projectType?: string;
     department?: string;
     status: 'Active' | 'On Hold' | 'Completed' | 'Archived';
+    developerName?: string;
     requirements?: string;
     attachments: CredentialAttachment[];
     credentials: CredentialEntry[];

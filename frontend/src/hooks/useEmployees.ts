@@ -8,6 +8,7 @@ import { employeeService } from '@/api/employeeService';
 export interface Employee extends Profile {
   role: AppRole;
   leads_count: number;
+  dob?: string;
 }
 
 export const useEmployees = () => {

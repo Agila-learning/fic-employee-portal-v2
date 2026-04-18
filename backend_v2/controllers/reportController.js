@@ -43,4 +43,45 @@ const deleteReport = async (req, res) => {
     }
 };
 
-module.exports = { createReport, getReports, deleteReport };
+const exportReports = async (req, res) => {
+    try {
+        const { startDate, endDate, department } = req.query;
+        const filter = {};
+        
+        if (startDate || endDate) {
+            filter.report_date = {};
+            if (startDate) filter.report_date.$gte = new Date(startDate);
+            if (endDate) filter.report_date.$lte = new Date(endDate);
+        }
+        
+        if (department && department !== 'all') {
+            filter.department = department;
+        }
+
+        const reports = await EmployeeReport.find(filter)
+            .populate('user_id', 'name email employee_id')
+            .sort({ report_date: -1 });
+
+        // Generate CSV
+        let csv = 'Date,Employee Name,Employee ID,Department,Morning Description,Afternoon Description,Candidates Screened\n';
+        reports.forEach(report => {
+            const date = report.report_date.toISOString().split('T')[0];
+            const name = report.user_id?.name || 'Unknown';
+            const empId = report.user_id?.employee_id || 'N/A';
+            const dept = report.department;
+            const morning = `"${report.morning_description.replace(/"/g, '""')}"`;
+            const afternoon = `"${report.afternoon_description.replace(/"/g, '""')}"`;
+            const screened = report.candidates_screened || 0;
+            
+            csv += `${date},${name},${empId},${dept},${morning},${afternoon},${screened}\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=EmployeeReports_${new Date().toISOString().split('T')[0]}.csv`);
+        res.status(200).send(csv);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { createReport, getReports, deleteReport, exportReports };

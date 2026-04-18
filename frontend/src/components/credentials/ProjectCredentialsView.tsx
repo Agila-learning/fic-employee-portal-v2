@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   X, Shield, Lock, Globe, Mail, Phone, User, 
   Terminal, Info, FileStack, ExternalLink, Copy, Eye, EyeOff,
-  Calendar, CheckCircle, Clock, Download, FileText
+  Calendar, CheckCircle, Clock, Download, FileText, KeyRound
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';

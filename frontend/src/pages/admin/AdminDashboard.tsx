@@ -8,12 +8,24 @@ import { operationService } from '@/api/operationService';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import LeadFormDialog from '@/components/leads/LeadFormDialog';
-import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase, Star, Calendar as CalendarIcon, Loader2, MessageSquare, Key } from 'lucide-react';
+import { Users, FileSpreadsheet, UserCheck, TrendingUp, CheckCircle, Clock, Bell, ArrowRight, Trophy, CreditCard, Briefcase, Star, Calendar as CalendarIcon, Loader2, MessageSquare, Key, Download } from 'lucide-react';
 import AdminLeaveRequests from '@/components/leave/AdminLeaveRequests';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { credentialService } from '@/api/credentialService';
+import { reportService } from '@/api/reportService';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 import { STATUS_OPTIONS, STATUS_OPTIONS_ADMIN, Lead, INTERESTED_DOMAIN_OPTIONS } from '@/types';
 import { cn, safeParseDate, getInitials } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +43,13 @@ const AdminDashboard = () => {
   const [loadingAttendance, setLoadingAttendance] = useState(true);
   const [attendanceRange, setAttendanceRange] = useState<'today' | 'week' | 'month'>('today');
   const [projectCount, setProjectCount] = useState(0);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [reportFilters, setReportFilters] = useState({
+    startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+    endDate: format(new Date(), 'yyyy-MM-dd'),
+    department: 'all'
+  });
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -160,8 +179,8 @@ const AdminDashboard = () => {
     let total = 0;
 
     leads.forEach(l => {
-      const assignedId = (typeof l.assigned_to === 'object' ? (l.assigned_to?.id || (l.assigned_to as any)?._id) : l.assigned_to)?.toString();
-      const creatorId = (typeof l.created_by === 'object' ? (l.created_by?.id || (l.created_by as any)?._id) : l.created_by)?.toString();
+      const assignedId = ((l.assigned_to as any)?._id || (l.assigned_to as any)?.id || l.assigned_to)?.toString();
+      const creatorId = ((l.created_by as any)?._id || (l.created_by as any)?.id || l.created_by)?.toString();
       
       const isEmployeeLead = (assignedId && employeeIds.has(assignedId)) || (creatorId && employeeIds.has(creatorId));
       
@@ -240,7 +259,6 @@ const AdminDashboard = () => {
 
   const topPerformerCount = useMemo(() => employeePerformance.filter(e => e.converted > 0).length, [employeePerformance]);
 
-  // Get recent leads
   const recentLeads = useMemo(() => [...leads]
     .filter(l => l.updated_at)
     .sort((a, b) => {
@@ -249,6 +267,25 @@ const AdminDashboard = () => {
       return dateB - dateA;
     })
     .slice(0, 5), [leads]);
+
+  const handleExportReport = async () => {
+    setIsExporting(true);
+    try {
+      await reportService.exportReports(reportFilters);
+      toast.success('Report downloaded successfully');
+      setIsReportDialogOpen(false);
+    } catch (error) {
+      console.error('Export failed', error);
+      toast.error('Failed to export report');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const departments = useMemo(() => {
+    const depts = new Set(employees.map(e => e.department).filter(Boolean));
+    return ['all', ...Array.from(depts)];
+  }, [employees]);
 
   return (
     <DashboardLayout requiredRole="admin">
@@ -266,8 +303,15 @@ const AdminDashboard = () => {
             transition={{ delay: 0.2 }}
           >
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
-
           </motion.div>
+          
+          <Button 
+            onClick={() => setIsReportDialogOpen(true)}
+            variant="outline"
+            className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+          >
+            <Download className="h-4 w-4" /> Download Reports
+          </Button>
         </div>
 
         {/* Stats Cards with staggered animation */}
@@ -650,6 +694,69 @@ const AdminDashboard = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Report Download Dialog */}
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Download Employee Reports</DialogTitle>
+            <DialogDescription>
+              Select date range and department to export reports as CSV.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="startDate" className="text-right text-xs">From</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={reportFilters.startDate}
+                onChange={(e) => setReportFilters(p => ({ ...p, startDate: e.target.value }))}
+                className="col-span-3 h-9"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="endDate" className="text-right text-xs">To</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={reportFilters.endDate}
+                onChange={(e) => setReportFilters(p => ({ ...p, endDate: e.target.value }))}
+                className="col-span-3 h-9"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dept" className="text-right text-xs">Dept</Label>
+              <Select 
+                value={reportFilters.department} 
+                onValueChange={(v) => setReportFilters(p => ({ ...p, department: v }))}
+              >
+                <SelectTrigger className="col-span-3 h-9">
+                  <SelectValue placeholder="Select Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map(dept => (
+                    <SelectItem key={dept} value={dept || 'null'}>
+                      {dept === 'all' ? 'All Departments' : dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsReportDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700" 
+              onClick={handleExportReport}
+              disabled={isExporting}
+            >
+              {isExporting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Download className="h-4 w-4 mr-2" />}
+              {isExporting ? 'Exporting...' : 'Export CSV'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* View Lead Dialog */}
       {viewingLead && (

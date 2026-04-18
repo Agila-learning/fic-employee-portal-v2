@@ -125,6 +125,7 @@ export interface Profile {
   email: string;
   phone: string | null;
   is_active: boolean | null;
+  department?: string;
   created_at: string;
   updated_at: string;
 }
