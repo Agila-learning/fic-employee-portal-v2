@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Eye, CheckCircle2, XCircle, ShieldCheck, DoorOpen } from 'lucide-react';
+import { Loader2, Eye, CheckCircle2, XCircle, ShieldCheck, DoorOpen, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminResignations = () => {
@@ -73,6 +73,21 @@ const AdminResignations = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this resignation request? This action cannot be undone.')) return;
+    
+    setProcessing(true);
+    try {
+      await resignationService.revokeResignation(id);
+      toast.success('Resignation request deleted successfully');
+      fetchResignations();
+    } catch (error) {
+      toast.error('Failed to delete resignation');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Submitted': return 'bg-blue-100 text-blue-700';
@@ -128,9 +143,12 @@ const AdminResignations = () => {
                         <td className="px-6 py-4">
                           <Badge className={getStatusColor(res.status)}>{res.status}</Badge>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 flex gap-2">
                           <Button variant="ghost" size="sm" onClick={() => { setSelectedItem(res); setIsModalOpen(true); setRemarks(''); }}>
                             <Eye className="w-4 h-4 mr-2 text-amber-500" /> View
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(res._id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                            <Trash2 className="w-4 h-4 mr-2" /> Delete
                           </Button>
                         </td>
                       </tr>
