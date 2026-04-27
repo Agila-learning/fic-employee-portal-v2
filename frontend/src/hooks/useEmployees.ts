@@ -52,9 +52,9 @@ export const useEmployees = () => {
     }
 
     try {
-      await employeeService.updateEmployee(userId, validation.data);
+      const updatedData = await employeeService.updateEmployee(userId, validation.data);
       setEmployees((prev) =>
-        prev.map((e) => (e.id === userId ? { ...e, ...validation.data } : e))
+        prev.map((e) => (e.id === userId ? { ...e, ...updatedData } : e))
       );
       toast.success('Employee updated successfully');
       return true;

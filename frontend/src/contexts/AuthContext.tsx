@@ -14,8 +14,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Poll interval: check session every 60 seconds
-const SESSION_POLL_MS = 60_000;
+// Poll interval: check session every 5 seconds for immediate lockout
+const SESSION_POLL_MS = 5_000;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
