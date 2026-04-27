@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import EmployeeFormDialog from './EmployeeFormDialog';
 import CreateEmployeeDialog from './CreateEmployeeDialog';
-import { MoreHorizontal, Pencil, UserX, UserCheck, Search, UserPlus, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Pencil, UserX, UserCheck, Search, UserPlus, Trash2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { getInitials } from '@/lib/utils';
@@ -63,12 +63,13 @@ const EmployeesTable = () => {
               <TableHead className="font-semibold">Role</TableHead>
               <TableHead className="font-semibold">Leads</TableHead>
               <TableHead className="font-semibold">Joined</TableHead>
+              <TableHead className="font-semibold">Inactivated On</TableHead>
               <TableHead className="text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredEmployees.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="h-32 text-center text-muted-foreground">No employees found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="h-32 text-center text-muted-foreground">No employees found</TableCell></TableRow>
             ) : filteredEmployees.map((employee, index) => (
               <TableRow key={employee.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
@@ -87,6 +88,16 @@ const EmployeesTable = () => {
                 <TableCell className="font-medium">{employee.leads_count}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {employee.created_at ? format(new Date(employee.created_at), 'MMM d, yyyy') : '-'}
+                </TableCell>
+                <TableCell>
+                  {!employee.is_active && (employee as any).inactivated_at ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 px-2 py-1 rounded-full">
+                      <Clock className="h-3 w-3 flex-shrink-0" />
+                      {format(new Date((employee as any).inactivated_at), 'dd MMM yyyy, hh:mm a')}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

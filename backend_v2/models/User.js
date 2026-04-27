@@ -24,6 +24,10 @@ const userSchema = mongoose.Schema({
         type: Boolean,
         default: true,
     },
+    inactivated_at: {
+        type: Date,
+        default: null,
+    },
     employee_id: {
         type: String,
         unique: true,
@@ -48,6 +52,18 @@ const userSchema = mongoose.Schema({
 userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
+
+// Auto-set inactivated_at when is_active changes to false; clear it on re-activation
+userSchema.pre('save', function (next) {
+    if (this.isModified('is_active')) {
+        if (this.is_active === false) {
+            this.inactivated_at = new Date();
+        } else {
+            this.inactivated_at = null;
+        }
+    }
+    next();
+});
 
 // Encrypt password using bcrypt
 userSchema.pre('save', async function () {

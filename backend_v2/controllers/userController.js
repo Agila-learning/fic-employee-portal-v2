@@ -77,12 +77,21 @@ const loginUser = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (user && (await user.comparePassword(password))) {
+            // Block inactive users from logging in
+            if (user.is_active === false) {
+                return res.status(401).json({ 
+                    message: 'Your account has been deactivated. Please contact your administrator.',
+                    code: 'ACCOUNT_DEACTIVATED'
+                });
+            }
+
             res.json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
                 department: user.department,
+                is_active: user.is_active,
                 token: generateToken(user._id),
             });
         } else {
@@ -103,6 +112,8 @@ const getUserProfile = async (req, res) => {
             email: user.email,
             role: user.role,
             department: user.department,
+            is_active: user.is_active,
+            inactivated_at: user.inactivated_at,
         });
     } else {
         res.status(404).json({ message: 'User not found' });
@@ -160,6 +171,13 @@ const updateUser = async (req, res) => {
             if (req.body.password) {
                 user.password = req.body.password;
             }
+
+            // Explicitly set is_active if it's provided so the pre-save hook catches it
+            if (req.body.is_active !== undefined) {
+                user.is_active = req.body.is_active;
+                // Pre-save hook will handle inactivated_at
+            }
+
             const updatedUser = await user.save();
             res.json({
                 _id: updatedUser._id,
@@ -169,6 +187,7 @@ const updateUser = async (req, res) => {
                 department: updatedUser.department,
                 employee_id: updatedUser.employee_id,
                 is_active: updatedUser.is_active,
+                inactivated_at: updatedUser.inactivated_at,
             });
         } else {
             res.status(404).json({ message: 'User not found' });

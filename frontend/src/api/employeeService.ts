@@ -2,7 +2,7 @@ import apiClient from './apiClient';
 
 export const employeeService = {
     getEmployees: async () => {
-        const response = await apiClient.get('/users?role=all'); // Or a specialized endpoint
+        const response = await apiClient.get('/users');
         return response.data;
     },
 

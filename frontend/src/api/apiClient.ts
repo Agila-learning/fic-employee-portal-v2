@@ -24,9 +24,12 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
-            // Handle unauthorized (e.g., redirect to login or clear local storage)
             localStorage.removeItem('token');
-            // Optional: window.location.href = '/login';
+
+            // Fire a custom event so AuthContext can react (clear state + redirect)
+            // Include the response code so AuthContext can show the right message
+            const code = error.response?.data?.code || 'UNAUTHORIZED';
+            window.dispatchEvent(new CustomEvent('auth:session-expired', { detail: { code } }));
         }
         return Promise.reject(error);
     }
