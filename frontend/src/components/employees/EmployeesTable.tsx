@@ -90,10 +90,13 @@ const EmployeesTable = () => {
                   {employee.created_at ? format(new Date(employee.created_at), 'MMM d, yyyy') : '-'}
                 </TableCell>
                 <TableCell>
-                  {!employee.is_active && (employee as any).inactivated_at ? (
+                  {!employee.is_active ? (
                     <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 px-2 py-1 rounded-full">
                       <Clock className="h-3 w-3 flex-shrink-0" />
-                      {format(new Date((employee as any).inactivated_at), 'dd MMM yyyy, hh:mm a')}
+                      {format(
+                        new Date((employee as any).inactivated_at || employee.updated_at),
+                        'dd MMM yyyy, hh:mm a'
+                      )}
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">—</span>
