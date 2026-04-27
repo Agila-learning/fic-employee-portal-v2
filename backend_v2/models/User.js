@@ -53,8 +53,9 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Auto-set inactivated_at when is_active changes to false; clear it on re-activation
-userSchema.pre('save', function (next) {
+// Pre-save hook for inactivation tracking and password hashing
+userSchema.pre('save', async function () {
+    // Auto-set inactivated_at when is_active changes
     if (this.isModified('is_active')) {
         if (this.is_active === false) {
             this.inactivated_at = new Date();
@@ -62,17 +63,12 @@ userSchema.pre('save', function (next) {
             this.inactivated_at = null;
         }
     }
-    next();
-});
 
-// Encrypt password using bcrypt
-userSchema.pre('save', async function () {
-    if (!this.isModified('password')) {
-        return;
+    // Encrypt password if modified
+    if (this.isModified('password')) {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
     }
-
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
 });
 
 const User = mongoose.model('User', userSchema);
