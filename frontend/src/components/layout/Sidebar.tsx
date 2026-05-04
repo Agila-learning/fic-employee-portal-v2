@@ -96,6 +96,34 @@ const Sidebar = () => {
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
+  const superAdminLinks = [
+    { to: '/super-admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin/messages', icon: MessageSquare, label: 'Team Chat' },
+    { to: '/admin/employees', icon: Users, label: 'Employees' },
+    { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
+    { to: '/admin/followups', icon: CalendarClock, label: 'Follow-ups' },
+    { to: '/admin/tasks', icon: ClipboardList, label: 'All Tasks' },
+    { to: '/admin/reports', icon: FileText, label: 'All Reports' },
+    { to: '/admin/announcements', icon: Megaphone, label: 'Announcements' },
+    { to: '/admin/policies', icon: ShieldCheck, label: 'Policies' },
+    { to: '/admin/attendance', icon: CalendarCheck, label: 'Team Attendance' },
+    { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
+    { to: '/admin/resignations', icon: DoorOpen, label: 'Resignations' },
+    { to: '/admin/credentials', icon: Key, label: 'Credentials' },
+    { to: '/admin/salary-details', icon: Landmark, label: 'Salary Details' },
+    { to: '/admin/expenses', icon: IndianRupee, label: 'Team Expenses' },
+    { to: '/admin/payroll', icon: FileText, label: 'Payroll' },
+    { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
+    { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
+    { to: '/admin/birthdays', icon: Cake, label: 'Birthday List' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
+    { type: 'separator', label: 'My Personal' } as any,
+    { to: '/employee/reports', icon: FileText, label: 'My Reports' },
+    { to: '/employee/tasks', icon: ClipboardList, label: 'My Tasks' },
+    { to: '/employee/expenses', icon: IndianRupee, label: 'My Expenses' },
+    { to: '/employee/resignation', icon: DoorOpen, label: 'My Resignation' },
+  ];
+
   const subAdminLinks = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
@@ -140,23 +168,29 @@ const Sidebar = () => {
   ];
 
   const mdLinks = [
-    { to: '/employee', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/messages', icon: MessageSquare, label: 'Chat' },
+    { to: '/admin/employees', icon: Users, label: 'Employees' },
+    { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
+    { to: '/admin/followups', icon: CalendarClock, label: 'Follow-ups' },
+    { to: '/admin/tasks', icon: ClipboardList, label: 'Tasks' },
+    { to: '/admin/reports', icon: FileText, label: 'Reports' },
     { to: '/admin/announcements', icon: Megaphone, label: 'Announcements' },
     { to: '/admin/policies', icon: ShieldCheck, label: 'Policies' },
-    { to: '/admin/tasks', icon: ClipboardList, label: 'Tasks' },
-    { to: '/admin/leads', icon: FileSpreadsheet, label: 'All Leads' },
-    { to: '/employee/leads', icon: FileSpreadsheet, label: 'My Leads' },
-    { to: '/employee/followups', icon: CalendarClock, label: 'Follow-ups' },
-    { to: '/employee/attendance', icon: CalendarCheck, label: 'Attendance' },
-    { to: '/employee/expenses', icon: IndianRupee, label: 'Expenses' },
+    { to: '/admin/attendance', icon: CalendarCheck, label: 'Attendance' },
+    { to: '/admin/leave-requests', icon: CalendarClock, label: 'Leave Requests' },
     { to: '/admin/resignations', icon: DoorOpen, label: 'Resignations' },
     { to: '/admin/salary-details', icon: Landmark, label: 'Salary Details' },
+    { to: '/admin/expenses', icon: IndianRupee, label: 'Expenses' },
+    { to: '/admin/payroll', icon: FileText, label: 'Payroll' },
+    { to: '/admin/offer-letter', icon: FileSignature, label: 'Offer Letter' },
+    { to: '/admin/success-stories', icon: Trophy, label: 'Success Stories' },
     { to: '/admin/birthdays', icon: Cake, label: 'Birthday List' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   const getLinks = () => {
+    if (user?.role === 'super-admin') return superAdminLinks;
     if (user?.role === 'admin') return adminLinks;
     if (user?.role === 'sub-admin') return subAdminLinks;
     if (user?.role === 'md') return mdLinks;
@@ -226,23 +260,32 @@ const Sidebar = () => {
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-            {links.map((link) => {
+            {links.map((link, idx) => {
+              if ((link as any).type === 'separator') {
+                return (
+                  <div key={`sep-${idx}`} className="px-4 py-2 mt-4 mb-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400/60">{(link as any).label}</p>
+                    <div className="h-px bg-white/10 mt-1" />
+                  </div>
+                );
+              }
+
               const isActive = location.pathname === link.to;
-    const Icon = link.icon;
-    return (
-      <Link
-        key={link.to}
-        to={link.to}
-        className={cn(
-          'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300',
-          isActive
-            ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30'
-            : 'text-amber-100/90 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:text-white hover:pl-5'
-        )}
-      >
-        <Icon className={cn("h-5 w-5 transition-colors", isActive ? "text-white" : "text-amber-400")} />
-        <span className="flex-1">{link.label}</span>
-                  {link.to === '/admin/leave-requests' && pendingLeaveCount > 0 && (
+              const Icon = (link as any).icon;
+              return (
+                <Link
+                  key={(link as any).to}
+                  to={(link as any).to}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300',
+                    isActive
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30'
+                      : 'text-amber-100/90 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:text-white hover:pl-5'
+                  )}
+                >
+                  <Icon className={cn("h-5 w-5 transition-colors", isActive ? "text-white" : "text-amber-400")} />
+                  <span className="flex-1">{(link as any).label}</span>
+                  {(link as any).to === '/admin/leave-requests' && pendingLeaveCount > 0 && (
                     <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white animate-pulse">
                       {pendingLeaveCount}
                     </span>

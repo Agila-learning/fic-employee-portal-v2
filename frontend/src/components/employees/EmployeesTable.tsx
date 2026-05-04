@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { getInitials } from '@/lib/utils';
 
 const EmployeesTable = () => {
+  const { user } = useAuth();
   const { employees, toggleEmployeeStatus, deleteEmployee, isLoading, refetchEmployees } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -45,10 +46,12 @@ const EmployeesTable = () => {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-          <UserPlus className="h-4 w-4" />
-          Create Employee
-        </Button>
+        {user?.role !== 'md' && (
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Create Employee
+          </Button>
+        )}
       </div>
 
       <div className="rounded-xl border border-border/50 bg-card shadow-sm overflow-hidden">
@@ -110,9 +113,11 @@ const EmployeesTable = () => {
                       <DropdownMenuItem onClick={() => handleToggleStatus(employee)}>
                         {employee.is_active ? <><UserX className="mr-2 h-4 w-4" />Deactivate</> : <><UserCheck className="mr-2 h-4 w-4" />Activate</>}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(employee)} className="text-destructive focus:text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" />Delete
-                      </DropdownMenuItem>
+                      {user?.role !== 'md' && (
+                        <DropdownMenuItem onClick={() => handleDelete(employee)} className="text-destructive focus:text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />Delete
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

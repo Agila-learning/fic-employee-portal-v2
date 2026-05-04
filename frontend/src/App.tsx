@@ -36,6 +36,7 @@ const AdminPolicies = lazy(() => import("./pages/admin/AdminPolicies"));
 const AdminResignations = lazy(() => import("./pages/admin/AdminResignations"));
 const CredentialsManager = lazy(() => import("./pages/admin/CredentialsManager"));
 const AdminSalaryManager = lazy(() => import("./pages/admin/AdminSalaryManager"));
+const SuperAdminDashboard = lazy(() => import("./pages/admin/SuperAdminDashboard"));
 const BirthdayList = lazy(() => import("./pages/BirthdayList"));
 
 // Lazy load employee pages
@@ -95,6 +96,9 @@ const App = () => (
                 <Route path="/login" element={<Navigate to="/auth" replace />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 
+                {/* Super Admin Routes */}
+                <Route path="/super-admin" element={<SuperAdminDashboard />} />
+
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/employees" element={<AdminEmployees />} />

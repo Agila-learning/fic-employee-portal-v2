@@ -28,6 +28,7 @@ const Auth = () => {
 
   // Check user FIRST — login sets user before isLoading clears
   if (user) {
+    if (user.role === 'super-admin') return <Navigate to="/super-admin" replace />;
     return <Navigate to={(user.role === 'admin' || user.role === 'sub-admin' || user.role === 'md') ? '/admin' : '/employee'} replace />;
   }
 

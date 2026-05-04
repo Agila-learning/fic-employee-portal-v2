@@ -25,8 +25,12 @@ const DashboardLayout = ({ children, requiredRole }: DashboardLayoutProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Admin, Sub-Admin and MD can access admin pages
-  if (requiredRole === 'admin' && user.role !== 'admin' && user.role !== 'md' && user.role !== 'sub-admin') {
+  // Admin, Sub-Admin, MD and Super-Admin can access admin pages
+  if (requiredRole === 'admin' && 
+      user.role !== 'admin' && 
+      user.role !== 'md' && 
+      user.role !== 'sub-admin' && 
+      user.role !== 'super-admin') {
     return <Navigate to="/employee" replace />;
   }
 

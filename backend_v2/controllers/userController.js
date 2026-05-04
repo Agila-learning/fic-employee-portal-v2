@@ -9,6 +9,11 @@ const generateToken = (id) => {
 const registerUser = async (req, res) => {
     try {
         const { name, email, password, role, employee_id, department } = req.body;
+        
+        // Prevent MD from creating users
+        if (req.user.role === 'md') {
+            return res.status(403).json({ message: 'MD is not authorized to create employees' });
+        }
 
         const userExists = await User.findOne({ email });
 

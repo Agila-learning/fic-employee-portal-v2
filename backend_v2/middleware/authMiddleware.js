@@ -34,7 +34,7 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-    if (req.user && (req.user.role === 'admin' || req.user.role === 'md')) {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'md' || req.user.role === 'super-admin')) {
         next();
     } else {
         return res.status(403).json({ message: 'Not authorized as an admin' });
@@ -42,7 +42,7 @@ const admin = (req, res, next) => {
 };
 
 const subAdmin = (req, res, next) => {
-    if (req.user && (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'md')) {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'md' || req.user.role === 'super-admin')) {
         next();
     } else {
         return res.status(403).json({ message: 'Not authorized as a sub-admin' });
@@ -50,7 +50,7 @@ const subAdmin = (req, res, next) => {
 };
 
 const hrManager = (req, res, next) => {
-    if (req.user && (req.user.role === 'hr_manager' || req.user.role === 'admin' || req.user.role === 'md')) {
+    if (req.user && (req.user.role === 'hr_manager' || req.user.role === 'admin' || req.user.role === 'md' || req.user.role === 'super-admin')) {
         next();
     } else {
         return res.status(403).json({ message: 'Not authorized as an HR Manager' });

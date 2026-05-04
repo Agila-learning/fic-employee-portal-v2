@@ -1,4 +1,4 @@
-export type AppRole = 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager';
+export type AppRole = 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager' | 'super-admin';
 
 export interface AssetClearance {
   assetName: string;

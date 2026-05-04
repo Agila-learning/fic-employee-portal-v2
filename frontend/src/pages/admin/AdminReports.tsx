@@ -321,7 +321,7 @@ const AdminReports = () => {
               <Download className="h-4 w-4 mr-2" />
               Export Excel
             </Button>
-            {user?.role === 'sub-admin' && (
+            {(user?.role === 'sub-admin' || user?.role === 'super-admin' || user?.role === 'md') && (
               <Button onClick={() => setIsAddReportOpen(true)} className="gap-2 shadow-lg shadow-primary/20">
                 <Plus className="h-4 w-4" />
                 Add My Report

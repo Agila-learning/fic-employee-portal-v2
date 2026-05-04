@@ -37,10 +37,10 @@ const AdminExpenses = () => {
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={cn("grid w-full grid-cols-2", (user?.role === 'admin' || user?.role === 'sub-admin') && "sm:w-[600px] grid-cols-3")}>
+          <TabsList className={cn("grid w-full grid-cols-2", (user?.role === 'admin' || user?.role === 'sub-admin' || user?.role === 'super-admin') && "sm:w-[600px] grid-cols-3")}>
             <TabsTrigger value="my-expenses">My Expenses</TabsTrigger>
             <TabsTrigger value="employee-expenses">Employee Expenses</TabsTrigger>
-            {(user?.role === 'admin' || user?.role === 'sub-admin') && <TabsTrigger value="md-expenses">MD Expenses</TabsTrigger>}
+            {(user?.role === 'admin' || user?.role === 'sub-admin' || user?.role === 'super-admin') && <TabsTrigger value="md-expenses">MD Expenses</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="my-expenses" className="mt-6">
@@ -51,7 +51,7 @@ const AdminExpenses = () => {
             <EmployeeExpenseManagement roleFilter="employee" />
           </TabsContent>
 
-          {(user?.role === 'admin' || user?.role === 'sub-admin') && (
+          {(user?.role === 'admin' || user?.role === 'sub-admin' || user?.role === 'super-admin') && (
             <TabsContent value="md-expenses" className="mt-6">
               <div className="space-y-6">
                 <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden p-6 text-center">
