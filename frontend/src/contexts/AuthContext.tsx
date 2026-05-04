@@ -94,6 +94,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.error('Your account has been deactivated. Please contact your administrator.', {
           duration: 6000,
         });
+      } else if (code === 'PASSWORD_UPDATED') {
+        toast.error('Your password was recently updated. Please log in again.', {
+          duration: 6000,
+        });
       } else {
         toast.error('Session expired. Please log in again.');
       }

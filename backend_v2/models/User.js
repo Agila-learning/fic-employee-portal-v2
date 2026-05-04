@@ -44,6 +44,9 @@ const userSchema = mongoose.Schema({
     dob: {
         type: Date,
     },
+    password_updated_at: {
+        type: Date,
+    },
 }, {
     timestamps: true,
 });
@@ -68,6 +71,7 @@ userSchema.pre('save', async function () {
     if (this.isModified('password')) {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
+        this.password_updated_at = new Date(Date.now() - 1000); // 1 sec in past to ensure token iat is before this
     }
 });
 

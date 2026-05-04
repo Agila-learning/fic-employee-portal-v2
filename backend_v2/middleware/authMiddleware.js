@@ -21,6 +21,17 @@ const protect = async (req, res, next) => {
                 });
             }
 
+            // Check if password was changed after token was issued
+            if (req.user.password_updated_at) {
+                const changedTimestamp = parseInt(req.user.password_updated_at.getTime() / 1000, 10);
+                if (decoded.iat < changedTimestamp) {
+                    return res.status(401).json({
+                        message: 'Your password was recently updated. Please log in again.',
+                        code: 'PASSWORD_UPDATED'
+                    });
+                }
+            }
+
             return next();
         } catch (error) {
             console.error(error);
