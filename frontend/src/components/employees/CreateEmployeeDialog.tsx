@@ -20,7 +20,7 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
     email: '',
     password: '',
     employee_id: '',
-    role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager',
+    role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager' | 'super-admin',
     dob: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -164,6 +164,7 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
                 <SelectItem value="employee">Employee</SelectItem>
                 <SelectItem value="hr_manager">HR Manager</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="super-admin">Super Admin</SelectItem>
                 <SelectItem value="sub-admin">Sub-Admin</SelectItem>
                 <SelectItem value="md">Managing Director (MD)</SelectItem>
               </SelectContent>
