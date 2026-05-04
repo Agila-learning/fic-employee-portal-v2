@@ -129,7 +129,7 @@ const AdminFollowups = () => {
   const maxedOutCount = sortedLeads.filter(l => (l.followup_count || 0) >= MAX_FOLLOWUP_COUNT).length;
 
   const allEmployees = useMemo(() => {
-    return employees.filter(e => e.role === 'employee' || e.role === 'sub-admin' || e.role === 'md');
+    return employees.filter(e => (e.role === 'employee' || e.role === 'sub-admin' || e.role === 'md') && e.is_active !== false);
   }, [employees]);
 
   return (

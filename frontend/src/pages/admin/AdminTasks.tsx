@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const AdminTasks = () => {
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
-  const { employees } = useEmployees();
+  const { employees, activeEmployees } = useEmployees();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -142,7 +142,7 @@ const AdminTasks = () => {
                       <SelectValue placeholder="Select employee" />
                     </SelectTrigger>
                     <SelectContent>
-                      {employees.map((emp) => (
+                      {activeEmployees.map((emp) => (
                         <SelectItem key={emp.user_id} value={emp.user_id}>
                           {emp.name}
                         </SelectItem>

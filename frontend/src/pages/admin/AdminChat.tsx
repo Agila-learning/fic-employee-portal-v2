@@ -28,7 +28,7 @@ const AdminChat = () => {
           employeeService.getEmployees(),
           messageService.getChatList()
         ]);
-        setEmployees(empData || []);
+        setEmployees(Array.isArray(empData) ? empData.filter(e => e.is_active !== false) : []);
         setChatList(chats || []);
       } catch (error) {
         console.error('Failed to fetch chat data', error);

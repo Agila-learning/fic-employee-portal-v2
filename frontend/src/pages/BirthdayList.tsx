@@ -21,8 +21,8 @@ const BirthdayList = ({ role }: { role: 'admin' | 'employee' }) => {
             setLoading(true);
             try {
                 const data = await employeeService.getEmployees();
-                // Filter and sort by birthday
-                const withBirthdays = data.filter((emp: any) => emp.dob)
+                const activeEmployees = Array.isArray(data) ? data.filter(e => e.is_active !== false) : [];
+                const withBirthdays = activeEmployees.filter((emp: any) => emp.dob)
                     .sort((a: any, b: any) => {
                         const dateA = new Date(a.dob);
                         const dateB = new Date(b.dob);

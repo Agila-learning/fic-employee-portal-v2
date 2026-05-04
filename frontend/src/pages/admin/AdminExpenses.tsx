@@ -40,7 +40,7 @@ const AdminExpenses = () => {
           <TabsList className={cn("grid w-full grid-cols-2", (user?.role === 'admin' || user?.role === 'sub-admin' || user?.role === 'super-admin') && "sm:w-[600px] grid-cols-3")}>
             <TabsTrigger value="my-expenses">My Expenses</TabsTrigger>
             <TabsTrigger value="employee-expenses">Employee Expenses</TabsTrigger>
-            {(user?.role === 'admin' || user?.role === 'sub-admin' || user?.role === 'super-admin') && <TabsTrigger value="md-expenses">MD Expenses</TabsTrigger>}
+            {(user?.role === 'admin' || user?.role === 'sub-admin' || user?.role === 'super-admin') && <TabsTrigger value="md-expenses">Admin & MD Expenses</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="my-expenses" className="mt-6">
@@ -62,9 +62,9 @@ const AdminExpenses = () => {
                       >
                         <BarChart3 className="h-12 w-12 text-primary/40" />
                       </motion.div>
-                      <h3 className="text-lg font-semibold">MD Expense Analytics</h3>
+                      <h3 className="text-lg font-semibold">Admin & MD Expense Analytics</h3>
                       <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                        Real-time visualization of MD operational costs and budget utilization.
+                        Real-time visualization of Admin and MD operational costs and budget utilization.
                       </p>
                    </div>
                 </Card>

@@ -112,7 +112,7 @@ const AdminReports = () => {
   const fetchProfiles = useCallback(async () => {
     try {
       const data = await employeeService.getEmployees();
-      setProfiles(data || []);
+      setProfiles(Array.isArray(data) ? data.filter(e => e.is_active !== false) : []);
     } catch (error: any) {
       console.error('Error fetching profiles:', error);
     }

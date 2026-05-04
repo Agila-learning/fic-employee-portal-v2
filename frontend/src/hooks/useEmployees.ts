@@ -17,7 +17,7 @@ export const useEmployees = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchEmployees = async () => {
-    if (!user || user.role !== 'admin') return;
+    if (!user || user.role === 'employee') return;
 
     try {
       const data = await employeeService.getEmployees();
@@ -37,7 +37,7 @@ export const useEmployees = () => {
   };
 
   useEffect(() => {
-    if (user?.role === 'admin') {
+    if (user && user.role !== 'employee') {
       fetchEmployees();
     } else {
       setIsLoading(false);
@@ -96,6 +96,7 @@ export const useEmployees = () => {
 
   return {
     employees,
+    activeEmployees: employees.filter(e => e.is_active !== false),
     isLoading,
     updateEmployee,
     updateEmployeeRole,

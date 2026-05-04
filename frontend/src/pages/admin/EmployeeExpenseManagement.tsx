@@ -61,7 +61,7 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
       ]);
       setExpenses(Array.isArray(expData) ? expData : []);
       setCredits(Array.isArray(credData) ? credData : []);
-      setEmployeeList(Array.isArray(empData) ? empData : []);
+      setEmployeeList(Array.isArray(empData) ? empData.filter(e => e.is_active !== false) : []);
     } catch (error) {
       toast.error('Failed to fetch data');
       setExpenses([]);
