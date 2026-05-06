@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
-import { FileText, Send, History, CheckCircle, Clock, Plus, Trash2, Calendar as CalendarIcon } from 'lucide-react';
+import { FileText, Send, History, CheckCircle, Clock, Plus, Trash2, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -30,6 +30,9 @@ const EmployeeReports = () => {
   const [morningDesc, setMorningDesc] = useState('');
   const [afternoonDesc, setAfternoonDesc] = useState('');
   const [candidatesScreened, setCandidatesScreened] = useState('0');
+  const [exportStartDate, setExportStartDate] = useState<Date | undefined>(undefined);
+  const [exportEndDate, setExportEndDate] = useState<Date | undefined>(undefined);
+  const [isExporting, setIsExporting] = useState(false);
 
   const fetchReports = useCallback(async () => {
     if (!user) return;
@@ -86,6 +89,27 @@ const EmployeeReports = () => {
       toast.error(error.response?.data?.message || 'Failed to submit report');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!exportStartDate || !exportEndDate) {
+      toast.error('Please select both start and end dates');
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      await reportService.exportReports({
+        startDate: format(exportStartDate, 'yyyy-MM-dd'),
+        endDate: format(exportEndDate, 'yyyy-MM-dd'),
+        department: 'all' // Employees will be filtered by user_id in backend anyway
+      });
+      toast.success('Report exported successfully');
+    } catch (error) {
+      toast.error('Failed to export reports');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -176,9 +200,58 @@ const EmployeeReports = () => {
           {/* Report History */}
           <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col">
             <CardHeader className="border-b border-border/50">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <History className="h-4 w-4" /> Report History
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <History className="h-4 w-4" /> Report History
+                </CardTitle>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 border-primary/20 hover:bg-primary/5">
+                      <Download className="h-4 w-4" /> Export Excel
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-4 space-y-4" align="end">
+                    <div className="space-y-2">
+                      <h4 className="font-medium leading-none">Export Date Range</h4>
+                      <p className="text-sm text-muted-foreground">Download your reports as CSV/Excel</p>
+                    </div>
+                    <div className="grid gap-4">
+                      <div className="grid gap-2">
+                        <label className="text-xs font-semibold uppercase text-muted-foreground">From Date</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal h-8">
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {exportStartDate ? format(exportStartDate, 'PPP') : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="single" selected={exportStartDate} onSelect={setExportStartDate} initialFocus />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="grid gap-2">
+                        <label className="text-xs font-semibold uppercase text-muted-foreground">To Date</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal h-8">
+                              <CalendarIcon className="mr-2 h-3 w-3" />
+                              {exportEndDate ? format(exportEndDate, 'PPP') : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="single" selected={exportEndDate} onSelect={setExportEndDate} initialFocus />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <Button onClick={handleExport} disabled={isExporting} className="w-full h-8 gap-2">
+                      {isExporting ? <Clock className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                      Download CSV
+                    </Button>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </CardHeader>
             <CardContent className="p-0 flex-1">
               <ScrollArea className="h-[500px]">

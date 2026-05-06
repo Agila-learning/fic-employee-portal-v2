@@ -7,7 +7,7 @@ router.route('/')
     .post(protect, createReport)
     .get(protect, getReports);
 
-router.get('/export', protect, admin, exportReports);
+router.get('/export', protect, exportReports);
 
 router.delete('/:id', protect, subAdmin, deleteReport);
 

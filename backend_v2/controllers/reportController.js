@@ -46,7 +46,7 @@ const deleteReport = async (req, res) => {
 const exportReports = async (req, res) => {
     try {
         const { startDate, endDate, department } = req.query;
-        const filter = {};
+        const filter = (['admin', 'sub-admin', 'md', 'super-admin', 'hr_manager'].includes(req.user.role)) ? {} : { user_id: req.user._id };
         
         if (startDate || endDate) {
             filter.report_date = {};
