@@ -10,9 +10,9 @@ const registerUser = async (req, res) => {
     try {
         const { name, email, password, role, employee_id, department } = req.body;
         
-        // Prevent MD from creating users
-        if (['md'].includes(req.user.role)) {
-            return res.status(403).json({ message: 'MD is not authorized to create employees' });
+        // Prevent MD and Super Admin from creating users
+        if (['md', 'super-admin'].includes(req.user.role)) {
+            return res.status(403).json({ message: `${req.user.role === 'md' ? 'MD' : 'Super Admin'} is not authorized to create employees` });
         }
 
         const userExists = await User.findOne({ email });
@@ -167,6 +167,11 @@ const updateUser = async (req, res) => {
         if (user) {
             user.name = req.body.name || user.name;
             user.email = req.body.email || user.email;
+            // Prevent Super Admin from editing roles
+            if (req.user.role === 'super-admin' && req.body.role && req.body.role !== user.role) {
+                return res.status(403).json({ message: 'Super Admin is not authorized to edit employee roles' });
+            }
+
             user.role = req.body.role || user.role;
             user.employee_id = req.body.employee_id !== undefined ? req.body.employee_id : user.employee_id;
             user.department = req.body.department !== undefined ? req.body.department : user.department;
