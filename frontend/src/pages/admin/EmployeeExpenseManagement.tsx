@@ -21,7 +21,7 @@ import { ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, Cart
 import { CATEGORIES } from './AdminExpenses';
 
 interface EmployeeExpenseManagementProps {
-  roleFilter?: 'employee' | 'admin' | 'md' | 'all';
+  roleFilter?: 'employee' | 'admin' | 'md' | 'all' | 'admin-md';
 }
 
 const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseManagementProps) => {
@@ -187,18 +187,24 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
     let filteredExp = Array.isArray(expenses) ? expenses.filter(e => {
       if (!e) return false;
       const isExcludeMe = e.user_id?._id !== user?.id;
-      if (!isExcludeMe) return false;
+      if (roleFilter !== 'admin-md' && !isExcludeMe) return false;
       
-      if (roleFilter !== 'all' && (e.user_id?.role || 'employee') !== roleFilter) return false;
+      const role = e.user_id?.role || 'employee';
+      if (roleFilter === 'admin-md') {
+        if (!['admin', 'sub-admin', 'md'].includes(role)) return false;
+      } else if (roleFilter !== 'all' && role !== roleFilter) return false;
       return true;
     }).map(e => ({ ...e, type: 'expense' })) : [];
     
     let filteredCreds = Array.isArray(credits) ? credits.filter(c => {
       if (!c) return false;
       const isExcludeMe = c.user_id?._id !== user?.id;
-      if (!isExcludeMe) return false;
+      if (roleFilter !== 'admin-md' && !isExcludeMe) return false;
       
-      if (roleFilter !== 'all' && (c.user_id?.role || 'employee') !== roleFilter) return false;
+      const role = c.user_id?.role || 'employee';
+      if (roleFilter === 'admin-md') {
+        if (!['admin', 'sub-admin', 'md'].includes(role)) return false;
+      } else if (roleFilter !== 'all' && role !== roleFilter) return false;
       return true;
     }).map(c => ({ ...c, type: 'credit' })) : [];
     
@@ -236,8 +242,10 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
     const filteredTransactions = allTransactions;
     const pendingCount = Array.isArray(expenses) ? expenses.filter(e => 
       e.approval_status === 'pending' && 
-      e.user_id?._id !== user?.id && 
-      (roleFilter === 'all' || e.user_id?.role === roleFilter)
+      (roleFilter === 'admin-md' || e.user_id?._id !== user?.id) && 
+      (roleFilter === 'all' || 
+       (roleFilter === 'admin-md' && ['admin', 'sub-admin', 'md'].includes(e.user_id?.role || 'employee')) || 
+       e.user_id?.role === roleFilter)
     ).length : 0;
 
     const totalApprovedExp = filteredTransactions
@@ -259,8 +267,11 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
     const safeCreds = Array.isArray(credits) ? credits : [];
     
     return safeEmps.filter(emp => {
-      if (!emp || emp._id === user?.id) return false;
-      if (roleFilter !== 'all' && (emp.role || (emp as any).role || 'employee') !== roleFilter) return false;
+      if (!emp || (roleFilter !== 'admin-md' && emp._id === user?.id)) return false;
+      const empRole = emp.role || (emp as any).role || 'employee';
+      if (roleFilter === 'admin-md') {
+        if (!['admin', 'sub-admin', 'md'].includes(empRole)) return false;
+      } else if (roleFilter !== 'all' && empRole !== roleFilter) return false;
       return true;
     }).map(emp => {
       const exp = safeExp.filter(e => {
@@ -493,15 +504,21 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
                 </TableHeader>
                 <TableBody>
                   {(Array.isArray(expenses) ? expenses : []).filter(e => {
-                    if (!e || e.approval_status !== 'pending' || e.user_id?._id === user?.id) return false;
-                    if (roleFilter !== 'all' && (e.user_id?.role || (e as any).role || 'employee') !== roleFilter) return false;
+                    if (!e || e.approval_status !== 'pending' || (roleFilter !== 'admin-md' && e.user_id?._id === user?.id)) return false;
+                    const role = e.user_id?.role || (e as any).role || 'employee';
+                    if (roleFilter === 'admin-md') {
+                      if (!['admin', 'sub-admin', 'md'].includes(role)) return false;
+                    } else if (roleFilter !== 'all' && role !== roleFilter) return false;
                     return true;
                   }).length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground text-xs">No pending approvals</TableCell></TableRow>
                   ) : (Array.isArray(expenses) ? expenses : [])
                     .filter(e => {
-                        if (!e || e.approval_status !== 'pending' || e.user_id?._id === user?.id) return false;
-                        if (roleFilter !== 'all' && (e.user_id?.role || (e as any).role || 'employee') !== roleFilter) return false;
+                        if (!e || e.approval_status !== 'pending' || (roleFilter !== 'admin-md' && e.user_id?._id === user?.id)) return false;
+                        const role = e.user_id?.role || (e as any).role || 'employee';
+                    if (roleFilter === 'admin-md') {
+                      if (!['admin', 'sub-admin', 'md'].includes(role)) return false;
+                    } else if (roleFilter !== 'all' && role !== roleFilter) return false;
                         return true;
                     })
                     .sort((a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime())
@@ -572,9 +589,11 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
                     </TableHeader>
                     <TableBody>
                       {(Array.isArray(employeeList) ? employeeList : []).filter(emp => {
-                        if (!emp || emp._id === user?.id) return false;
+                        if (!emp || (roleFilter !== 'admin-md' && emp._id === user?.id)) return false;
                         const empRole = emp.role || (emp as any).role || 'employee';
-                        if (roleFilter !== 'all' && empRole !== roleFilter) return false;
+                        if (roleFilter === 'admin-md') {
+                          if (!['admin', 'sub-admin', 'md'].includes(empRole)) return false;
+                        } else if (roleFilter !== 'all' && empRole !== roleFilter) return false;
                         return true;
                       }).map(emp => {
                         const empExp = (Array.isArray(expenses) ? expenses : []).filter(e => e && (e.user_id?._id === emp._id || e.user_id === emp._id) && e.approval_status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);

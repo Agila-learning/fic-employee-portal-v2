@@ -511,6 +511,7 @@ const AdminAttendance = () => {
                       <TableHead>Check In</TableHead>
                       <TableHead>Check Out</TableHead>
                       <TableHead>Duration</TableHead>
+                      <TableHead>Location</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Notes</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -547,6 +548,11 @@ const AdminAttendance = () => {
                               {record.duration_minutes !== undefined ? (
                                 `${Math.floor(record.duration_minutes / 60)}h ${record.duration_minutes % 60}m`
                               ) : '-'}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              <div className="max-w-[150px] truncate" title={getLocationDisplayName(record.work_location)}>
+                                {getLocationDisplayName(record.work_location) || '-'}
+                              </div>
                             </TableCell>
                             <TableCell>{getStatusBadge(record)}</TableCell>
                             <TableCell className="max-w-[150px] truncate text-xs text-muted-foreground italic">
