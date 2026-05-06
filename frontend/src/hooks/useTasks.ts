@@ -17,7 +17,7 @@ export interface Task {
   assignee_name?: string;
 }
 
-export const useTasks = () => {
+export const useTasks = (branch?: string) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -26,7 +26,10 @@ export const useTasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const data = await utilityService.getTasks();
+      const params: any = {};
+      if (branch && branch !== 'All') params.branch = branch;
+      
+      const data = await utilityService.getTasks(params);
       setTasks(data.map((t: any) => ({
         ...t,
         id: t._id,
@@ -103,7 +106,7 @@ export const useTasks = () => {
 
   useEffect(() => {
     if (user) fetchTasks();
-  }, [user]);
+  }, [user, branch]);
 
   return { tasks, loading, fetchTasks, createTask, updateTask, updateTaskStatus, deleteTask };
 };

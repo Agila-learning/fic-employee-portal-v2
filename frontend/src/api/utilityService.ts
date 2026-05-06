@@ -31,8 +31,8 @@ export const utilityService = {
         return response.data;
     },
 
-    getAnnouncements: async () => {
-        const response = await apiClient.get('/utility/announcements');
+    getAnnouncements: async (params?: any) => {
+        const response = await apiClient.get('/utility/announcements', { params });
         return response.data;
     },
 
@@ -51,8 +51,8 @@ export const utilityService = {
         return response.data;
     },
 
-    getTasks: async () => {
-        const response = await apiClient.get('/utility/tasks');
+    getTasks: async (params?: any) => {
+        const response = await apiClient.get('/utility/tasks', { params });
         return response.data;
     },
 

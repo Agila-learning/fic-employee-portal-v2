@@ -11,10 +11,13 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2 } from 'lucide-react';
+import { Building2, Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminAnnouncements = () => {
-  const { announcements, loading, createAnnouncement, deleteAnnouncement, toggleAnnouncementStatus } = useAnnouncements();
+  const { user } = useAuth();
+  const [selectedBranch, setSelectedBranch] = useState<string>('All');
+  const { announcements, loading, createAnnouncement, deleteAnnouncement, toggleAnnouncementStatus } = useAnnouncements(selectedBranch);
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ title: '', message: '', branch: 'All' });
@@ -40,7 +43,24 @@ const AdminAnnouncements = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Announcements</h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">Post announcements for all employees</p>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Post announcements for employees</p>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {user?.role !== 'super-admin' && (
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-[140px] h-9 bg-card">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Branches</SelectItem>
+                  <SelectItem value="chennai">Chennai</SelectItem>
+                  <SelectItem value="bangalore">Bangalore</SelectItem>
+                  <SelectItem value="thirupattur">Thirupattur</SelectItem>
+                  <SelectItem value="krishnagiri">Krishnagiri</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>

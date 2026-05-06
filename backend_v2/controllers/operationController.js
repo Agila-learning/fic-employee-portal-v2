@@ -114,8 +114,14 @@ const getMyLeaveRequests = async (req, res) => {
 const getAllLeaveRequests = async (req, res) => {
     try {
         let filter = {};
+        const { branch } = req.query;
+
         if (req.user.role === 'super-admin') {
             const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter = { user_id: { $in: userIds } };
+        } else if (branch && branch !== 'All') {
+            const usersInBranch = await User.find({ branch }).select('_id');
             const userIds = usersInBranch.map(u => u._id);
             filter = { user_id: { $in: userIds } };
         }
@@ -271,7 +277,7 @@ const getMyAttendance = async (req, res) => {
 
 const getAllAttendance = async (req, res) => {
     try {
-        const { startDate, endDate, user_id } = req.query;
+        const { startDate, endDate, user_id, branch } = req.query;
         const filter = {};
         
         if (req.user.role === 'super-admin') {
@@ -286,6 +292,11 @@ const getAllAttendance = async (req, res) => {
                     return res.status(403).json({ message: 'Not authorized to view attendance for employees in other branches' });
                 }
             }
+        } else if (branch && branch !== 'All') {
+            const usersInBranch = await User.find({ branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter.user_id = { $in: userIds };
+            if (user_id) filter.user_id = user_id;
         } else if (user_id) {
             filter.user_id = user_id;
         }
@@ -382,7 +393,7 @@ const getMyExpenses = async (req, res) => {
 
 const getAllExpenses = async (req, res) => {
     try {
-        const { status, startDate, endDate, user_id } = req.query;
+        const { status, startDate, endDate, user_id, branch } = req.query;
         const filter = {};
         if (status) filter.approval_status = status;
         
@@ -397,6 +408,11 @@ const getAllExpenses = async (req, res) => {
                     return res.status(403).json({ message: 'Not authorized to view expenses for employees in other branches' });
                 }
             }
+        } else if (branch && branch !== 'All') {
+            const usersInBranch = await User.find({ branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter.user_id = { $in: userIds };
+            if (user_id) filter.user_id = user_id;
         } else if (user_id) {
             filter.user_id = user_id;
         }
@@ -544,7 +560,7 @@ const getMyCredits = async (req, res) => {
 
 const getAllCredits = async (req, res) => {
     try {
-        const { startDate, endDate, user_id } = req.query;
+        const { startDate, endDate, user_id, branch } = req.query;
         const filter = {};
         
         if (req.user.role === 'super-admin') {
@@ -558,6 +574,11 @@ const getAllCredits = async (req, res) => {
                     return res.status(403).json({ message: 'Not authorized to view credits for employees in other branches' });
                 }
             }
+        } else if (branch && branch !== 'All') {
+            const usersInBranch = await User.find({ branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter.user_id = { $in: userIds };
+            if (user_id) filter.user_id = user_id;
         } else if (user_id) {
             filter.user_id = user_id;
         }
@@ -702,8 +723,14 @@ const getMyAttendanceRequests = async (req, res) => {
 const getAllAttendanceRequests = async (req, res) => {
     try {
         let filter = {};
+        const { branch } = req.query;
+
         if (req.user.role === 'super-admin') {
             const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter = { user_id: { $in: userIds } };
+        } else if (branch && branch !== 'All') {
+            const usersInBranch = await User.find({ branch }).select('_id');
             const userIds = usersInBranch.map(u => u._id);
             filter = { user_id: { $in: userIds } };
         }

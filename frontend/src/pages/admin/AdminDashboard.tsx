@@ -47,7 +47,8 @@ const AdminDashboard = () => {
   const [reportFilters, setReportFilters] = useState({
     startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
-    department: 'all'
+    department: 'all',
+    branch: 'All'
   });
   const [isExporting, setIsExporting] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<string>('All');
@@ -285,7 +286,12 @@ const AdminDashboard = () => {
   const handleExportReport = async () => {
     setIsExporting(true);
     try {
-      await reportService.exportReports(reportFilters);
+      // Ensure current selected branch is included in report filters
+      const finalFilters = { 
+        ...reportFilters, 
+        branch: selectedBranch 
+      };
+      await reportService.exportReports(finalFilters);
       toast.success('Report downloaded successfully');
       setIsReportDialogOpen(false);
     } catch (error) {
@@ -324,10 +330,10 @@ const AdminDashboard = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Branches</SelectItem>
-                  <SelectItem value="Chennai">Chennai</SelectItem>
-                  <SelectItem value="Bangalore">Bangalore</SelectItem>
-                  <SelectItem value="Thirupattur">Thirupattur</SelectItem>
-                  <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+                  <SelectItem value="chennai">Chennai</SelectItem>
+                  <SelectItem value="bangalore">Bangalore</SelectItem>
+                  <SelectItem value="thirupattur">Thirupattur</SelectItem>
+                  <SelectItem value="krishnagiri">Krishnagiri</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -715,7 +721,7 @@ const AdminDashboard = () => {
           {/* Robust guard for the component */}
           <div className="bg-card rounded-xl border border-border/50 overflow-hidden min-h-[100px]">
             {activeEmployeeCount > 0 ? (
-              <AdminLeaveRequests />
+              <AdminLeaveRequests branch={selectedBranch} />
             ) : (
               <div className="p-12 text-center text-muted-foreground">Initializing employee data...</div>
             )}
@@ -771,6 +777,26 @@ const AdminDashboard = () => {
                 </SelectContent>
               </Select>
             </div>
+            {user?.role !== 'super-admin' && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="branch" className="text-right text-xs">Branch</Label>
+                <Select 
+                  value={reportFilters.branch} 
+                  onValueChange={(v) => setReportFilters(p => ({ ...p, branch: v }))}
+                >
+                  <SelectTrigger className="col-span-3 h-9">
+                    <SelectValue placeholder="Select Branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Branches</SelectItem>
+                    <SelectItem value="chennai">Chennai</SelectItem>
+                    <SelectItem value="bangalore">Bangalore</SelectItem>
+                    <SelectItem value="thirupattur">Thirupattur</SelectItem>
+                    <SelectItem value="krishnagiri">Krishnagiri</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsReportDialogOpen(false)}>Cancel</Button>

@@ -87,10 +87,22 @@ const deleteSuccessStory = async (req, res) => {
 
 const getAnnouncements = async (req, res) => {
     try {
-        const filter = { $or: [{ branch: 'All' }] };
-        if (req.user && req.user.branch && req.user.branch !== 'All') {
-            filter.$or.push({ branch: req.user.branch });
+        const { branch } = req.query;
+        let filter = {};
+
+        // If a specific branch is requested by an authorized user
+        if (branch && branch !== 'All' && ['admin', 'md', 'sub-admin', 'hr_manager', 'super-admin'].includes(req.user?.role)) {
+            filter = { branch: { $in: [branch, 'All'] } };
+        } else if (req.user?.role === 'super-admin') {
+            filter = { branch: { $in: [req.user.branch, 'All'] } };
+        } else {
+            // General filter for employees: show their branch + 'All'
+            filter = { $or: [{ branch: 'All' }] };
+            if (req.user && req.user.branch && req.user.branch !== 'All') {
+                filter.$or.push({ branch: req.user.branch });
+            }
         }
+        
         const announcements = await Announcement.find(filter).sort({ createdAt: -1 });
         res.json(announcements);
     } catch (error) {
@@ -114,9 +126,15 @@ const createAnnouncement = async (req, res) => {
 const getTasks = async (req, res) => {
     try {
         let predicate = {};
+        const { branch } = req.query;
+        const User = require('../models/User'); // Ensure User model is available
+
         if (req.user.role === 'super-admin') {
-            const User = require('../models/User'); // Ensure User model is available
             const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            predicate = { assigned_to: { $in: userIds } };
+        } else if (branch && branch !== 'All' && ['admin', 'md', 'sub-admin', 'hr_manager'].includes(req.user.role)) {
+            const usersInBranch = await User.find({ branch }).select('_id');
             const userIds = usersInBranch.map(u => u._id);
             predicate = { assigned_to: { $in: userIds } };
         } else if (!['admin', 'sub-admin', 'md', 'hr_manager'].includes(req.user.role)) {

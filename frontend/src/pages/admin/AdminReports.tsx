@@ -558,21 +558,23 @@ const AdminReports = () => {
               </div>
 
               {/* Branch Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Branch</label>
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Branches" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Branches</SelectItem>
-                    <SelectItem value="Chennai">Chennai</SelectItem>
-                    <SelectItem value="Bangalore">Bangalore</SelectItem>
-                    <SelectItem value="Thirupattur">Thirupattur</SelectItem>
-                    <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {user?.role !== 'super-admin' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Branch</label>
+                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Branches" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Branches</SelectItem>
+                      <SelectItem value="chennai">Chennai</SelectItem>
+                      <SelectItem value="bangalore">Bangalore</SelectItem>
+                      <SelectItem value="thirupattur">Thirupattur</SelectItem>
+                      <SelectItem value="krishnagiri">Krishnagiri</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

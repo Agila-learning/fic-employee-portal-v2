@@ -15,8 +15,12 @@ const statusConfig = {
   rejected: { icon: XCircle, label: 'Rejected', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
 };
 
-const AdminLeaveRequests = () => {
-  const { leaveRequests, isLoading, updateLeaveStatus } = useLeaveRequests();
+interface AdminLeaveRequestsProps {
+  branch?: string;
+}
+
+const AdminLeaveRequests = ({ branch }: AdminLeaveRequestsProps) => {
+  const { leaveRequests, isLoading, updateLeaveStatus } = useLeaveRequests(branch);
 
   const pendingRequests = leaveRequests.filter(req => req.status === 'pending');
   const processedRequests = leaveRequests.filter(req => req.status !== 'pending');

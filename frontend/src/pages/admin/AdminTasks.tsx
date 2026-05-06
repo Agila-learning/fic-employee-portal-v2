@@ -10,12 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, Clock, PlayCircle, CheckCircle, Pencil } from 'lucide-react';
+import { Plus, Trash2, Clock, PlayCircle, CheckCircle, Pencil, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminTasks = () => {
-  const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
+  const { user } = useAuth();
+  const [selectedBranch, setSelectedBranch] = useState<string>('All');
+  const { tasks, loading, createTask, updateTask, deleteTask } = useTasks(selectedBranch);
   const { employees, activeEmployees } = useEmployees();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -103,6 +106,23 @@ const AdminTasks = () => {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Task Management</h1>
             <p className="text-muted-foreground mt-1">Assign and manage tasks for employees</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {user?.role !== 'super-admin' && (
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-[160px] bg-card">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Branches</SelectItem>
+                  <SelectItem value="chennai">Chennai</SelectItem>
+                  <SelectItem value="bangalore">Bangalore</SelectItem>
+                  <SelectItem value="thirupattur">Thirupattur</SelectItem>
+                  <SelectItem value="krishnagiri">Krishnagiri</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <Dialog open={open} onOpenChange={handleDialogClose}>
             <DialogTrigger asChild>

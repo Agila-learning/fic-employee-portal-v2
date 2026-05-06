@@ -33,8 +33,8 @@ export const operationService = {
         return response.data;
     },
 
-    getAllLeaveRequests: async () => {
-        const response = await apiClient.get('/operations/leave');
+    getAllLeaveRequests: async (filters?: any) => {
+        const response = await apiClient.get('/operations/leave', { params: filters });
         return response.data;
     },
 

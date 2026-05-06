@@ -24,12 +24,18 @@ const createReport = async (req, res) => {
 const getReports = async (req, res) => {
     try {
         let filter = {};
+        const { branch } = req.query;
+
         if (req.user.role === 'super-admin') {
             const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
             const userIds = usersInBranch.map(u => u._id);
             filter = { user_id: { $in: userIds } };
         } else if (!['admin', 'sub-admin', 'md', 'hr_manager'].includes(req.user.role)) {
             filter = { user_id: req.user._id };
+        } else if (branch && branch !== 'All') {
+            const usersInBranch = await User.find({ branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter = { user_id: { $in: userIds } };
         }
         // Admin, MD, HR Manager see all (empty filter)
         const reports = await EmployeeReport.find(filter)
@@ -54,14 +60,19 @@ const deleteReport = async (req, res) => {
 
 const exportReports = async (req, res) => {
     try {
-        const { startDate, endDate, department } = req.query;
+        const { startDate, endDate, department, branch } = req.query;
         let filter = {};
+        
         if (req.user.role === 'super-admin') {
             const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
             const userIds = usersInBranch.map(u => u._id);
             filter = { user_id: { $in: userIds } };
         } else if (!['admin', 'sub-admin', 'md', 'hr_manager'].includes(req.user.role)) {
             filter = { user_id: req.user._id };
+        } else if (branch && branch !== 'All') {
+            const usersInBranch = await User.find({ branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter = { user_id: { $in: userIds } };
         }
         
         if (startDate || endDate) {

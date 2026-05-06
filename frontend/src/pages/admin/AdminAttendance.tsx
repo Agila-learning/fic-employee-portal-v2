@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -28,6 +29,7 @@ import { getLocationDisplayName } from '@/utils/geolocation';
 import { createWorkbook, setColumnWidths, applyHeaderStyle, applyRowStyles, downloadWorkbook, styleCell, defaultBorder, solidBorder } from '@/utils/excelExport';
 
 const AdminAttendance = () => {
+  const { user } = useAuth();
   const { attendance, updateAttendance, adminMarkAttendance } = useAttendance();
   const { employees } = useEmployees();
   const { holidays } = useHolidays();
@@ -90,7 +92,9 @@ const AdminAttendance = () => {
   const fetchRequests = useCallback(async () => {
     setLoadingRequests(true);
     try {
-      const data = await (operationService as any).getAllAttendanceRequests();
+      const params: any = {};
+      if (branchFilter && branchFilter !== 'All') params.branch = branchFilter;
+      const data = await (operationService as any).getAllAttendanceRequests(params);
       setAttendanceRequests(data || []);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch attendance requests', variant: 'destructive' });
@@ -489,18 +493,20 @@ const AdminAttendance = () => {
                     <SelectItem value="absent">Absent</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={branchFilter} onValueChange={setBranchFilter}>
-                  <SelectTrigger className="w-[130px] h-9">
-                    <SelectValue placeholder="Branch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Branches</SelectItem>
-                    <SelectItem value="Chennai">Chennai</SelectItem>
-                    <SelectItem value="Bangalore">Bangalore</SelectItem>
-                    <SelectItem value="Thirupattur">Thirupattur</SelectItem>
-                    <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
-                  </SelectContent>
-                </Select>
+                {user?.role !== 'super-admin' && (
+                  <Select value={branchFilter} onValueChange={setBranchFilter}>
+                    <SelectTrigger className="w-[130px] h-9">
+                      <SelectValue placeholder="Branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Branches</SelectItem>
+                      <SelectItem value="chennai">Chennai</SelectItem>
+                      <SelectItem value="bangalore">Bangalore</SelectItem>
+                      <SelectItem value="thirupattur">Thirupattur</SelectItem>
+                      <SelectItem value="krishnagiri">Krishnagiri</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
                 <Button onClick={exportToExcel} variant="outline" size="sm" className="gap-2 h-9">
                   <Download className="h-4 w-4" /> Export
                 </Button>

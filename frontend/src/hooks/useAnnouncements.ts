@@ -14,16 +14,20 @@ export interface Announcement {
   branch?: string;
 }
 
-export const useAnnouncements = () => {
+export const useAnnouncements = (branch?: string) => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const [currentBranch, setCurrentBranch] = useState(branch);
 
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const data = await utilityService.getAnnouncements();
+      const params: any = {};
+      if (branch && branch !== 'All') params.branch = branch;
+      
+      const data = await utilityService.getAnnouncements(params);
       setAnnouncements(data.map((a: any) => ({
         ...a,
         id: a._id,
@@ -82,7 +86,7 @@ export const useAnnouncements = () => {
 
   useEffect(() => {
     if (user) fetchAnnouncements();
-  }, [user]);
+  }, [user, branch]);
 
   return { announcements, loading, fetchAnnouncements, createAnnouncement, deleteAnnouncement, toggleAnnouncementStatus };
 };

@@ -18,7 +18,7 @@ export interface LeaveRequest {
   employee_name?: string;
 }
 
-export const useLeaveRequests = () => {
+export const useLeaveRequests = (branch?: string) => {
   const { user } = useAuth();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,8 +27,11 @@ export const useLeaveRequests = () => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const data = user.role === 'admin'
-        ? await operationService.getAllLeaveRequests()
+      const params: any = {};
+      if (branch && branch !== 'All') params.branch = branch;
+
+      const data = ['admin', 'md', 'hr_manager', 'super-admin'].includes(user.role)
+        ? await operationService.getAllLeaveRequests(params)
         : await operationService.getMyLeaveRequests();
       setLeaveRequests(data.map((r: any) => ({
         ...r,

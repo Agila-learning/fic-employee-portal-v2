@@ -45,10 +45,10 @@ const AdminExpenses = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Branches</SelectItem>
-                  <SelectItem value="Chennai">Chennai</SelectItem>
-                  <SelectItem value="Bangalore">Bangalore</SelectItem>
-                  <SelectItem value="Thirupattur">Thirupattur</SelectItem>
-                  <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+                  <SelectItem value="chennai">Chennai</SelectItem>
+                  <SelectItem value="bangalore">Bangalore</SelectItem>
+                  <SelectItem value="thirupattur">Thirupattur</SelectItem>
+                  <SelectItem value="krishnagiri">Krishnagiri</SelectItem>
                 </SelectContent>
               </Select>
             </div>
