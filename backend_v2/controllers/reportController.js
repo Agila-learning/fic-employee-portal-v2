@@ -22,7 +22,7 @@ const createReport = async (req, res) => {
 
 const getReports = async (req, res) => {
     try {
-        const filter = (req.user.role === 'admin' || req.user.role === 'sub-admin' || req.user.role === 'md') ? {} : { user_id: req.user._id };
+        const filter = (['admin', 'sub-admin', 'md', 'super-admin', 'hr_manager'].includes(req.user.role)) ? {} : { user_id: req.user._id };
         const reports = await EmployeeReport.find(filter)
             .populate('user_id', 'name email')
             .sort({ report_date: -1 });

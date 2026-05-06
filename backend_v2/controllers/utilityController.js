@@ -1,4 +1,4 @@
-﻿const Holiday = require('../models/Holiday');
+const Holiday = require('../models/Holiday');
 const SuccessStory = require('../models/SuccessStory');
 const Announcement = require('../models/Announcement');
 const Task = require('../models/Task');
@@ -106,7 +106,7 @@ const createAnnouncement = async (req, res) => {
 const getTasks = async (req, res) => {
     try {
         let predicate = {};
-        if (req.user.role !== 'admin') {
+        if (!['admin', 'sub-admin', 'md', 'super-admin', 'hr_manager'].includes(req.user.role)) {
             predicate = { assigned_to: req.user._id };
         }
         const tasks = await Task.find(predicate).populate('assigned_to', 'name email').sort({ createdAt: -1 });

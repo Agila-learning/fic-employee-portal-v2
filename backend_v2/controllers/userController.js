@@ -11,7 +11,7 @@ const registerUser = async (req, res) => {
         const { name, email, password, role, employee_id, department } = req.body;
         
         // Prevent MD from creating users
-        if (req.user.role === 'md') {
+        if (['md'].includes(req.user.role)) {
             return res.status(403).json({ message: 'MD is not authorized to create employees' });
         }
 
@@ -149,7 +149,7 @@ const getUsers = async (req, res) => {
 
         // If the requester is an employee, only show administrative users they can chat with
         if (req.user.role === 'employee') {
-            filters.role = { $in: ['admin', 'md', 'sub-admin', 'hr_manager'] };
+            filters.role = { $in: ['admin', 'md', 'sub-admin', 'hr_manager', 'super-admin'] };
         }
         // Sub-admins and admins/md can see all users, but can also filter by role if provided in query
 

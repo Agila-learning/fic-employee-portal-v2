@@ -130,7 +130,7 @@ const deleteLeaveRequest = async (req, res) => {
         const request = await LeaveRequest.findById(req.params.id);
         if (request) {
             // Check if user is owner or admin
-            if (request.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            if (request.user_id.toString() !== req.user._id.toString() && !['admin', 'super-admin'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Not authorized to delete this request' });
             }
             // Optional: Only allow deletion if pending
@@ -151,7 +151,7 @@ const deleteLeaveRequest = async (req, res) => {
 const markAttendance = async (req, res) => {
     try {
         const { date, status, location, notes, user_id, half_day, latitude, longitude, location_verified, work_location, face_photo } = req.body;
-        const targetUserId = (req.user.role === 'admin' && user_id) ? user_id : req.user._id;
+        const targetUserId = (['admin', 'sub-admin', 'md', 'super-admin'].includes(req.user.role) && user_id) ? user_id : req.user._id;
         const targetDate = date || new Date().toLocaleDateString('en-CA');
 
         // Check if today is a holiday
@@ -160,7 +160,7 @@ const markAttendance = async (req, res) => {
         const allHolidays = await Holiday.find({});
         const isHoliday = allHolidays.find(h => new Date(h.date).toLocaleDateString('en-CA') === targetDate);
         
-        if (isHoliday && req.user.role !== 'admin') {
+        if (isHoliday && !['admin', 'super-admin'].includes(req.user.role)) {
             return res.status(400).json({ message: `Today is a holiday: ${isHoliday.name}. Attendance is automatically marked.` });
         }
 
@@ -359,7 +359,7 @@ const updateExpense = async (req, res) => {
     try {
         const expense = await Expense.findById(req.params.id);
         if (expense) {
-            if (expense.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            if (expense.user_id.toString() !== req.user._id.toString() && !['admin', 'super-admin'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Not authorized to update this expense' });
             }
             Object.assign(expense, req.body);
@@ -378,7 +378,7 @@ const deleteExpense = async (req, res) => {
         const expense = await Expense.findById(req.params.id);
         if (expense) {
             // Check if user is owner or admin
-            if (expense.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            if (expense.user_id.toString() !== req.user._id.toString() && !['admin', 'super-admin'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Not authorized to delete this expense' });
             }
             await expense.deleteOne();
@@ -462,7 +462,7 @@ const createCredit = async (req, res) => {
     try {
         const { amount, credit_date, description, given_by, given_by_role, user_id } = req.body;
         // If admin is adding, it might be for a specific user
-        const targetUserId = (req.user.role === 'admin' && user_id) ? user_id : (req.user ? req.user._id : null);
+        const targetUserId = (['admin', 'super-admin'].includes(req.user.role) && user_id) ? user_id : (req.user ? req.user._id : null);
 
         if (!targetUserId) {
             return res.status(400).json({ message: 'User ID is required' });
@@ -486,7 +486,7 @@ const updateCredit = async (req, res) => {
     try {
         const credit = await Credit.findById(req.params.id);
         if (credit) {
-            if (credit.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            if (credit.user_id.toString() !== req.user._id.toString() && !['admin', 'super-admin'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Not authorized to update this credit' });
             }
             Object.assign(credit, req.body);
