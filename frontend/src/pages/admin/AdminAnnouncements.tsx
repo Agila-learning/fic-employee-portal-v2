@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Plus, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Building2, Plus, Eye, EyeOff, Trash2, Megaphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AdminAnnouncements = () => {
@@ -108,10 +108,10 @@ const AdminAnnouncements = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="All">All Branches</SelectItem>
-                      <SelectItem value="Chennai">Chennai</SelectItem>
-                      <SelectItem value="Bangalore">Bangalore</SelectItem>
-                      <SelectItem value="Thirupattur">Thirupattur</SelectItem>
-                      <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+                      <SelectItem value="chennai">Chennai</SelectItem>
+                      <SelectItem value="bangalore">Bangalore</SelectItem>
+                      <SelectItem value="thirupattur">Thirupattur</SelectItem>
+                      <SelectItem value="krishnagiri">Krishnagiri</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
