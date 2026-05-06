@@ -21,7 +21,8 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
     password: '',
     employee_id: '',
     role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager' | 'super-admin',
-    dob: ''
+    dob: '',
+    branch: 'Chennai'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,11 +48,12 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
         password: formData.password,
         employee_id: formData.employee_id || null,
         role: formData.role,
-        dob: formData.dob || null
+        dob: formData.dob || null,
+        branch: formData.branch
       });
 
       toast.success(`Employee ${formData.name} created successfully!`);
-      setFormData({ name: '', email: '', password: '', employee_id: '', role: 'employee', dob: '' });
+      setFormData({ name: '', email: '', password: '', employee_id: '', role: 'employee', dob: '', branch: 'Chennai' });
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
@@ -155,7 +157,7 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
             </Label>
             <Select
               value={formData.role}
-              onValueChange={(value: 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager') => setFormData(prev => ({ ...prev, role: value }))}
+              onValueChange={(value: any) => setFormData(prev => ({ ...prev, role: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
@@ -167,6 +169,28 @@ const CreateEmployeeDialog = ({ open, onOpenChange, onSuccess }: CreateEmployeeD
                 <SelectItem value="super-admin">Super Admin</SelectItem>
                 <SelectItem value="sub-admin">Sub-Admin</SelectItem>
                 <SelectItem value="md">Managing Director (MD)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="branch" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              Branch
+            </Label>
+            <Select
+              value={formData.branch}
+              onValueChange={(value: string) => setFormData(prev => ({ ...prev, branch: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Chennai">Chennai</SelectItem>
+                <SelectItem value="Bangalore">Bangalore</SelectItem>
+                <SelectItem value="Thirupattur">Thirupattur</SelectItem>
+                <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+                <SelectItem value="All">All Branches</SelectItem>
               </SelectContent>
             </Select>
           </div>

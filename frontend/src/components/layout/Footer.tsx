@@ -113,12 +113,29 @@ const Footer = () => {
                 <span className="text-blue-400 hidden sm:inline">|</span>
               </div>
               <a 
-                href="https://connectapp.forgeindiaconnect.com/" 
+                href="https://forgeindiaconnect.com/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-blue-400 hover:text-blue-300 transition-colors text-xs sm:text-sm font-medium"
               >
-                🔗 connectapp.forgeindiaconnect.com
+                🔗 forgeindiaconnect.com
+              </a>
+            </div>
+
+            {/* Insurance Portal */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 py-3 px-4 rounded-lg bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 border border-emerald-500/20">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-emerald-400" />
+                <span className="text-white/80 text-xs sm:text-sm">Insurance Portal Access</span>
+                <span className="text-emerald-400 hidden sm:inline">|</span>
+              </div>
+              <a 
+                href="https://fic-insurance-f2qi.vercel.app" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-emerald-400 hover:text-emerald-300 transition-colors text-xs sm:text-sm font-medium"
+              >
+                🔗 fic-insurance-f2qi.vercel.app
               </a>
             </div>
 

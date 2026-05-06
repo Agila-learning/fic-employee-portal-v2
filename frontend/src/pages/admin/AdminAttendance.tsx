@@ -36,6 +36,7 @@ const AdminAttendance = () => {
   const [periodFilter, setPeriodFilter] = useState<'today' | 'week' | 'month' | 'custom'>('today');
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [branchFilter, setBranchFilter] = useState<string>('All');
   
   const [attendanceRecords, setAttendanceRecords] = useState<Attendance[]>([]);
   const [loadingRecords, setLoadingRecords] = useState(false);
@@ -71,6 +72,10 @@ const AdminAttendance = () => {
         filters.startDate = startDate;
         filters.endDate = endDate;
       }
+      
+      if (branchFilter !== 'All') {
+        filters.branch = branchFilter;
+      }
 
       const data = await operationService.getAllAttendance(filters);
       setAttendanceRecords(Array.isArray(data) ? data : []);
@@ -80,7 +85,7 @@ const AdminAttendance = () => {
     } finally {
       setLoadingRecords(false);
     }
-  }, [periodFilter, startDate, endDate, toast]);
+  }, [periodFilter, startDate, endDate, branchFilter, toast]);
 
   const fetchRequests = useCallback(async () => {
     setLoadingRequests(true);
@@ -482,6 +487,18 @@ const AdminAttendance = () => {
                     <SelectItem value="present">Present</SelectItem>
                     <SelectItem value="half_day">Half Day</SelectItem>
                     <SelectItem value="absent">Absent</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={branchFilter} onValueChange={setBranchFilter}>
+                  <SelectTrigger className="w-[130px] h-9">
+                    <SelectValue placeholder="Branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Branches</SelectItem>
+                    <SelectItem value="Chennai">Chennai</SelectItem>
+                    <SelectItem value="Bangalore">Bangalore</SelectItem>
+                    <SelectItem value="Thirupattur">Thirupattur</SelectItem>
+                    <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button onClick={exportToExcel} variant="outline" size="sm" className="gap-2 h-9">

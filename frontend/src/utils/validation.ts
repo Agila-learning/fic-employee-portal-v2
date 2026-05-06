@@ -57,6 +57,7 @@ export const LeadSchema = z.object({
   resume_url: z.string().max(500).optional().nullable(),
   payment_slip_url: z.string().max(500).optional().nullable(),
   followup_date: z.string().optional().nullable(),
+  branch: z.enum(['Chennai', 'Bangalore', 'Thirupattur', 'Krishnagiri', 'All']).optional().nullable(),
 });
 
 export const LeadUpdateSchema = LeadSchema.partial();
@@ -91,6 +92,7 @@ export const ProfileSchema = z.object({
     .optional()
     .nullable(),
   is_active: z.boolean().optional(),
+  branch: z.enum(['Chennai', 'Bangalore', 'Thirupattur', 'Krishnagiri', 'All']).optional().nullable(),
 });
 
 export const ProfileUpdateSchema = ProfileSchema.partial();
@@ -108,6 +110,7 @@ export const TaskSchema = z.object({
     .nullable(),
   assigned_to: z.string().min(1, 'Invalid assignee ID'),
   due_date: z.string().optional().nullable(),
+  branch: z.enum(['Chennai', 'Bangalore', 'Thirupattur', 'Krishnagiri', 'All']).optional().nullable(),
 });
 
 export const TaskUpdateSchema = TaskSchema.partial();
@@ -122,6 +125,7 @@ export const AnnouncementSchema = z.object({
     .min(1, 'Message is required')
     .max(5000, 'Message must be 5000 characters or less')
     .transform(val => stripHtml(val.trim())),
+  branch: z.enum(['Chennai', 'Bangalore', 'Thirupattur', 'Krishnagiri', 'All']).optional().nullable(),
 });
 
 // Attendance validation schema

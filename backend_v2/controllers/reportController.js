@@ -1,4 +1,5 @@
 const EmployeeReport = require('../models/EmployeeReport');
+const User = require('../models/User');
 
 const createReport = async (req, res) => {
     const { report_date, department, morning_description, afternoon_description, candidates_screened } = req.body;
@@ -22,7 +23,15 @@ const createReport = async (req, res) => {
 
 const getReports = async (req, res) => {
     try {
-        const filter = (['admin', 'sub-admin', 'md', 'super-admin', 'hr_manager'].includes(req.user.role)) ? {} : { user_id: req.user._id };
+        let filter = {};
+        if (req.user.role === 'super-admin') {
+            const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter = { user_id: { $in: userIds } };
+        } else if (!['admin', 'sub-admin', 'md', 'hr_manager'].includes(req.user.role)) {
+            filter = { user_id: req.user._id };
+        }
+        // Admin, MD, HR Manager see all (empty filter)
         const reports = await EmployeeReport.find(filter)
             .populate('user_id', 'name email')
             .sort({ report_date: -1 });
@@ -46,7 +55,14 @@ const deleteReport = async (req, res) => {
 const exportReports = async (req, res) => {
     try {
         const { startDate, endDate, department } = req.query;
-        const filter = (['admin', 'sub-admin', 'md', 'super-admin', 'hr_manager'].includes(req.user.role)) ? {} : { user_id: req.user._id };
+        let filter = {};
+        if (req.user.role === 'super-admin') {
+            const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter = { user_id: { $in: userIds } };
+        } else if (!['admin', 'sub-admin', 'md', 'hr_manager'].includes(req.user.role)) {
+            filter = { user_id: req.user._id };
+        }
         
         if (startDate || endDate) {
             filter.report_date = {};

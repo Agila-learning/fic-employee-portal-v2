@@ -11,6 +11,7 @@ export interface Announcement {
   created_by: string;
   created_at: string;
   is_active: boolean;
+  branch?: string;
 }
 
 export const useAnnouncements = () => {
@@ -35,7 +36,7 @@ export const useAnnouncements = () => {
     }
   };
 
-  const createAnnouncement = async (announcement: { title: string; message: string }) => {
+  const createAnnouncement = async (announcement: { title: string; message: string; branch?: string }) => {
     if (!user) return { error: new Error('Not authenticated') };
 
     const validation = validateInput(AnnouncementSchema, announcement);

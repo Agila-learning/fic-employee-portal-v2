@@ -4,9 +4,11 @@ import LeadsTable from '@/components/leads/LeadsTable';
 import { useLeads } from '@/hooks/useLeads';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Upload, Download, Loader2, Plus } from 'lucide-react';
+import { Upload, Download, Loader2, Plus, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import LeadFormDialog from '@/components/leads/LeadFormDialog';
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const AdminLeads = () => {
   const { leads, refetchLeads, bulkUpload, isLoading } = useLeads();
@@ -14,6 +16,7 @@ const AdminLeads = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [branchFilter, setBranchFilter] = useState<string>('All');
 
   const paymentStageFilter = searchParams.get('payment_stage') || undefined;
   const statusFilter = searchParams.get('status') || undefined;
@@ -92,7 +95,27 @@ const AdminLeads = () => {
             </Button>
           </div>
         </div>
-        <LeadsTable leads={leads} showAssignee onRefresh={refetchLeads} defaultPaymentStageFilter={paymentStageFilter} defaultStatusFilter={statusFilter} />
+        <div className="flex gap-4 items-center bg-card p-3 rounded-lg border border-border/50">
+          <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <Filter className="h-4 w-4" /> Filter by Branch:
+          </div>
+          <Select value={branchFilter} onValueChange={(v) => {
+            setBranchFilter(v);
+            refetchLeads(undefined, v === 'All' ? undefined : v);
+          }}>
+            <SelectTrigger className="w-[180px] h-9">
+              <SelectValue placeholder="All Branches" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Branches</SelectItem>
+              <SelectItem value="Chennai">Chennai</SelectItem>
+              <SelectItem value="Bangalore">Bangalore</SelectItem>
+              <SelectItem value="Thirupattur">Thirupattur</SelectItem>
+              <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <LeadsTable leads={leads} showAssignee onRefresh={() => refetchLeads(undefined, branchFilter === 'All' ? undefined : branchFilter)} defaultPaymentStageFilter={paymentStageFilter} defaultStatusFilter={statusFilter} />
       </div>
       <LeadFormDialog 
         open={isAddDialogOpen} 

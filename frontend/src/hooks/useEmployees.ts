@@ -16,11 +16,11 @@ export const useEmployees = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (branch?: string) => {
     if (!user || user.role === 'employee') return;
 
     try {
-      const data = await employeeService.getEmployees();
+      const data = await employeeService.getEmployees(branch ? { branch } : undefined);
       setEmployees(data.map((e: any) => ({
         ...e,
         id: e._id,

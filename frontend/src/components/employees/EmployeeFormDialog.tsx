@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 import { Shield } from 'lucide-react';
 
 interface EmployeeFormDialogProps {
@@ -17,12 +18,14 @@ interface EmployeeFormDialogProps {
 }
 
 const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: EmployeeFormDialogProps & { onSuccess?: () => void }) => {
+  const { user: currentUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ 
     name: '', email: '', employee_id: '', is_active: true, 
     role: 'employee' as 'admin' | 'employee' | 'md' | 'sub-admin' | 'hr_manager' | 'super-admin',
     base_salary: '', incentive_per_success: '',
-    dob: ''
+    dob: '',
+    branch: 'Chennai'
   });
 
   useEffect(() => {
@@ -35,7 +38,8 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
         role: employee.role as any || 'employee',
         base_salary: (employee as any).base_salary || '',
         incentive_per_success: (employee as any).incentive_per_success || '',
-        dob: employee.dob ? new Date(employee.dob).toISOString().split('T')[0] : ''
+        dob: employee.dob ? new Date(employee.dob).toISOString().split('T')[0] : '',
+        branch: employee.branch || 'Chennai'
       });
     }
   }, [employee, open]);
@@ -56,7 +60,8 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
         is_active: formData.is_active,
         base_salary: formData.base_salary ? parseFloat(formData.base_salary) : null,
         incentive_per_success: formData.incentive_per_success ? parseFloat(formData.incentive_per_success) : null,
-        dob: formData.dob || null
+        dob: formData.dob || null,
+        branch: formData.branch
       });
 
       toast.success('Employee updated successfully');
@@ -86,6 +91,7 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
             <Select
               value={formData.role}
               onValueChange={(value: any) => setFormData(p => ({ ...p, role: value }))}
+              disabled={currentUser?.role === 'super-admin'}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
@@ -101,21 +107,44 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
             </Select>
           </div>
 
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              Branch *
+            </Label>
+            <Select
+              value={formData.branch}
+              onValueChange={(value: string) => setFormData(p => ({ ...p, branch: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Chennai">Chennai</SelectItem>
+                <SelectItem value="Bangalore">Bangalore</SelectItem>
+                <SelectItem value="Thirupattur">Thirupattur</SelectItem>
+                <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+                <SelectItem value="All">All Branches</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2"><Label>Employee ID</Label><Input value={formData.employee_id} onChange={(e) => setFormData(p => ({ ...p, employee_id: e.target.value }))} placeholder="EMP001" /></div>
             <div className="space-y-2"><Label>Date of Birth</Label><Input type="date" value={formData.dob} onChange={(e) => setFormData(p => ({ ...p, dob: e.target.value }))} /></div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Base Monthly Salary (₹)</Label>
-              <Input type="number" value={formData.base_salary} onChange={(e) => setFormData(p => ({ ...p, base_salary: e.target.value }))} placeholder="25000" />
+          {currentUser?.role !== 'super-admin' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Base Monthly Salary (₹)</Label>
+                <Input type="number" value={formData.base_salary} onChange={(e) => setFormData(p => ({ ...p, base_salary: e.target.value }))} placeholder="25000" />
+              </div>
+              <div className="space-y-2">
+                <Label>Incentive per Success Item (₹)</Label>
+                <Input type="number" value={formData.incentive_per_success} onChange={(e) => setFormData(p => ({ ...p, incentive_per_success: e.target.value }))} placeholder="100" />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Incentive per Success Item (₹)</Label>
-              <Input type="number" value={formData.incentive_per_success} onChange={(e) => setFormData(p => ({ ...p, incentive_per_success: e.target.value }))} placeholder="100" />
-            </div>
-          </div>
+          )}
           <div className="flex items-center justify-between rounded-lg border border-border p-4">
             <div><Label className="font-medium">Account Status</Label><p className="text-sm text-muted-foreground">{formData.is_active ? 'Employee can login' : 'Employee cannot login'}</p></div>
             <Switch checked={formData.is_active} onCheckedChange={(checked) => setFormData(p => ({ ...p, is_active: checked }))} />

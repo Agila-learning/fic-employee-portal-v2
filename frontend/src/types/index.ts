@@ -92,6 +92,7 @@ export interface Lead {
   interested_domain: InterestedDomain | null;
   assigned_to: string | null;
   created_by: string | null;
+  branch?: string;
   created_at: string;
   updated_at: string;
   created_by_name?: string; // Populated when fetching leads
@@ -126,6 +127,7 @@ export interface Profile {
   phone: string | null;
   is_active: boolean | null;
   department?: string;
+  branch?: string;
   created_at: string;
   updated_at: string;
 }
@@ -142,6 +144,7 @@ export interface User {
   email: string;
   role: AppRole;
   department?: string;
+  branch?: string;
   employee_id?: string | null;
   is_active?: boolean | null;
 }

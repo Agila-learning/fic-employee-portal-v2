@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { IndianRupee, BarChart3 } from 'lucide-react';
+import { IndianRupee, BarChart3, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,6 +22,7 @@ export const CATEGORIES = [
 const AdminExpenses = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('my-expenses');
+  const [selectedBranch, setSelectedBranch] = useState<string>('All');
 
   return (
     <DashboardLayout requiredRole="admin">
@@ -34,6 +36,23 @@ const AdminExpenses = () => {
               {user?.role === 'md' ? 'Oversight of employee expenses and personal records' : 'Comprehensive expense oversight and management'}
             </p>
           </div>
+          {user?.role !== 'super-admin' && (
+            <div className="flex items-center gap-2 bg-card p-2 rounded-lg border border-border/50">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-[180px] h-9 border-none shadow-none focus:ring-0">
+                  <SelectValue placeholder="All Branches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Branches</SelectItem>
+                  <SelectItem value="Chennai">Chennai</SelectItem>
+                  <SelectItem value="Bangalore">Bangalore</SelectItem>
+                  <SelectItem value="Thirupattur">Thirupattur</SelectItem>
+                  <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -48,7 +67,7 @@ const AdminExpenses = () => {
           </TabsContent>
 
           <TabsContent value="employee-expenses" className="mt-6">
-            <EmployeeExpenseManagement roleFilter="employee" />
+            <EmployeeExpenseManagement roleFilter="employee" branch={selectedBranch} />
           </TabsContent>
 
           {(user?.role === 'admin' || user?.role === 'sub-admin' || user?.role === 'md') && (
@@ -68,7 +87,7 @@ const AdminExpenses = () => {
                       </p>
                    </div>
                 </Card>
-                <EmployeeExpenseManagement roleFilter="admin-md" />
+                <EmployeeExpenseManagement roleFilter="admin-md" branch={selectedBranch} />
               </div>
             </TabsContent>
           )}

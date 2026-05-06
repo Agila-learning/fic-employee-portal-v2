@@ -1,9 +1,8 @@
 import apiClient from './apiClient';
 
 export const leadService = {
-    getLeads: async (limit?: number) => {
-        const url = limit ? `/leads?limit=${limit}` : '/leads';
-        const response = await apiClient.get(url);
+    getLeads: async (params?: { limit?: number; branch?: string }) => {
+        const response = await apiClient.get('/leads', { params });
         return response.data;
     },
 

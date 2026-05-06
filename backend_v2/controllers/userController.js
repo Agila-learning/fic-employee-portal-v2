@@ -8,7 +8,7 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password, role, employee_id, department } = req.body;
+        const { name, email, password, role, employee_id, department, branch } = req.body;
         
         // Prevent MD and Super Admin from creating users
         if (['md', 'super-admin'].includes(req.user.role)) {
@@ -27,6 +27,7 @@ const registerUser = async (req, res) => {
             password,
             role: role || 'employee',
             department: department || 'Other',
+            branch: branch || 'Chennai',
         };
 
         if (employee_id && employee_id.trim() !== '') {
@@ -60,11 +61,11 @@ Forge India Connect`;
             sendEmail(user.email, emailSubject, emailText);
 
             res.status(201).json({
-                _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
                 department: user.department,
+                branch: user.branch,
                 token: generateToken(user._id),
             });
         } else {
@@ -91,11 +92,11 @@ const loginUser = async (req, res) => {
             }
 
             res.json({
-                _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
                 department: user.department,
+                branch: user.branch,
                 is_active: user.is_active,
                 token: generateToken(user._id),
             });
@@ -117,6 +118,7 @@ const getUserProfile = async (req, res) => {
             email: user.email,
             role: user.role,
             department: user.department,
+            branch: user.branch,
             is_active: user.is_active,
             inactivated_at: user.inactivated_at,
         });
@@ -151,7 +153,12 @@ const getUsers = async (req, res) => {
         if (req.user.role === 'employee') {
             filters.role = { $in: ['admin', 'md', 'sub-admin', 'hr_manager', 'super-admin'] };
         }
-        // Sub-admins and admins/md can see all users, but can also filter by role if provided in query
+
+        // Branch-wise filtering for Super Admin
+        if (req.user.role === 'super-admin') {
+            filters.branch = req.user.branch;
+        }
+        // Admin and MD can see all branches (no filter on branch)
 
         const users = await User.find(filters).select('-password');
         res.json(users);
@@ -175,6 +182,7 @@ const updateUser = async (req, res) => {
             user.role = req.body.role || user.role;
             user.employee_id = req.body.employee_id !== undefined ? req.body.employee_id : user.employee_id;
             user.department = req.body.department !== undefined ? req.body.department : user.department;
+            user.branch = req.body.branch !== undefined ? req.body.branch : user.branch;
             user.is_active = req.body.is_active !== undefined ? req.body.is_active : user.is_active;
             user.dob = req.body.dob !== undefined ? req.body.dob : user.dob;
 
@@ -195,6 +203,7 @@ const updateUser = async (req, res) => {
                 email: updatedUser.email,
                 role: updatedUser.role,
                 department: updatedUser.department,
+                branch: updatedUser.branch,
                 employee_id: updatedUser.employee_id,
                 is_active: updatedUser.is_active,
                 inactivated_at: updatedUser.inactivated_at,

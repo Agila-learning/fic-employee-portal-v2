@@ -60,6 +60,7 @@ const AdminReports = () => {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+  const [selectedBranch, setSelectedBranch] = useState<string>('All');
 
   // Add Report State for Sub-Admins
   const [isAddReportOpen, setIsAddReportOpen] = useState(false);
@@ -122,8 +123,11 @@ const AdminReports = () => {
     if (!user) return;
 
     setIsLoading(true);
+    setIsLoading(true);
     try {
-      const data = await reportService.getReports();
+      const params: any = {};
+      if (selectedBranch !== 'All') params.branch = selectedBranch;
+      const data = await reportService.getReports(params);
 
       // Enrich with employee names and departments
       const enrichedReports = (data || []).map((r: any) => {
@@ -147,7 +151,7 @@ const AdminReports = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, startDate, endDate, selectedDepartment, selectedEmployee, profiles]);
+  }, [user, startDate, endDate, selectedDepartment, selectedEmployee, selectedBranch, profiles]);
 
   const fetchCandidateEntries = async (reportId: string, reportDate: string, userId: string) => {
     try {
@@ -298,6 +302,7 @@ const AdminReports = () => {
     setEndDate(undefined);
     setSelectedDepartment('all');
     setSelectedEmployee('all');
+    setSelectedBranch('All');
   };
 
   const totalReports = reports.length;
@@ -548,6 +553,23 @@ const AdminReports = () => {
                         {profile.name}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Branch Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Branch</label>
+                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Branches" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Branches</SelectItem>
+                    <SelectItem value="Chennai">Chennai</SelectItem>
+                    <SelectItem value="Bangalore">Bangalore</SelectItem>
+                    <SelectItem value="Thirupattur">Thirupattur</SelectItem>
+                    <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -37,7 +37,7 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { employees } = useEmployees();
-  const { leads, refetchLeads } = useLeads(100); // Fetch only 100 most recent leads for dashboard
+  const { leads, refetchLeads } = useLeads(100);
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loadingAttendance, setLoadingAttendance] = useState(true);
@@ -50,6 +50,7 @@ const AdminDashboard = () => {
     department: 'all'
   });
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<string>('All');
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -59,8 +60,10 @@ const AdminDashboard = () => {
         const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
         const endOfYear = new Date(now.getFullYear(), 11, 31).toISOString().split('T')[0];
         
-        // Fetch only this year's attendance to avoid crashing browser with 5000+ records
-        const data = await operationService.getAllAttendance({ startDate: startOfYear, endDate: endOfYear });
+        const params: any = { startDate: startOfYear, endDate: endOfYear };
+        if (selectedBranch !== 'All') params.branch = selectedBranch;
+        
+        const data = await operationService.getAllAttendance(params);
         setAttendance(data || []);
       } catch (error) {
         console.error('Failed to fetch attendance', error);
@@ -80,7 +83,7 @@ const AdminDashboard = () => {
 
     fetchAttendance();
     fetchProjectCount();
-  }, []);
+  }, [selectedBranch]);
 
   const attendanceStats = useMemo(() => {
     let filtered = attendance;
@@ -109,28 +112,39 @@ const AdminDashboard = () => {
     };
   }, [attendance, attendanceRange, employees]);
 
-  const activeEmployees = employees.filter(e => e.is_active !== false);
+  const filteredEmployees = useMemo(() => {
+    if (selectedBranch === 'All') return employees;
+    return employees.filter(e => e.branch === selectedBranch);
+  }, [employees, selectedBranch]);
+
+  const activeEmployees = filteredEmployees.filter(e => e.is_active !== false);
   const activeEmployeeCount = activeEmployees.length;
-  const totalLeads = leads.length;
-  const convertedLeads = leads.filter(l => l.status === 'converted').length;
-  const successLeads = leads.filter(l => l.status === 'success').length;
-  const pendingLeads = leads.filter(l => ['nc1', 'nc2', 'nc3', 'follow_up'].includes(l.status)).length;
+  
+  const filteredLeads = useMemo(() => {
+    if (selectedBranch === 'All') return leads;
+    return leads.filter(l => l.branch === selectedBranch);
+  }, [leads, selectedBranch]);
+
+  const totalLeads = filteredLeads.length;
+  const convertedLeads = filteredLeads.filter(l => l.status === 'converted').length;
+  const successLeads = filteredLeads.filter(l => l.status === 'success').length;
+  const pendingLeads = filteredLeads.filter(l => ['nc1', 'nc2', 'nc3', 'follow_up'].includes(l.status)).length;
 
   // Payment stage counts (with safety checks)
-  const registrationDone = leads.filter(l => l?.payment_stage === 'registration_done').length;
-  const initialPaymentDone = leads.filter(l => l?.payment_stage === 'initial_payment_done').length;
-  const fullPaymentDone = leads.filter(l => l?.payment_stage === 'full_payment_done').length;
+  const registrationDone = filteredLeads.filter(l => l?.payment_stage === 'registration_done').length;
+  const initialPaymentDone = filteredLeads.filter(l => l?.payment_stage === 'initial_payment_done').length;
+  const fullPaymentDone = filteredLeads.filter(l => l?.payment_stage === 'full_payment_done').length;
 
   // Domain-wise payment counts
-  const itPaidCount = leads.filter(l => 
+  const itPaidCount = filteredLeads.filter(l => 
     (l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' || l?.status === 'success') && 
     l?.interested_domain?.toLowerCase().trim() === 'it'
   ).length;
-  const nonItPaidCount = leads.filter(l => 
+  const nonItPaidCount = filteredLeads.filter(l => 
     (l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' || l?.status === 'success') && 
     l?.interested_domain?.toLowerCase().trim() === 'non_it'
   ).length;
-  const bankingPaidCount = leads.filter(l => 
+  const bankingPaidCount = filteredLeads.filter(l => 
     (l?.payment_stage?.toLowerCase().trim() === 'full_payment_done' || l?.status === 'success') && 
     l?.interested_domain?.toLowerCase().trim() === 'banking'
   ).length;
@@ -198,8 +212,8 @@ const AdminDashboard = () => {
 
   const statusDistribution = useMemo(() => STATUS_OPTIONS_ADMIN.map(status => ({
     ...status,
-    count: leads.filter(l => isStatus(l.status, [status.value])).length
-  })).sort((a, b) => b.count - a.count), [leads]);
+    count: filteredLeads.filter(l => isStatus(l.status, [status.value])).length
+  })).sort((a, b) => b.count - a.count), [filteredLeads]);
 
   const employeePerformance = useMemo(() => {
     if (!activeEmployees.length) return [];
@@ -259,14 +273,14 @@ const AdminDashboard = () => {
 
   const topPerformerCount = useMemo(() => employeePerformance.filter(e => e.converted > 0).length, [employeePerformance]);
 
-  const recentLeads = useMemo(() => [...leads]
+  const recentLeads = useMemo(() => [...filteredLeads]
     .filter(l => l.updated_at)
     .sort((a, b) => {
       const dateA = new Date(a.updated_at || 0).getTime();
       const dateB = new Date(b.updated_at || 0).getTime();
       return dateB - dateA;
     })
-    .slice(0, 5), [leads]);
+    .slice(0, 5), [filteredLeads]);
 
   const handleExportReport = async () => {
     setIsExporting(true);
@@ -303,6 +317,20 @@ const AdminDashboard = () => {
             transition={{ delay: 0.2 }}
           >
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            {user?.role !== 'super-admin' && (
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-[180px] h-9 mt-2">
+                  <SelectValue placeholder="All Branches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Branches</SelectItem>
+                  <SelectItem value="Chennai">Chennai</SelectItem>
+                  <SelectItem value="Bangalore">Bangalore</SelectItem>
+                  <SelectItem value="Thirupattur">Thirupattur</SelectItem>
+                  <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </motion.div>
           
           <Button 

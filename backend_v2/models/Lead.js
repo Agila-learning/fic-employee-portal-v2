@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const leadSchema = mongoose.Schema({
     candidate_id: { type: String, required: true, unique: true },
@@ -29,6 +29,11 @@ const leadSchema = mongoose.Schema({
         type: String,
         enum: ['it', 'non_it', 'banking'],
         default: 'it'
+    },
+    branch: {
+        type: String,
+        enum: ['Chennai', 'Bangalore', 'Thirupattur', 'Krishnagiri', 'All'],
+        default: 'All'
     },
     assigned_to: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     created_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -33,12 +33,12 @@ export const useLeads = (limit?: number) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentLimit, setCurrentLimit] = useState<number | undefined>(limit);
 
-  const fetchLeads = async (fetchLimit?: number) => {
+  const fetchLeads = async (fetchLimit?: number, branch?: string) => {
     if (!user) return;
 
     try {
       const activeLimit = fetchLimit !== undefined ? fetchLimit : currentLimit;
-      const data = await leadService.getLeads(activeLimit);
+      const data = await leadService.getLeads({ limit: activeLimit, branch });
 
       // Log for audit - Single event for performance
       if (data && data.length > 0 && user) {

@@ -1,8 +1,8 @@
 import apiClient from './apiClient';
 
 export const reportService = {
-    getReports: async () => {
-        const response = await apiClient.get('/reports');
+    getReports: async (params?: any) => {
+        const response = await apiClient.get('/reports', { params });
         return response.data;
     },
 
@@ -16,7 +16,7 @@ export const reportService = {
         return response.data;
     },
 
-    exportReports: async (params: { startDate?: string; endDate?: string; department?: string }) => {
+    exportReports: async (params: { startDate?: string; endDate?: string; department?: string; branch?: string }) => {
         const response = await apiClient.get('/reports/export', { 
             params,
             responseType: 'blob' 

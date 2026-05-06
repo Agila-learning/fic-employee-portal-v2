@@ -17,6 +17,11 @@ const announcementSchema = mongoose.Schema({
     is_active: {
         type: Boolean,
         default: true,
+    },
+    branch: {
+        type: String,
+        enum: ['Chennai', 'Bangalore', 'Thirupattur', 'Krishnagiri', 'All'],
+        default: 'All',
     }
 }, {
     timestamps: true,

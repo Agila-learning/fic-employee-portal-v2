@@ -22,9 +22,10 @@ import { CATEGORIES } from './AdminExpenses';
 
 interface EmployeeExpenseManagementProps {
   roleFilter?: 'employee' | 'admin' | 'md' | 'all' | 'admin-md';
+  branch?: string;
 }
 
-const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseManagementProps) => {
+const EmployeeExpenseManagement = ({ roleFilter = 'employee', branch = 'All' }: EmployeeExpenseManagementProps) => {
   const { user } = useAuth();
   const isViewOnly = user?.role === 'sub-admin';
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -54,10 +55,13 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
   const fetchAll = async () => {
     setLoading(true);
     try {
+      const filters: any = {};
+      if (branch !== 'All') filters.branch = branch;
+      
       const [expData, credData, empData] = await Promise.all([
-        operationService.getAllExpenses({}),
-        operationService.getAllCredits({}),
-        employeeService.getEmployees()
+        operationService.getAllExpenses(filters),
+        operationService.getAllCredits(filters),
+        employeeService.getEmployees(filters)
       ]);
       setExpenses(Array.isArray(expData) ? expData : []);
       setCredits(Array.isArray(credData) ? credData : []);
@@ -72,7 +76,7 @@ const EmployeeExpenseManagement = ({ roleFilter = 'employee' }: EmployeeExpenseM
     }
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, [branch]);
 
   const handleApproval = async (id: string, status: 'approved' | 'rejected') => {
     try {

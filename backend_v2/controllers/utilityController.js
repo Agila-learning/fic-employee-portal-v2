@@ -87,7 +87,11 @@ const deleteSuccessStory = async (req, res) => {
 
 const getAnnouncements = async (req, res) => {
     try {
-        const announcements = await Announcement.find({}).sort({ createdAt: -1 });
+        const filter = { $or: [{ branch: 'All' }] };
+        if (req.user && req.user.branch && req.user.branch !== 'All') {
+            filter.$or.push({ branch: req.user.branch });
+        }
+        const announcements = await Announcement.find(filter).sort({ createdAt: -1 });
         res.json(announcements);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -96,7 +100,11 @@ const getAnnouncements = async (req, res) => {
 
 const createAnnouncement = async (req, res) => {
     try {
-        const announcement = await Announcement.create({ ...req.body, created_by: req.user._id });
+        const announcement = await Announcement.create({ 
+            ...req.body, 
+            created_by: req.user._id,
+            branch: req.body.branch || req.user.branch || 'All'
+        });
         res.status(201).json(announcement);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -106,7 +114,12 @@ const createAnnouncement = async (req, res) => {
 const getTasks = async (req, res) => {
     try {
         let predicate = {};
-        if (!['admin', 'sub-admin', 'md', 'super-admin', 'hr_manager'].includes(req.user.role)) {
+        if (req.user.role === 'super-admin') {
+            const User = require('../models/User'); // Ensure User model is available
+            const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            predicate = { assigned_to: { $in: userIds } };
+        } else if (!['admin', 'sub-admin', 'md', 'hr_manager'].includes(req.user.role)) {
             predicate = { assigned_to: req.user._id };
         }
         const tasks = await Task.find(predicate).populate('assigned_to', 'name email').sort({ createdAt: -1 });

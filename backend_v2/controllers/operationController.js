@@ -39,6 +39,10 @@ const getMyPayslips = async (req, res) => {
 
 const getAllPayslips = async (req, res) => {
     try {
+        // Block Super Admin from seeing all payslips (per requirements: "only their payslip")
+        if (req.user.role === 'super-admin') {
+            return res.status(403).json({ message: 'Super Admin is not authorized to view all payslips' });
+        }
         const payslips = await Payslip.find({}).populate('user_id', 'name email employee_id');
         res.json(payslips);
     } catch (error) {
@@ -49,6 +53,10 @@ const getAllPayslips = async (req, res) => {
 
 const getLatestPayslip = async (req, res) => {
     try {
+        // Block Super Admin from seeing others' latest payslip
+        if (req.user.role === 'super-admin' && req.params.userId !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Super Admin is not authorized to view others\' payslips' });
+        }
         const payslip = await Payslip.findOne({ user_id: req.params.userId }).sort({ createdAt: -1 });
         res.json(payslip);
     } catch (error) {
@@ -58,6 +66,10 @@ const getLatestPayslip = async (req, res) => {
 
 const deletePayslip = async (req, res) => {
     try {
+        // Block Super Admin from deleting payslips
+        if (req.user.role === 'super-admin') {
+            return res.status(403).json({ message: 'Super Admin is not authorized to delete payslips' });
+        }
         const payslip = await Payslip.findById(req.params.id);
         if (payslip) {
             await payslip.deleteOne();
@@ -101,7 +113,13 @@ const getMyLeaveRequests = async (req, res) => {
 
 const getAllLeaveRequests = async (req, res) => {
     try {
-        const requests = await LeaveRequest.find({}).populate('user_id', 'name email');
+        let filter = {};
+        if (req.user.role === 'super-admin') {
+            const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter = { user_id: { $in: userIds } };
+        }
+        const requests = await LeaveRequest.find(filter).populate('user_id', 'name email');
         res.json(requests);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -112,6 +130,13 @@ const updateLeaveStatus = async (req, res) => {
     try {
         const request = await LeaveRequest.findById(req.params.id);
         if (request) {
+            // Branch check for super-admin
+            if (req.user.role === 'super-admin') {
+                const requester = await User.findById(request.user_id);
+                if (!requester || requester.branch !== req.user.branch) {
+                    return res.status(403).json({ message: 'Not authorized to review leave requests from other branches' });
+                }
+            }
             request.status = req.body.status;
             request.reviewed_by = req.user._id;
             request.reviewed_at = Date.now();
@@ -133,6 +158,13 @@ const deleteLeaveRequest = async (req, res) => {
             if (request.user_id.toString() !== req.user._id.toString() && !['admin', 'super-admin'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Not authorized to delete this request' });
             }
+            // Branch check for super-admin
+            if (req.user.role === 'super-admin') {
+                const requester = await User.findById(request.user_id);
+                if (!requester || requester.branch !== req.user.branch) {
+                    return res.status(403).json({ message: 'Not authorized to delete requests from other branches' });
+                }
+            }
             // Optional: Only allow deletion if pending
             if (request.status !== 'pending' && req.user.role !== 'admin') {
                 return res.status(400).json({ message: 'Cannot delete processed leave request' });
@@ -152,6 +184,15 @@ const markAttendance = async (req, res) => {
     try {
         const { date, status, location, notes, user_id, half_day, latitude, longitude, location_verified, work_location, face_photo } = req.body;
         const targetUserId = (['admin', 'sub-admin', 'md', 'super-admin'].includes(req.user.role) && user_id) ? user_id : req.user._id;
+        
+        // Branch check for super-admin
+        if (req.user.role === 'super-admin' && user_id) {
+            const targetUser = await User.findById(user_id);
+            if (!targetUser || targetUser.branch !== req.user.branch) {
+                return res.status(403).json({ message: 'Not authorized to mark attendance for employees in other branches' });
+            }
+        }
+
         const targetDate = date || new Date().toLocaleDateString('en-CA');
 
         // Check if today is a holiday
@@ -232,7 +273,23 @@ const getAllAttendance = async (req, res) => {
     try {
         const { startDate, endDate, user_id } = req.query;
         const filter = {};
-        if (user_id) filter.user_id = user_id;
+        
+        if (req.user.role === 'super-admin') {
+            const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter.user_id = { $in: userIds };
+            // If a specific user_id is requested, ensure they are in the same branch
+            if (user_id) {
+                if (userIds.some(id => id.toString() === user_id)) {
+                    filter.user_id = user_id;
+                } else {
+                    return res.status(403).json({ message: 'Not authorized to view attendance for employees in other branches' });
+                }
+            }
+        } else if (user_id) {
+            filter.user_id = user_id;
+        }
+
         if (startDate || endDate) {
             filter.date = {};
             if (startDate) filter.date.$gte = startDate;
@@ -251,6 +308,13 @@ const updateAttendance = async (req, res) => {
     try {
         const attendance = await Attendance.findById(req.params.id);
         if (attendance) {
+            // Branch check for super-admin
+            if (req.user.role === 'super-admin') {
+                const targetUser = await User.findById(attendance.user_id);
+                if (!targetUser || targetUser.branch !== req.user.branch) {
+                    return res.status(403).json({ message: 'Not authorized to update attendance for employees in other branches' });
+                }
+            }
             Object.assign(attendance, req.body);
             const updated = await attendance.save();
             res.json(updated);
@@ -321,7 +385,22 @@ const getAllExpenses = async (req, res) => {
         const { status, startDate, endDate, user_id } = req.query;
         const filter = {};
         if (status) filter.approval_status = status;
-        if (user_id) filter.user_id = user_id;
+        
+        if (req.user.role === 'super-admin') {
+            const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter.user_id = { $in: userIds };
+            if (user_id) {
+                if (userIds.some(id => id.toString() === user_id)) {
+                    filter.user_id = user_id;
+                } else {
+                    return res.status(403).json({ message: 'Not authorized to view expenses for employees in other branches' });
+                }
+            }
+        } else if (user_id) {
+            filter.user_id = user_id;
+        }
+
         if (startDate || endDate) {
             filter.expense_date = {};
             if (startDate) filter.expense_date.$gte = new Date(startDate);
@@ -342,6 +421,13 @@ const updateExpenseStatus = async (req, res) => {
     try {
         const expense = await Expense.findById(req.params.id);
         if (expense) {
+            // Branch check for super-admin
+            if (req.user.role === 'super-admin') {
+                const targetUser = await User.findById(expense.user_id);
+                if (!targetUser || targetUser.branch !== req.user.branch) {
+                    return res.status(403).json({ message: 'Not authorized to review expenses for employees in other branches' });
+                }
+            }
             expense.approval_status = req.body.status;
             expense.reviewed_by = req.user._id;
             expense.reviewed_at = Date.now();
@@ -362,6 +448,13 @@ const updateExpense = async (req, res) => {
             if (expense.user_id.toString() !== req.user._id.toString() && !['admin', 'super-admin'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Not authorized to update this expense' });
             }
+            // Branch check for super-admin
+            if (req.user.role === 'super-admin') {
+                const targetUser = await User.findById(expense.user_id);
+                if (!targetUser || targetUser.branch !== req.user.branch) {
+                    return res.status(403).json({ message: 'Not authorized to update expenses for employees in other branches' });
+                }
+            }
             Object.assign(expense, req.body);
             const updated = await expense.save();
             res.json(updated);
@@ -380,6 +473,13 @@ const deleteExpense = async (req, res) => {
             // Check if user is owner or admin
             if (expense.user_id.toString() !== req.user._id.toString() && !['admin', 'super-admin'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Not authorized to delete this expense' });
+            }
+            // Branch check for super-admin
+            if (req.user.role === 'super-admin') {
+                const targetUser = await User.findById(expense.user_id);
+                if (!targetUser || targetUser.branch !== req.user.branch) {
+                    return res.status(403).json({ message: 'Not authorized to delete expenses from other branches' });
+                }
             }
             await expense.deleteOne();
             res.json({ message: 'Expense removed' });
@@ -403,11 +503,15 @@ const getHolidays = async (req, res) => {
 
 const createHoliday = async (req, res) => {
     try {
+        // Only Admin can create holidays (MD/Super Admin blocked)
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Only Admin can create holidays' });
+        }
         const { name, date } = req.body;
         const holiday = await Holiday.create({ ...req.body, created_by: req.user._id });
         
         // Mark all employees and MDs as present for this holiday
-        const employees = await User.find({ role: { $in: ['employee', 'md'] } });
+        const employees = await User.find({ role: { $in: ['employee', 'md', 'super-admin', 'sub-admin', 'hr_manager'] } });
         const holidayDate = new Date(date).toLocaleDateString('en-CA');
         
         for (const emp of employees) {
@@ -442,7 +546,22 @@ const getAllCredits = async (req, res) => {
     try {
         const { startDate, endDate, user_id } = req.query;
         const filter = {};
-        if (user_id) filter.user_id = user_id;
+        
+        if (req.user.role === 'super-admin') {
+            const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter.user_id = { $in: userIds };
+            if (user_id) {
+                if (userIds.some(id => id.toString() === user_id)) {
+                    filter.user_id = user_id;
+                } else {
+                    return res.status(403).json({ message: 'Not authorized to view credits for employees in other branches' });
+                }
+            }
+        } else if (user_id) {
+            filter.user_id = user_id;
+        }
+
         if (startDate || endDate) {
             filter.credit_date = {};
             if (startDate) filter.credit_date.$gte = new Date(startDate);
@@ -468,6 +587,14 @@ const createCredit = async (req, res) => {
             return res.status(400).json({ message: 'User ID is required' });
         }
 
+        // Branch check for super-admin
+        if (req.user.role === 'super-admin' && user_id) {
+            const targetUser = await User.findById(user_id);
+            if (!targetUser || targetUser.branch !== req.user.branch) {
+                return res.status(403).json({ message: 'Not authorized to add credits for employees in other branches' });
+            }
+        }
+
         const credit = await Credit.create({
             user_id: targetUserId,
             amount,
@@ -489,6 +616,13 @@ const updateCredit = async (req, res) => {
             if (credit.user_id.toString() !== req.user._id.toString() && !['admin', 'super-admin'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Not authorized to update this credit' });
             }
+            // Branch check for super-admin
+            if (req.user.role === 'super-admin') {
+                const targetUser = await User.findById(credit.user_id);
+                if (!targetUser || targetUser.branch !== req.user.branch) {
+                    return res.status(403).json({ message: 'Not authorized to update credits for employees in other branches' });
+                }
+            }
             Object.assign(credit, req.body);
             const updated = await credit.save();
             res.json(updated);
@@ -504,6 +638,13 @@ const deleteCredit = async (req, res) => {
     try {
         const credit = await Credit.findById(req.params.id);
         if (credit) {
+            // Branch check for super-admin
+            if (req.user.role === 'super-admin') {
+                const targetUser = await User.findById(credit.user_id);
+                if (!targetUser || targetUser.branch !== req.user.branch) {
+                    return res.status(403).json({ message: 'Not authorized to delete credits from other branches' });
+                }
+            }
             await credit.deleteOne();
             res.json({ message: 'Credit removed' });
         } else {
@@ -560,7 +701,13 @@ const getMyAttendanceRequests = async (req, res) => {
 
 const getAllAttendanceRequests = async (req, res) => {
     try {
-        const requests = await AttendanceRequest.find({})
+        let filter = {};
+        if (req.user.role === 'super-admin') {
+            const usersInBranch = await User.find({ branch: req.user.branch }).select('_id');
+            const userIds = usersInBranch.map(u => u._id);
+            filter = { user_id: { $in: userIds } };
+        }
+        const requests = await AttendanceRequest.find(filter)
             .populate('user_id', 'name email employee_id')
             .sort({ createdAt: -1 });
         res.json(requests);
@@ -577,6 +724,14 @@ const reviewAttendanceRequest = async (req, res) => {
         const request = await AttendanceRequest.findById(id);
         if (!request) {
             return res.status(404).json({ message: 'Request not found' });
+        }
+
+        // Branch check for super-admin
+        if (req.user.role === 'super-admin') {
+            const targetUser = await User.findById(request.user_id);
+            if (!targetUser || targetUser.branch !== req.user.branch) {
+                return res.status(403).json({ message: 'Not authorized to review attendance requests from other branches' });
+            }
         }
 
         if (request.status !== 'pending') {

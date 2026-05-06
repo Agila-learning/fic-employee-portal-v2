@@ -9,15 +9,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Trash2, Megaphone, Eye, EyeOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Building2 } from 'lucide-react';
 
 const AdminAnnouncements = () => {
   const { announcements, loading, createAnnouncement, deleteAnnouncement, toggleAnnouncementStatus } = useAnnouncements();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ title: '', message: '' });
+  const [formData, setFormData] = useState({ title: '', message: '', branch: 'All' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +30,7 @@ const AdminAnnouncements = () => {
     const { error } = await createAnnouncement(formData);
     if (!error) {
       setOpen(false);
-      setFormData({ title: '', message: '' });
+      setFormData({ title: '', message: '', branch: 'All' });
     }
   };
 
@@ -64,15 +64,29 @@ const AdminAnnouncements = () => {
                     placeholder="Announcement title"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message *</Label>
-                  <Textarea
-                    id="message"
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Write your announcement message..."
                     rows={5}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="branch" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    Target Branch
+                  </Label>
+                  <Select
+                    value={formData.branch}
+                    onValueChange={(value) => setFormData({ ...formData, branch: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Branches</SelectItem>
+                      <SelectItem value="Chennai">Chennai</SelectItem>
+                      <SelectItem value="Bangalore">Bangalore</SelectItem>
+                      <SelectItem value="Thirupattur">Thirupattur</SelectItem>
+                      <SelectItem value="Krishnagiri">Krishnagiri</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
@@ -115,6 +129,9 @@ const AdminAnnouncements = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold">{announcement.title}</h4>
+                          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                            {announcement.branch || 'All'}
+                          </span>
                           {!announcement.is_active && (
                             <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Hidden</span>
                           )}

@@ -47,7 +47,7 @@ const EmployeesTable = () => {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
         </div>
-        {user?.role !== 'md' && (
+        {!['md', 'super-admin'].includes(user?.role || '') && (
           <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
             <UserPlus className="h-4 w-4" />
             Create Employee
@@ -65,6 +65,7 @@ const EmployeesTable = () => {
               <TableHead className="font-semibold">Email</TableHead>
               <TableHead className="font-semibold">Status</TableHead>
               <TableHead className="font-semibold">Role</TableHead>
+              <TableHead className="font-semibold">Branch</TableHead>
               <TableHead className="font-semibold">Leads</TableHead>
               <TableHead className="font-semibold">Joined</TableHead>
               <TableHead className="font-semibold">Inactivated On</TableHead>
@@ -89,6 +90,7 @@ const EmployeesTable = () => {
                 <TableCell className="text-sm">{employee.email}</TableCell>
                 <TableCell><Badge variant={employee.is_active ? 'default' : 'destructive'}>{employee.is_active ? 'Active' : 'Inactive'}</Badge></TableCell>
                 <TableCell className="capitalize text-sm">{employee.role}</TableCell>
+                <TableCell className="text-sm font-medium">{employee.branch || 'Chennai'}</TableCell>
                 <TableCell className="font-medium">{employee.leads_count}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {employee.created_at ? format(new Date(employee.created_at), 'MMM d, yyyy') : '-'}

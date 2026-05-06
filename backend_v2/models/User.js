@@ -20,6 +20,11 @@ const userSchema = mongoose.Schema({
         enum: ['admin', 'employee', 'md', 'sub-admin', 'hr_manager', 'super-admin'],
         default: 'employee',
     },
+    branch: {
+        type: String,
+        enum: ['Chennai', 'Bangalore', 'Thirupattur', 'Krishnagiri', 'All'],
+        default: 'Chennai',
+    },
     is_active: {
         type: Boolean,
         default: true,

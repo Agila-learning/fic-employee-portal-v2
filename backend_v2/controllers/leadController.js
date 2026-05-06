@@ -3,6 +3,7 @@ const Lead = require('../models/Lead');
 const createLead = async (req, res) => {
     const lead = new Lead({
         ...req.body,
+        branch: req.body.branch || req.user.branch || 'Chennai',
         created_by: req.user._id,
     });
     try {
@@ -16,9 +17,14 @@ const createLead = async (req, res) => {
 const getLeads = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 0;
-        const filter = (['admin', 'sub-admin', 'md', 'super-admin', 'hr_manager'].includes(req.user.role))
-            ? {}
-            : { $or: [{ assigned_to: req.user._id }, { created_by: req.user._id }] };
+        let filter = {};
+        if (req.user.role === 'super-admin') {
+            filter = { branch: req.user.branch };
+        } else if (['admin', 'sub-admin', 'md', 'hr_manager'].includes(req.user.role)) {
+            filter = {};
+        } else {
+            filter = { $or: [{ assigned_to: req.user._id }, { created_by: req.user._id }] };
+        }
         
         let query = Lead.find(filter)
             .populate('assigned_to', 'name email')
@@ -59,9 +65,17 @@ const deleteLead = async (req, res) => {
             const isCreator = lead.created_by && lead.created_by.toString() === req.user._id.toString();
             const isAssignee = lead.assigned_to && lead.assigned_to.toString() === req.user._id.toString();
 
-            if (['admin', 'sub-admin', 'md', 'super-admin', 'hr_manager'].includes(req.user.role) || isCreator || isAssignee) {
+            if (['admin', 'sub-admin', 'md', 'hr_manager'].includes(req.user.role) || isCreator || isAssignee) {
                 await lead.deleteOne();
                 res.json({ message: 'Lead removed' });
+            } else if (req.user.role === 'super-admin') {
+                // Super admin can only delete leads from their own branch
+                if (lead.branch === req.user.branch) {
+                    await lead.deleteOne();
+                    res.json({ message: 'Lead removed' });
+                } else {
+                    res.status(403).json({ message: 'Not authorized to delete leads from other branches' });
+                }
             } else {
                 res.status(401).json({ message: 'Not authorized to delete this lead' });
             }
@@ -162,22 +176,23 @@ const bulkUploadLeads = async (req, res) => {
                 // Generate a candidate ID if not provided in CSV
                 const candidate_id = data.candidate_id || 'FIC-' + Math.random().toString(36).substr(2, 6).toUpperCase();
 
-                results.push({
-                    candidate_id,
-                    name: data.name || data.full_name || 'Unknown',
-                    email: data.email,
-                    phone: data.phone || '0000000000',
-                    qualification: data.qualification,
-                    past_experience: data.past_experience,
-                    current_ctc: data.current_ctc,
-                    expected_ctc: data.expected_ctc,
-                    status: data.status || 'nc1',
-                    source: data.source || 'social_media',
-                    notes: data.notes,
-                    interested_domain: data.interested_domain || 'it',
-                    created_by: req.user._id,
-                    assigned_to: data.assigned_to || null
-                });
+                    results.push({
+                        candidate_id,
+                        name: data.name || data.full_name || 'Unknown',
+                        email: data.email,
+                        phone: data.phone || '0000000000',
+                        qualification: data.qualification,
+                        past_experience: data.past_experience,
+                        current_ctc: data.current_ctc,
+                        expected_ctc: data.expected_ctc,
+                        status: data.status || 'nc1',
+                        source: data.source || 'social_media',
+                        notes: data.notes,
+                        interested_domain: data.interested_domain || 'it',
+                        branch: data.branch || req.user.branch || 'Chennai',
+                        created_by: req.user._id,
+                        assigned_to: data.assigned_to || null
+                    });
             })
             .on('end', async () => {
                 try {
