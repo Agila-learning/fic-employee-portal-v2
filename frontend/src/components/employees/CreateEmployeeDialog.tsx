@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { employeeService } from '@/api/employeeService';
 import { toast } from 'sonner';
-import { UserPlus, Mail, Lock, User, IdCard, Shield, Calendar } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, IdCard, Shield, Calendar, Building2 } from 'lucide-react';
 
 interface CreateEmployeeDialogProps {
   open: boolean;

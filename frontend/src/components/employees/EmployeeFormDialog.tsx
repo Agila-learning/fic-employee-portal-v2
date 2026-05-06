@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { Shield } from 'lucide-react';
+import { Shield, Building2 } from 'lucide-react';
 
 interface EmployeeFormDialogProps {
   open: boolean;
@@ -109,6 +109,7 @@ const EmployeeFormDialog = ({ open, onOpenChange, employee, onSuccess }: Employe
 
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
               Branch *
             </Label>
             <Select
