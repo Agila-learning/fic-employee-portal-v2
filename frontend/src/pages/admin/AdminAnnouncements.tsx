@@ -64,6 +64,13 @@ const AdminAnnouncements = () => {
                     placeholder="Announcement title"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="message">Message *</Label>
+                  <Textarea
+                    id="message"
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="Type your message here..."
                     rows={5}
                   />
                 </div>
